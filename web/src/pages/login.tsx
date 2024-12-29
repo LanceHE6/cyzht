@@ -5,12 +5,14 @@ import {
   CircularProgress,
   Image,
   Input,
+  InputOtp,
   Tab,
   Tabs,
+  Form,
 } from "@nextui-org/react";
 import React, { useRef, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useForm, UseFormReturn } from "react-hook-form";
 
 import { axiosInstance } from "../utils/axiosInstance.ts";
 import { setToken, setUser } from "../utils/localStorage";
@@ -28,39 +30,36 @@ export default function Login() {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
 
-  // 表单校验
-  const sendCodeCheck: UseFormReturn<{ account: string }> = useForm();
-  const verifyCodeCheck: UseFormReturn<{ code: string }> = useForm();
-  const pswLoginCheck: UseFormReturn<{ account: string; password: string }> =
-    useForm();
+  const [formErrors, setformErrors] = useState({});
+
+  const [isCodeInputVisible, setIsCodeInputVisible] = useState(false);
 
   // 发送验证码请求
-  const sendCode = async () => {
+  const sendCode = async (event: { preventDefault: () => void }) => {
+    event.preventDefault();
     const data = {
       account: account,
     };
+    const response = await axiosInstance.post(
+      "/api/v1/user/register&login_send_code",
+      data,
+    );
 
-    try {
-      const response = await axiosInstance.post(
-        "/api/v1/user/register&login_send_code",
-        data,
-      );
-
-      if (response.status !== 200) {
-        alert("请求出错");
-      } else if (response.data.code === 0) {
-        alert("验证码发送成功");
-        startCountdown();
-      } else {
-        alert("验证码发送失败: " + response.data.msg);
-      }
-    } catch (error) {
-      alert(error);
+    console.log("data:", response.data);
+    if (response.status !== 200) {
+      toast.error(`请求出错: ${response.data.msg}`);
+    } else if (response.data.code === 0) {
+      toast.success("验证码发送成功");
+      startCountdown();
+      setIsCodeInputVisible(true);
+    } else {
+      toast.error(`验证码发送失败: ${response.data.msg}`);
     }
   };
 
   // 验证验证码请求
-  const verifyCode = async () => {
+  const verifyCode = async (event: { preventDefault: () => void }) => {
+    event.preventDefault();
     setLoginOrRegisterBtn(() => (
       <CircularProgress aria-label="Loading..." color="default" />
     ));
@@ -69,32 +68,29 @@ export default function Login() {
         account: account,
         code: code,
       };
+      const response = await axiosInstance.post(
+        "/api/v1/user/register&login_verify_code",
+        data,
+      );
 
-      try {
-        const response = await axiosInstance.post(
-          "/api/v1/user/register&login_verify_code",
-          data,
-        );
-
-        if (response.status !== 200) {
-          alert("请求出错");
-        } else if (response.data.code === 0 || response.data.code === 1) {
-          alert("登录成功");
-          setToken(response.data.data.token);
-          setUser(response.data.data.user);
-          navigate("/");
-        } else {
-          alert("验证失败: " + response.data.msg);
-        }
-      } catch (error) {
-        alert(error);
+      if (response.status !== 200) {
+        toast.error(`请求出错: ${response.data.msg}`);
+      } else if (response.data.code === 0 || response.data.code === 1) {
+        toast.success("登录成功");
+        setToken(response.data.data.token);
+        setUser(response.data.data.user);
+        navigate("/");
+      } else {
+        toast.error(`登录失败: ${response.data.msg}`);
       }
+
       setLoginOrRegisterBtn(() => "登录/注册");
     }, 500);
   };
 
   // 密码登录请求
-  const pswLogin = async () => {
+  const pswLogin = async (event: { preventDefault: () => void }) => {
+    event.preventDefault();
     setLoginBtn(() => (
       <CircularProgress aria-label="Loading..." color="default" />
     ));
@@ -104,24 +100,17 @@ export default function Login() {
         password: password,
       };
 
-      try {
-        const response = await axiosInstance.post("/api/v1/user/login", data);
+      const response = await axiosInstance.post("/api/v1/user/login", data);
 
-        if (response.status !== 200) {
-          alert("请求出错");
-
-          return;
-        }
-        if (response.data.code === 0) {
-          alert("登录成功");
-          setToken(response.data.data.token);
-          setUser(response.data.data.user);
-          navigate("/");
-        } else {
-          alert("登录失败: " + response.data.msg);
-        }
-      } catch (error) {
-        alert(error);
+      if (response.status !== 200) {
+        toast.error(`请求出错: ${response.data.msg}`);
+      } else if (response.data.code === 0 || response.data.code === 1) {
+        toast.success("登录成功");
+        setToken(response.data.data.token);
+        setUser(response.data.data.user);
+        navigate("/");
+      } else {
+        toast.error(`登录失败: ${response.data.msg}`);
       }
       setLoginBtn(() => "登录");
     }, 500);
@@ -147,8 +136,8 @@ export default function Login() {
 
   return (
     <DefaultLayout>
-      <div className="container flex items-center justify-center w-screen h-screen bg-teal-400 ">
-        <Card isBlurred className="card w-1/2 h-4/6 min-w-96">
+      <div className="container flex items-center justify-center h-screen bg-white ">
+        <Card isBlurred className="card w-3/4 h-4/6 min-w-96">
           <CardBody className="grid grid-cols-2 gap-4 overflow-hidden py-0 px-0">
             <Image
               isBlurred
@@ -162,139 +151,148 @@ export default function Login() {
               <text className="text-6xl py-4">重邮展慧通</text>
               <br />
               <Tabs aria-label="Options">
-                <Tab key="vc" className={"w-5/6"} title="验证码登录">
+                <Tab key="vc" className={"w-10/12"} title="验证码登录">
                   <Card className="h-80">
                     <CardBody className="flex items-center justify-center">
-                      <Input
-                        isClearable
-                        isRequired
-                        className="px-3"
-                        errorMessage={
-                          sendCodeCheck.formState.errors.account &&
-                          "请输入合法邮箱"
-                        }
-                        isInvalid={
-                          sendCodeCheck.formState.errors.account && true
-                        }
-                        label="邮箱"
-                        labelPlacement="outside"
-                        size="lg"
-                        type="email"
-                        value={account}
-                        onValueChange={(newValue: string) =>
-                          setAccount(newValue)
-                        }
-                        {...sendCodeCheck.register("account", {
-                          required: true,
-                          pattern:
-                            /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/,
-                        })}
-                      />
-                      <br />
-                      <Input
-                        isRequired
-                        className="px-3"
-                        description="未注册的邮箱将会直接注册账号"
-                        endContent={
+                      {!isCodeInputVisible ? (
+                        <Form
+                          className="w-full justify-center items-center space-y-4"
+                          validationBehavior="native"
+                          validationErrors={formErrors}
+                          onSubmit={sendCode}
+                        >
+                          <Input
+                            isClearable
+                            isRequired
+                            className="px-3"
+                            description="未注册的邮箱将会直接注册账号"
+                            errorMessage={({ validationDetails }) => {
+                              if (validationDetails.valueMissing) {
+                                return "请输入邮箱";
+                              }
+                              if (validationDetails.typeMismatch) {
+                                return "请输入合法的邮箱";
+                              }
+                            }}
+                            label="邮箱"
+                            labelPlacement="outside"
+                            size="lg"
+                            type="email"
+                            value={account}
+                            onValueChange={setAccount}
+                          />
                           <Button
-                            isDisabled={sendCodeBtn !== "发送验证码"}
-                            size="sm"
-                            onClick={sendCodeCheck.handleSubmit(sendCode)}
+                            className="px-3 w-1/2"
+                            color="secondary"
+                            size="lg"
+                            type={"submit"}
                           >
                             {sendCodeBtn}
                           </Button>
-                        }
-                        errorMessage={
-                          verifyCodeCheck.formState.errors.code &&
-                          "请输入验证码"
-                        }
-                        isInvalid={
-                          verifyCodeCheck.formState.errors.code && true
-                        }
-                        label="验证码"
-                        labelPlacement="outside"
-                        size="lg"
-                        type="text"
-                        value={code}
-                        onValueChange={(newValue: string) => setCode(newValue)}
-                        {...verifyCodeCheck.register("code", {
-                          required: true,
-                        })}
-                      />
-                      <br />
-                      <Button
-                        className="px-3 w-1/2"
-                        color="secondary"
-                        size="lg"
-                        // onClick={sendCodeCheck.handleSubmit(
-                        //   verifyCodeCheck.handleSubmit(verifyCode),
-                        // )}
-                      >
-                        {loginOrRegisterBtn}
-                      </Button>
+                        </Form>
+                      ) : (
+                        <Form
+                          className="w-full justify-center items-center space-y-4"
+                          validationBehavior="native"
+                          validationErrors={formErrors}
+                          onSubmit={verifyCode}
+                        >
+                          <div className="text-default-500">验证码</div>
+                          <InputOtp
+                            isRequired
+                            className={"px-3 w-10/12"}
+                            errorMessage={({ validationDetails }) => {
+                              if (validationDetails.valueMissing) {
+                                return "请输入验证码";
+                              }
+                            }}
+                            length={6}
+                            size="md"
+                            type="number"
+                            value={code}
+                            onValueChange={setCode}
+                          />
+                          <Button
+                            className={"px-3 w-1/2"}
+                            color="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setIsCodeInputVisible(false);
+                            }}
+                          >
+                            返回
+                          </Button>
+                          <Button
+                            className="px-3 w-1/2"
+                            color="secondary"
+                            size="lg"
+                            type={"submit"}
+                          >
+                            登录/注册
+                          </Button>
+                        </Form>
+                      )}
                     </CardBody>
                   </Card>
                 </Tab>
+
                 <Tab key="psw" className={"w-5/6"} title="密码登录">
                   <Card className="h-80">
                     <CardBody className="flex items-center justify-center">
-                      <Input
-                        isClearable
-                        isRequired
-                        className="px-3"
-                        errorMessage={
-                          pswLoginCheck.formState.errors.account &&
-                          "请输入合法邮箱"
-                        }
-                        isInvalid={
-                          pswLoginCheck.formState.errors.account && true
-                        }
-                        label="邮箱"
-                        labelPlacement="outside"
-                        size="lg"
-                        type="email"
-                        value={account}
-                        onValueChange={(newValue: string) =>
-                          setAccount(newValue)
-                        }
-                        {...pswLoginCheck.register("account", {
-                          required: true,
-                          pattern:
-                            /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/,
-                        })}
-                      />
-                      <br />
-                      <Input
-                        isRequired
-                        className="px-3"
-                        errorMessage={
-                          pswLoginCheck.formState.errors.password &&
-                          "请输入密码"
-                        }
-                        isInvalid={
-                          pswLoginCheck.formState.errors.password && true
-                        }
-                        label="密码"
-                        labelPlacement="outside"
-                        size="lg"
-                        type={"password"}
-                        value={password}
-                        onValueChange={(newValue: string) =>
-                          setPassword(newValue)
-                        }
-                        {...pswLoginCheck.register("password", {
-                          required: true,
-                        })}
-                      />
-                      <br />
-                      <Button
-                        className="px-3 w-1/2"
-                        color="secondary"
-                        size="lg"
-                        onClick={pswLoginCheck.handleSubmit(pswLogin)}
+                      <Form
+                        className="w-full justify-center items-center space-y-4"
+                        validationBehavior="native"
+                        validationErrors={formErrors}
+                        onSubmit={pswLogin}
                       >
-                        {loginBtn}
-                      </Button>
+                        <Input
+                          isClearable
+                          isRequired
+                          className="px-3"
+                          errorMessage={({ validationDetails }) => {
+                            if (validationDetails.valueMissing) {
+                              return "请输入邮箱";
+                            }
+                            if (validationDetails.typeMismatch) {
+                              return "请输入合法的邮箱";
+                            }
+                          }}
+                          label="邮箱"
+                          labelPlacement="outside"
+                          size="lg"
+                          type="email"
+                          value={account}
+                          onValueChange={setAccount}
+                        />
+                        <br />
+                        <Input
+                          isRequired
+                          className="px-3"
+                          errorMessage={({ validationDetails }) => {
+                            if (validationDetails.valueMissing) {
+                              return "请输入密码";
+                            }
+                            if (validationDetails.tooShort) {
+                              return "密码长度必须大于8";
+                            }
+                          }}
+                          label="密码"
+                          labelPlacement="outside"
+                          size="lg"
+                          type={"password"}
+                          value={password}
+                          onValueChange={setPassword}
+                        />
+                        <br />
+                        <Button
+                          className="px-3 w-1/2"
+                          color="secondary"
+                          size="lg"
+                          type={"submit"}
+                        >
+                          {loginBtn}
+                        </Button>
+                      </Form>
                     </CardBody>
                   </Card>
                 </Tab>
@@ -303,6 +301,7 @@ export default function Login() {
           </CardBody>
         </Card>
       </div>
+      <ToastContainer />
     </DefaultLayout>
   );
 }
