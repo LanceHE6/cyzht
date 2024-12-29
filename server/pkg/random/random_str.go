@@ -25,19 +25,19 @@ const (
 // 3 数字和字母混合
 func CreateRandomStr(length int, strType ...StrType) string {
 	codeType := Number
-    if len(strType) > 0 {
-        codeType = strType[0]
-    }
+	if len(strType) > 0 {
+		codeType = strType[0]
+	}
 	if length < 1 || length > 20 {
 		length = 6
 	}
 	switch codeType {
 	// 纯数字验证码
-	case 1:
+	case 0:
 		format := "%0" + strconv.Itoa(length) + "v"
 		return fmt.Sprintf(format, rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(1000000))
 	// 纯字母验证码
-	case 2:
+	case 1:
 		var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		var str strings.Builder
 		for i := 0; i < length; i++ {
@@ -46,7 +46,7 @@ func CreateRandomStr(length int, strType ...StrType) string {
 		}
 		return str.String()
 	// 数字+字母验证码
-	case 3:
+	case 2:
 		var digits = []rune("0123456789")
 		var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		var sb strings.Builder

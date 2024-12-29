@@ -33,6 +33,7 @@ func (s userService) RegisterAndLoginSendCode() gin.HandlerFunc {
 		if u != nil {
 			// 生成验证码
 			code := random.CreateRandomStr(6, random.Number)
+			fmt.Println(code)
 			// 发送验证码
 			err := smtp.SMTPService.SendVerifyCodeEmail(data.Account, u.Nickname, code, smtp.LoginEmail)
 			if err != nil {

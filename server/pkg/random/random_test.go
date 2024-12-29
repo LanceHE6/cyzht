@@ -3,7 +3,7 @@ package random
 import "testing"
 
 func TestRandomStr(t *testing.T) {
-	t.Log(CreateRandomStr(1, 8))
-	t.Log(CreateRandomStr(2, 6))
-	t.Log(CreateRandomStr(3, 6))
+	t.Log(CreateRandomStr(6, Number))
+	t.Log(CreateRandomStr(4, Letter))
+	t.Log(CreateRandomStr(8, NumberAndLetter))
 }
