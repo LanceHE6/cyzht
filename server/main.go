@@ -13,6 +13,9 @@ import (
 
 func main() {
 	ginServer := gin.Default()
+	// 跨域
+	ginServer.Use(middleware.Cors())
+
 	// 加载配置
 	c := config.LoadConfig()
 	// 初始化数据库连接
@@ -30,9 +33,6 @@ func main() {
 	)
 	// 加载路由
 	handler.Route(ginServer, svc)
-
-	// 跨域
-	ginServer.Use(middleware.Cors())
 
 	err := ginServer.Run(":" + config.GetServerPort())
 	if err != nil {
