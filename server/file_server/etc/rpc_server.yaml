@@ -1,0 +1,6 @@
+Name: fileserver.rpc
+ListenOn: 0.0.0.0:5173
+DBPath: ./db/file.db
+StoragePath: storage
+Log:
+  encoding: plain

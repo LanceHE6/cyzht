@@ -1,0 +1,43 @@
+# 数据库配置
+database:
+    mysql:
+        host: localhost
+        port: 3306
+        username: root
+        password: root
+        database: net_chat
+    redis:
+        database: 0
+        host: localhost
+        password: 123456
+        port: 6379
+#    mongodb:
+#        host: localhost
+#        port: 27017
+#        username: ""
+#        password: ""
+#        database: net_chat
+
+# 服务端相关配置
+server:
+    log:
+        max_files: 15
+        path: logs
+    mode: debug
+    port: 8080
+    # jwt加密密钥
+    jwtSecret: cqupt2024
+
+    # smtp服务配置
+    smtp:
+        host: smtp.163.com
+        port: 465
+        account: noreply_netchat@163.com
+        password: ETVm5wHWHSUDCXXy
+
+    # rpc文件服务器配置
+    fileServer:
+        # 服务器rpc地址
+        rpcDns: dns:///127.0.0.1:5173
+        # 静态文件访问地址
+        staticDns: 127.0.0.1:5174/static

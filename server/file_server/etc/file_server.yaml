@@ -1,0 +1,5 @@
+Name: fileserver
+Host: 0.0.0.0
+Port: 5174
+Log:
+  encoding: plain
