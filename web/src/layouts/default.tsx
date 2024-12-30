@@ -1,6 +1,7 @@
 // import { Link } from "@nextui-org/link";
 
 import { Navbar } from "@/components/navbar";
+import { ToastContainer } from "react-toastify";
 
 export default function DefaultLayout({
   children,
@@ -24,6 +25,7 @@ export default function DefaultLayout({
       {/*    <p className="text-primary">NextUI</p>*/}
       {/*  </Link>*/}
       {/*</footer>*/}
+      <ToastContainer />
     </div>
   );
 }
