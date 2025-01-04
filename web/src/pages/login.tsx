@@ -1,24 +1,12 @@
-import {
-  Button,
-  Card,
-  CardBody,
-  CircularProgress,
-  Image,
-  Input,
-  InputOtp,
-  Tab,
-  Tabs,
-  Form,
-} from "@nextui-org/react";
+import { Card, CardBody, Image, Tab, Tabs } from "@nextui-org/react";
 
 import cover1 from "../assets/imgs/cover1.jpg";
 
 import DefaultLayout from "@/layouts/default.tsx";
-import VcLoginPanle from "@/components/login-panel/vclogin.tsx";
+import VcLoginPanel from "@/components/login-panel/vclogin.tsx";
 import PswLoginPanel from "@/components/login-panel/pswlogin";
 
 export default function Login() {
-
   return (
     <DefaultLayout>
       <div className="container flex items-center justify-center h-screen bg-white ">
@@ -33,11 +21,11 @@ export default function Login() {
               src={cover1}
             />
             <div className="form flex flex-col items-center justify-center w-full">
-              <text className="text-6xl py-4">重邮展慧通</text>
+              <text className="text-6xl py-4">重邮展会通</text>
               <br />
               <Tabs aria-label="Options">
                 <Tab key="vc" className={"w-10/12"} title="验证码登录">
-                  <VcLoginPanle />
+                  <VcLoginPanel />
                 </Tab>
 
                 <Tab key="psw" className={"w-5/6"} title="密码登录">
