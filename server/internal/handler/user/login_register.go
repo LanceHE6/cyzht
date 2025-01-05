@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"server/internal/data/model"
+	"server/internal/model"
 	"server/pkg/jwt"
 	"server/pkg/random"
 	"server/pkg/response"
@@ -16,9 +16,9 @@ import (
 // RegisterAndLoginSendCode
 //
 //	@Description: 注册和登录发送验证码
-//	@receiver s userService 服务
+//	@receiver s userHandler 服务
 //	@param context gin.Context
-func (s userService) RegisterAndLoginSendCode() gin.HandlerFunc {
+func (s userHandler) RegisterAndLoginSendCode() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		type registerRequest struct {
 			Account string `json:"account" form:"account" binding:"required"`
@@ -63,9 +63,9 @@ func (s userService) RegisterAndLoginSendCode() gin.HandlerFunc {
 // RegisterAndLoginVerifyCode
 //
 //	@Description: 验证注册和登录验证码
-//	@receiver s userService
+//	@receiver s userHandler
 //	@return gin.HandlerFunc
-func (s userService) RegisterAndLoginVerifyCode() gin.HandlerFunc {
+func (s userHandler) RegisterAndLoginVerifyCode() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		type registerRequest struct {
 			Account string `json:"account" form:"account" binding:"required"`
@@ -144,11 +144,11 @@ func (s userService) RegisterAndLoginVerifyCode() gin.HandlerFunc {
 // Login
 //
 //	@Description: 登录
-//	@receiver s userService 服务
+//	@receiver s userHandler 服务
 //	@param account 账号
 //	@param password 密码
 //	@return *pkg.Response 返回结果
-func (s userService) Login() gin.HandlerFunc {
+func (s userHandler) Login() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// loginRequest
 		//

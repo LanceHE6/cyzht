@@ -1,9 +1,9 @@
 package repo
 
 import (
-	"server/internal/data/db"
-	"server/internal/data/repo/user"
-	"server/internal/data/repo/verify_code"
+	"server/internal/db"
+	"server/internal/repo/user"
+	"server/internal/repo/verify_code"
 )
 
 type Repo struct {

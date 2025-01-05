@@ -4,8 +4,8 @@ import (
 	goredis "github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	"server/internal/config"
-	"server/internal/data/db/mysql"
-	"server/internal/data/db/redis"
+	"server/internal/db/mysql"
+	"server/internal/db/redis"
 )
 
 type DBConn struct {

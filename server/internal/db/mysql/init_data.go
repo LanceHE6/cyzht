@@ -5,7 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"log"
 	"os"
-	"server/internal/data/model"
+	"server/internal/model"
 	"server/pkg/hash"
 )
 

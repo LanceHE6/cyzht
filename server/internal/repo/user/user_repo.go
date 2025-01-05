@@ -2,8 +2,8 @@ package user
 
 import (
 	"github.com/jinzhu/gorm"
-	mysql2 "server/internal/data/db/mysql"
-	"server/internal/data/model"
+	mysql2 "server/internal/db/mysql"
+	"server/internal/model"
 	"server/pkg"
 	"server/pkg/hash"
 	"strconv"

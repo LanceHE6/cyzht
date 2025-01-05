@@ -9,9 +9,9 @@ import (
 // GetUserInfo
 //
 //	@Description: 获取用户信息
-//	@receiver s userService
+//	@receiver s userHandler
 //	@return gin.HandlerFunc 返回用户信息
-func (s userService) GetUserInfo() gin.HandlerFunc {
+func (s userHandler) GetUserInfo() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		claims, _ := GetUserInfoByContext(context)
 		user := s.UserRepo.SelectByID(claims.ID)

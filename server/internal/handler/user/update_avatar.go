@@ -17,7 +17,7 @@ var imageExt = map[string]bool{
 	".svg":  true,
 }
 
-func (s userService) UpdateAvatar() gin.HandlerFunc {
+func (s userHandler) UpdateAvatar() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		file, header, err := ctx.Request.FormFile("file")
 		if err == nil {

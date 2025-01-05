@@ -7,7 +7,7 @@ import (
 	"server/internal/handler"
 	"server/internal/middleware"
 	"server/internal/repo"
-	"server/internal/service"
+	"server/internal/router"
 	"server/pkg/smtp"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	// 初始化repo
 	repository := repo.InitRepo(dbConn)
 	// 初始化服务类
-	svc := service.InitService(c, repository)
+	svc := handler.InitHandler(c, repository)
 	// 初始化smtp服务
 	smtp.InitSMTPService(
 		c.Server.SMTP.Host,
@@ -33,7 +33,7 @@ func main() {
 		c.Server.SMTP.Password,
 	)
 	// 加载路由
-	handler.Route(ginServer, svc)
+	router.InitRouter(ginServer, svc)
 
 	err := ginServer.Run(":" + config.GetServerPort())
 	if err != nil {

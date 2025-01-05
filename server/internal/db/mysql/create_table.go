@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"github.com/jinzhu/gorm"
-	"server/internal/data/model"
+	"server/internal/model"
 )
 
 // CreateTable

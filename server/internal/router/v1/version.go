@@ -2,15 +2,15 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"server/internal/service/version"
+	"server/internal/handler/version"
 )
 
-// VersionRoute
+// RegisterVersionRouter
 //
 //	@Description: 版本路由
 //	@param group *gin.RouterGroup
-func VersionRoute(group *gin.RouterGroup) {
-	versionService := version.NewVersionService()
+func RegisterVersionRouter(group *gin.RouterGroup) {
+	versionService := version.NewVersionHandler()
 
 	group.GET("/ver", func(context *gin.Context) {
 		versionService.GetVersion()

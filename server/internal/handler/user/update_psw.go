@@ -10,12 +10,12 @@ import (
 // UpdatePassword
 //
 //	@Description: 修改密码
-//	@receiver s userService
+//	@receiver s userHandler
 //	@param id 用户id
 //	@param oldPsw 原密码
 //	@param newPsw 新密码
 //	@return *pkg.Response 返回结果
-func (s userService) UpdatePassword() gin.HandlerFunc {
+func (s userHandler) UpdatePassword() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		// updatePasswordRequest
 		// @Description: 修改密码请求参数结构体

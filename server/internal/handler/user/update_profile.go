@@ -9,9 +9,9 @@ import (
 // UpdateProfile
 //
 //	@Description: 更新用户信息
-//	@receiver s userService
+//	@receiver s userHandler
 //	@return gin.HandlerFunc
-func (s userService) UpdateProfile() gin.HandlerFunc {
+func (s userHandler) UpdateProfile() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		type updateProfileReq struct {
 			Nickname string `json:"nickname" form:"nickname"`

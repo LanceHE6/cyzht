@@ -11,7 +11,7 @@ import (
 )
 
 // AuthMiddleware 基础鉴权的中间件
-func (s userService) AuthMiddleware() gin.HandlerFunc {
+func (s userHandler) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -98,7 +98,7 @@ func GetUserInfoByContext(context *gin.Context) (jwt2.MyClaims, error) {
 //	@param token string
 //	@return bool 是否验证成功
 //	@return pkg.MyClaims 用户信息
-func (s userService) Auth(token string) (bool, jwt2.MyClaims) {
+func (s userHandler) Auth(token string) (bool, jwt2.MyClaims) {
 	// 解析token
 	claims := jwt2.MyClaims{}
 	bearToken, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {

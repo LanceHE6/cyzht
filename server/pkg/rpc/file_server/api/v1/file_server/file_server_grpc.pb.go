@@ -23,7 +23,7 @@ const (
 	FileService_GetAvatarUrl_FullMethodName = "/file_server.FileService/GetAvatarUrl"
 )
 
-// FileServiceClient is the client API for FileService service.
+// FileServiceClient is the client API for FileService handler.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
@@ -62,7 +62,7 @@ func (c *fileServiceClient) GetAvatarUrl(ctx context.Context, in *GetAvatarUrlRe
 	return out, nil
 }
 
-// FileServiceServer is the server API for FileService service.
+// FileServiceServer is the server API for FileService handler.
 // All implementations must embed UnimplementedFileServiceServer
 // for forward compatibility.
 //
@@ -90,7 +90,7 @@ func (UnimplementedFileServiceServer) GetAvatarUrl(context.Context, *GetAvatarUr
 func (UnimplementedFileServiceServer) mustEmbedUnimplementedFileServiceServer() {}
 func (UnimplementedFileServiceServer) testEmbeddedByValue()                     {}
 
-// UnsafeFileServiceServer may be embedded to opt out of forward compatibility for this service.
+// UnsafeFileServiceServer may be embedded to opt out of forward compatibility for this handler.
 // Use of this interface is not recommended, as added methods to FileServiceServer will
 // result in compilation errors.
 type UnsafeFileServiceServer interface {
@@ -144,7 +144,7 @@ func _FileService_GetAvatarUrl_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
-// FileService_ServiceDesc is the grpc.ServiceDesc for FileService service.
+// FileService_ServiceDesc is the grpc.ServiceDesc for FileService handler.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var FileService_ServiceDesc = grpc.ServiceDesc{

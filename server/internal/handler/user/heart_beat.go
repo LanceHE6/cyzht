@@ -9,9 +9,9 @@ package user
 //// OnlineHeartbeat
 ////
 ////	@Description: 在线心跳
-////	@receiver s userService
+////	@receiver s userHandler
 ////	@return gin.HandlerFunc
-//func (s userService) OnlineHeartbeat() gin.HandlerFunc {
+//func (s userHandler) OnlineHeartbeat() gin.HandlerFunc {
 //	return func(context *gin.Context) {
 //		conn, err := upgrade.Upgrade(context.Writer, context.Request, nil)
 //		if err != nil {
@@ -59,7 +59,7 @@ package user
 ////
 ////	@Description: 心跳
 ////	@param conn websocket连接
-//func (s userService) heartbeat(conn *websocket.Conn, user jwt.MyClaims) {
+//func (s userHandler) heartbeat(conn *websocket.Conn, user jwt.MyClaims) {
 //	// 每5秒发送一次心跳包
 //	ticker := time.NewTicker(5 * time.Second)
 //	defer ticker.Stop()
