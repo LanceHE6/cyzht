@@ -5,7 +5,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	jwt2 "server/pkg/jwt"
+	myjwt "server/pkg/jwt"
 	"server/pkg/response"
 	"strings"
 )
@@ -26,15 +26,15 @@ func (s userHandler) AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		myClaims, err := GetUserInfoByContext(c)
+		myClaims, err := myjwt.GetClaimsByContext(c)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, response.NewResponse(13, "非法token", err.Error()))
 			c.Abort()
 			return
 		}
 
-		token, err := jwt.ParseWithClaims(bearerToken[1], &jwt2.MyClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return jwt2.JwtKey, nil
+		token, err := jwt.ParseWithClaims(bearerToken[1], &myjwt.MyClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return myjwt.JwtKey, nil
 		})
 
 		if err != nil {
@@ -64,63 +64,12 @@ func (s userHandler) AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 		}
 
-		if _, ok := token.Claims.(*jwt2.MyClaims); ok && token.Valid {
+		if _, ok := token.Claims.(*myjwt.MyClaims); ok && token.Valid {
 			c.Next()
 		} else {
 			c.JSON(http.StatusUnauthorized, response.NewResponse(18, "非法token", nil))
 			c.Abort()
 			return
 		}
-	}
-}
-
-// GetUserInfoByContext
-//
-//	@Description: 从context中获取用户信息
-//	@param context *gin.Context
-//	@return pkg.MyClaims 用户信息
-//	@return error 错误信息
-func GetUserInfoByContext(context *gin.Context) (jwt2.MyClaims, error) {
-	authHeader := context.GetHeader("Authorization")
-	bearerToken := strings.Split(authHeader, " ")
-	// 解析token
-	claims := jwt2.MyClaims{}
-	_, err := jwt.ParseWithClaims(bearerToken[1], &claims, func(token *jwt.Token) (interface{}, error) {
-		return jwt2.JwtKey, nil
-	})
-	// 从token中获取载荷数据
-	return claims, err
-}
-
-// Auth
-//
-//	@Description: token验证
-//	@param token string
-//	@return bool 是否验证成功
-//	@return pkg.MyClaims 用户信息
-func (s userHandler) Auth(token string) (bool, jwt2.MyClaims) {
-	// 解析token
-	claims := jwt2.MyClaims{}
-	bearToken, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
-		return jwt2.JwtKey, nil
-	})
-
-	if err != nil {
-		return false, claims
-	}
-
-	// 判断是否在数据库中
-	user := s.UserRepo.SelectByID(claims.ID)
-	if user == nil {
-		return false, claims
-	}
-	if user.SessionID != claims.SessionID {
-		return false, claims
-	}
-
-	if _, ok := bearToken.Claims.(*jwt2.MyClaims); ok && bearToken.Valid {
-		return true, claims
-	} else {
-		return false, claims
 	}
 }
