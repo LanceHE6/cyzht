@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"server/pkg/hash"
+	"server/pkg/jwt"
 	"server/pkg/response"
 )
 
@@ -28,7 +29,7 @@ func (s userHandler) UpdatePassword() gin.HandlerFunc {
 			context.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))
 			return
 		}
-		claims, err := GetUserInfoByContext(context)
+		claims, err := jwt.GetClaimsByContext(context)
 		if err != nil {
 			context.JSON(http.StatusBadRequest, response.FailedResponse(10, err.Error()))
 		}

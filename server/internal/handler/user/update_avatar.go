@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"path"
+	"server/pkg/jwt"
 	"server/pkg/response"
 	"server/pkg/rpc/file_server/api/v1/file_server"
 )
@@ -22,7 +23,7 @@ func (s userHandler) UpdateAvatar() gin.HandlerFunc {
 		file, header, err := ctx.Request.FormFile("file")
 		if err == nil {
 			filename := header.Filename
-			userInfo, _ := GetUserInfoByContext(ctx)
+			userInfo, _ := jwt.GetClaimsByContext(ctx)
 			// 判断文件类型是否为图片
 			// 获取文件后缀
 			extString := path.Ext(filename)

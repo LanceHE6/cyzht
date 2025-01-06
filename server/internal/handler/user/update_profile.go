@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"server/pkg/jwt"
 	"server/pkg/response"
 )
 
@@ -26,7 +27,7 @@ func (s userHandler) UpdateProfile() gin.HandlerFunc {
 			context.JSON(http.StatusBadRequest, response.FailedResponse(100, "无修改参数"))
 			return
 		}
-		userInfo, _ := GetUserInfoByContext(context)
+		userInfo, _ := jwt.GetClaimsByContext(context)
 		err := s.UserRepo.UpdateProfile(userInfo.ID, data.Nickname, data.Sex)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, err.Error()))
