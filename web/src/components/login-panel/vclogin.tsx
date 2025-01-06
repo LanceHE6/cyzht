@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 
 import { setToken, setUser } from "@/utils/localStorage";
 import { axiosInstance } from "@/utils/axiosInstance.ts";
-
+import { websocketClient } from "@/utils/websocket.ts";
 // 验证码登陆面板
 export default function VcLoginPanel() {
   const navigate = useNavigate();
@@ -73,6 +73,8 @@ export default function VcLoginPanel() {
         setToken(response.data.data.token);
         setUser(response.data.data.user);
         setTimeout(() => {
+          // 初始化在线心跳
+          websocketClient.close();
           navigate("/");
         }, 1000);
       } else {
