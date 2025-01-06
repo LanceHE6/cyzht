@@ -16,11 +16,11 @@ type UserHandlerInterface interface {
 	RegisterAndLoginSendCode() gin.HandlerFunc   // 发送登录注册验证码
 	RegisterAndLoginVerifyCode() gin.HandlerFunc // 验证登录注册验证码
 	Login() gin.HandlerFunc                      // 用户登录
-	//OnlineHeartbeat() gin.HandlerFunc            // 用户在线心跳
-	UpdatePassword() gin.HandlerFunc // 修改密码
-	UpdateAvatar() gin.HandlerFunc   // 修改头像
-	UpdateProfile() gin.HandlerFunc  // 修改个人资料
-	GetUserInfo() gin.HandlerFunc    // 获取用户信息
+	OnlineHeartbeat() gin.HandlerFunc            // 用户在线心跳
+	UpdatePassword() gin.HandlerFunc             // 修改密码
+	UpdateAvatar() gin.HandlerFunc               // 修改头像
+	UpdateProfile() gin.HandlerFunc              // 修改个人资料
+	GetUserInfo() gin.HandlerFunc                // 获取用户信息
 }
 
 // userHandler
