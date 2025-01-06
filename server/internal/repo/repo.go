@@ -13,7 +13,7 @@ type Repo struct {
 
 func InitRepo(conn *db.DBConn) *Repo {
 	return &Repo{
-		UserRepo:       user.NewUserRepo(conn.MySQLConn),
+		UserRepo:       user.NewUserRepo(conn.MySQLConn, conn.RedisConn),
 		VerifyCodeRepo: verify_code.NewVerifyCodeRepo(conn.RedisConn),
 	}
 }
