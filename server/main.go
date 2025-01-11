@@ -17,8 +17,8 @@ func main() {
 	ginServer.Use(middleware.Cors())
 	ginServer.Use(middleware.LoggerToFile())
 
-	// 加载配置
-	c := config.LoadConfig()
+	// 获取配置
+	c := config.GetConfig()
 	// 初始化数据库连接
 	dbConn := db.InitDBConn(c)
 	// 初始化repo
@@ -35,7 +35,7 @@ func main() {
 	// 加载路由
 	router.InitRouter(ginServer, svc)
 
-	err := ginServer.Run(":" + config.GetServerPort())
+	err := ginServer.Run(":" + c.Server.Port)
 	if err != nil {
 		return
 	}

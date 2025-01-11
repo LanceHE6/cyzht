@@ -40,4 +40,4 @@ server:
         # 服务器rpc地址
         rpcDns: dns:///127.0.0.1:5173
         # 静态文件访问地址
-        staticDns: 127.0.0.1:5174/static
+        staticUrl: 127.0.0.1:5174/static

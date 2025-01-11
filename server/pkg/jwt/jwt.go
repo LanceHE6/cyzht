@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var JwtKey = []byte(config.ConfigData.Server.JWTSecret) // 用于签名的密钥
+var JwtKey = []byte(config.GetConfig().Server.JWTSecret) // 用于签名的密钥
 
 // MyClaims 自定义载荷内容
 type MyClaims struct {

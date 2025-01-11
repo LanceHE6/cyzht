@@ -17,7 +17,7 @@ func (s userHandler) GetUserInfo() gin.HandlerFunc {
 		claims, _ := jwt.GetClaimsByContext(context)
 		user := s.UserRepo.SelectByID(claims.ID)
 		// 拼接头像地址
-		user.Avatar = s.C.Server.FileServer.StaticDNS + user.Avatar
+		user.Avatar = s.C.Server.FileServer.StaticURL + user.Avatar
 		context.JSON(http.StatusOK, response.SuccessResponse(user))
 	}
 }
