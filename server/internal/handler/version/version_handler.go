@@ -5,7 +5,7 @@ import (
 )
 
 type VersionHandlerInterface interface {
-	GetVersion() gin.HandlerFunc // 获取版本号
+	GetVersion(ctx *gin.Context) // 获取版本号
 }
 
 type versionHandler struct {
