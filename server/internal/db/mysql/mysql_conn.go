@@ -7,6 +7,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"os"
 	"server/internal/config"
+	"server/internal/model"
 	"server/pkg/logger"
 	"server/pkg/snowflake"
 )
@@ -88,7 +89,7 @@ func InitMySQLConn(c *config.Config) *gorm.DB {
 	})
 
 	// 自动建表
-	CreateTable(db)
+	model.CreateTable(db)
 
 	// 初始化数据
 	logger.Logger.Info("Init data...")

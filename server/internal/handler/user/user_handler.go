@@ -3,8 +3,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"server/internal/config"
-	"server/internal/repo/user"
-	"server/internal/repo/verify_code"
+	"server/internal/repo"
 	"server/pkg/rpc/file_server/api/v1/file_server"
 )
 
@@ -28,8 +27,8 @@ type UserHandlerInterface interface {
 //	@Description: 用户服务实现
 type userHandler struct {
 	C              *config.Config
-	UserRepo       user.UserRepoInterface
-	VerifyCodeRepo verify_code.VerifyCodeRepoInterface
+	UserRepo       repo.UserRepoInterface
+	VerifyCodeRepo repo.VerifyCodeRepoInterface
 	FileRpcServer  file_server.FileServiceClient
 }
 
@@ -39,8 +38,8 @@ type userHandler struct {
 //	@return UserHandlerInterface 用户服务实例
 func NewUserHandler(
 	c *config.Config,
-	userRepo user.UserRepoInterface,
-	verifyCodeRepo verify_code.VerifyCodeRepoInterface,
+	userRepo repo.UserRepoInterface,
+	verifyCodeRepo repo.VerifyCodeRepoInterface,
 	fileRpcServer file_server.FileServiceClient,
 ) UserHandlerInterface {
 	return &userHandler{
