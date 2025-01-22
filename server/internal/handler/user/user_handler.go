@@ -11,7 +11,6 @@ import (
 //
 //	@Description: 用户服务接口
 type UserHandlerInterface interface {
-	AuthMiddleware() gin.HandlerFunc             // 鉴权
 	RegisterAndLoginSendCode() gin.HandlerFunc   // 发送登录注册验证码
 	RegisterAndLoginVerifyCode() gin.HandlerFunc // 验证登录注册验证码
 	Login() gin.HandlerFunc                      // 用户登录
