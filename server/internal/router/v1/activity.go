@@ -13,4 +13,5 @@ import (
 func RegisterActivityRouter(group *gin.RouterGroup, activityHandler activity.ActivityHandlerInterface) {
 	userGroup := group.Group("/activity")
 	userGroup.POST("/add", middleware.Auth(), activityHandler.AddActivity)
+	userGroup.DELETE("/del", middleware.Auth(), activityHandler.DeleteActivity)
 }
