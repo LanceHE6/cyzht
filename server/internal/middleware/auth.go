@@ -20,13 +20,8 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		if !strings.HasPrefix(authHeader, "Bearer ") || !strings.HasPrefix(authHeader, "bearer ") {
-			c.JSON(http.StatusUnauthorized, response.NewResponse(12, "invalid Authorization header format", nil))
-			c.Abort()
-			return
-		}
 		bearerToken := strings.Split(authHeader, " ")
-		if len(bearerToken) != 2 {
+		if len(bearerToken) != 2 || (bearerToken[0] != "Bearer" && bearerToken[0] != "bearer") {
 			c.JSON(http.StatusUnauthorized, response.NewResponse(12, "invalid Authorization header format", nil))
 			c.Abort()
 			return
