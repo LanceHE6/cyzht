@@ -1,14 +1,20 @@
 package jwt
 
 import (
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"server/internal/config"
+	"server/internal/repo"
 	"strings"
 	"time"
 )
 
-var JwtKey = []byte(config.GetConfig().Server.JWTSecret) // 用于签名的密钥
+var SecretKey = []byte(config.GetConfig().Server.JWTSecret) // 用于签名的密钥
+
+func KeyFunc(*jwt.Token) (interface{}, error) {
+	return SecretKey, nil
+}
 
 // MyClaims 自定义载荷内容
 type MyClaims struct {
@@ -43,7 +49,7 @@ func GenerateToken(id int64, sessionID string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(JwtKey)
+	tokenString, err := token.SignedString(SecretKey)
 
 	if err != nil {
 		return "", err
@@ -61,16 +67,11 @@ func GenerateToken(id int64, sessionID string) (string, error) {
 func GetClaimsByContext(context *gin.Context) (*MyClaims, error) {
 	authHeader := context.GetHeader("Authorization")
 	bearerToken := strings.Split(authHeader, " ")
-	// 解析token
-	claims := &MyClaims{}
-	_, err := jwt.ParseWithClaims(bearerToken[1], claims, func(token *jwt.Token) (interface{}, error) {
-		return JwtKey, nil
-	})
-	if err != nil {
-		return nil, err
+	claims, ok := Check(bearerToken[1])
+	if !ok {
+		return nil, errors.New("invalid token")
 	}
-	// 从token中获取载荷数据
-	return claims, err
+	return &claims, nil
 }
 
 // Check
@@ -79,18 +80,23 @@ func GetClaimsByContext(context *gin.Context) (*MyClaims, error) {
 //	@param token string
 //	@return bool 是否通过
 //	@return MyClaims 载荷数据
-func Check(token string) (MyClaims, bool) {
+func Check(tokenStr string) (MyClaims, bool) {
 	// 解析token
 	claims := MyClaims{}
-	bearToken, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
-		return JwtKey, nil
-	})
+	token, err := jwt.ParseWithClaims(tokenStr, &claims, KeyFunc)
 
 	if err != nil {
 		return claims, false
 	}
 
-	if _, ok := bearToken.Claims.(*MyClaims); ok && bearToken.Valid {
+	// 校验token的session_id是否有效
+	userRepo := repo.GetRepo().UserRepo
+	user := userRepo.SelectByID(claims.ID)
+	if user == nil || user.SessionID != claims.SessionID {
+		return claims, false
+	}
+
+	if _, ok := token.Claims.(*MyClaims); ok && token.Valid {
 		return claims, true
 	} else {
 		return claims, false
