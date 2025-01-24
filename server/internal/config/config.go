@@ -75,15 +75,15 @@ func (c *Config) string() string {
 // GetConfig 获取全局配置变量
 func GetConfig() *Config {
 	once.Do(func() {
-		initConfig()
+		InitConfig()
 	})
 	return c
 }
 
-// initConfig
+// InitConfig
 //
 //	@Description: 初始化配置
-func initConfig() *Config {
+func InitConfig() *Config {
 	v = viper.New()
 	v.SetConfigName("config")                 // 配置文件的名称（不需要带后缀）
 	v.SetConfigType("yaml")                   // 配置文件的类型

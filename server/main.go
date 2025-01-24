@@ -18,13 +18,14 @@ func main() {
 	ginServer.Use(middleware.LoggerToFile())
 
 	// 获取配置
-	c := config.GetConfig()
+	c := config.InitConfig()
 	// 初始化数据库连接
 	dbConn := db.InitDBConn(c)
 	// 初始化repo
 	repository := repo.InitRepo(dbConn)
 	// 初始化服务类
 	svc := handler.InitHandler(c, repository)
+
 	// 初始化smtp服务
 	smtp.InitSMTPService(
 		c.Server.SMTP.Host,

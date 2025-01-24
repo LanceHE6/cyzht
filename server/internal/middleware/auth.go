@@ -1,11 +1,9 @@
 package middleware
 
 import (
-	"errors"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	myjwt "server/pkg/jwt"
+	"server/pkg/jwt"
 	"server/pkg/response"
 	"strings"
 )
@@ -27,30 +25,11 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 
-		token, err := jwt.ParseWithClaims(bearerToken[1], &myjwt.MyClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return myjwt.JwtKey, nil
-		})
-
-		if err != nil {
-			var ve *jwt.ValidationError
-			if errors.As(err, &ve) {
-				if ve.Errors&jwt.ValidationErrorExpired != 0 {
-					// Token is expired
-					c.JSON(http.StatusUnauthorized, response.NewResponse(13, "token is expired", nil))
-				} else {
-					// Other errors
-					c.JSON(http.StatusUnauthorized, response.NewResponse(14, "invalid token", nil))
-				}
-			}
+		if _, ok := jwt.Check(bearerToken[1]); !ok {
+			c.JSON(http.StatusUnauthorized, response.NewResponse(13, "invalid token", nil))
 			c.Abort()
 			return
 		}
-		if _, ok := token.Claims.(*myjwt.MyClaims); ok && token.Valid {
-			c.Next()
-		} else {
-			c.JSON(http.StatusUnauthorized, response.NewResponse(15, "invalid token", nil))
-			c.Abort()
-			return
-		}
+		c.Next()
 	}
 }
