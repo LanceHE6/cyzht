@@ -8,10 +8,13 @@ import (
 	"server/internal/middleware"
 	"server/internal/repo"
 	"server/internal/router"
+	"server/pkg/logo"
 	"server/pkg/smtp"
 )
 
 func main() {
+	logo.PrintLogo()
+
 	ginServer := gin.Default()
 	// 跨域
 	ginServer.Use(middleware.Cors())

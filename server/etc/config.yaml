@@ -5,18 +5,12 @@ database:
         port: 3306
         username: root
         password: root
-        database: net_chat
+        database: cyzht
     redis:
         database: 0
         host: localhost
         password: 123456
         port: 6379
-#    mongodb:
-#        host: localhost
-#        port: 27017
-#        username: ""
-#        password: ""
-#        database: net_chat
 
 # 服务端相关配置
 server:
@@ -26,7 +20,7 @@ server:
     mode: debug
     port: 8080
     # jwt加密密钥
-    jwtSecret: cqupt2024
+    jwtSecret: cyzht
 
     # smtp服务配置
     smtp:
