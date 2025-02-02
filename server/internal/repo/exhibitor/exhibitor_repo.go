@@ -1,4 +1,4 @@
-package repo
+package exhibitor
 
 import (
 	"github.com/jinzhu/gorm"

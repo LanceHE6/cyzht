@@ -1,4 +1,4 @@
-package repo
+package verifycode
 
 import (
 	"github.com/go-redis/redis"

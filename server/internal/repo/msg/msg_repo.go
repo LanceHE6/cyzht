@@ -1,4 +1,4 @@
-package repo
+package msg
 
 import (
 	"github.com/jinzhu/gorm"
