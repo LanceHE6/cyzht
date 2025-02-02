@@ -12,8 +12,8 @@ type ActivityModel struct {
 	StartAt      time.Time `gorm:"column:start_at;type:datetime;not null" json:"start_at"`                // 活动开始时间
 	EndAt        time.Time `gorm:"column:end_at;type:datetime;not null" json:"end_at"`                    // 活动结束时间
 	Location     string    `gorm:"column:location;type:varchar(255);not null" json:"location"`            // 活动地点
-	PromoterID   int64     `gorm:"column:promoter_id;type:bigint;not null" json:"promoter_id"`            // 活动发起人ID
-	Promoter     UserModel `gorm:"foreignKey:PromoterID;references:ID" json:"promoter"`                   // 活动发起人
+	CreatorID    int64     `gorm:"column:creator_id;type:bigint;not null" json:"creator_id"`              // 活动发起人ID
+	Creator      UserModel `gorm:"foreignKey:CreatorID;references:ID" json:"creator"`                     // 活动发起人
 	IsDeleted    bool      `gorm:"column:is_deleted;type:tinyint(1);default 0" json:"is_deleted"`         // 是否被标记删除
 }
 
