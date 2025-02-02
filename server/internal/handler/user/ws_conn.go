@@ -8,6 +8,7 @@ import (
 	"server/pkg/jwt"
 	"server/pkg/logger"
 	"server/pkg/response"
+	"server/pkg/wsmanager"
 	"time"
 )
 
@@ -20,6 +21,9 @@ var upgrade = websocket.Upgrader{
 		return true
 	},
 }
+
+// ClientConn 全局ws连接管理
+var ClientConn = wsmanager.NewWSManager()
 
 // OnlineHeartbeat
 func (s userHandler) OnlineHeartbeat() gin.HandlerFunc {
@@ -56,6 +60,8 @@ func (s userHandler) handleWebSocketConnection(conn *websocket.Conn, claims jwt.
 	}
 	logger.Logger.Debugf("用户 %d 已上线", claims.ID)
 
+	// 添加连接到管理器
+	ClientConn.Add(claims.ID, conn)
 	// 关闭连接
 	defer func(conn *websocket.Conn, user jwt.MyClaims) {
 		// 设置用户离线状态
@@ -67,6 +73,8 @@ func (s userHandler) handleWebSocketConnection(conn *websocket.Conn, claims jwt.
 		if err != nil {
 			return
 		}
+		// 移除连接
+		ClientConn.Remove(claims.ID)
 	}(conn, claims)
 
 	go s.heartbeat(conn, claims) // 启动心跳协程
