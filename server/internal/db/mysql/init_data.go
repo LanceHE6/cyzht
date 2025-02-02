@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"server/internal/model"
-	"server/pkg/hash"
+	"server/pkg/encrypt"
 )
 
 // InitData
@@ -16,7 +16,7 @@ func InitData() {
 	// 初始化用户数据
 	createIfNotExists(db, &model.UserModel{
 		Account:  "admin",
-		Password: hash.HashPsw("123456"),
+		Password: encrypt.HashPsw("123456"),
 		Nickname: "admin",
 	}, "admin", "account")
 }

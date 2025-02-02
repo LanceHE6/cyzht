@@ -3,7 +3,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"server/pkg/hash"
+	"server/pkg/encrypt"
 	"server/pkg/jwt"
 	"server/pkg/response"
 )
@@ -39,7 +39,7 @@ func (s userHandler) UpdatePassword(ctx *gin.Context) {
 	}
 
 	// 修改自己密码
-	if !hash.CheckPsw(user.Password, data.OldPassword) {
+	if !encrypt.CheckPsw(user.Password, data.OldPassword) {
 		ctx.JSON(http.StatusOK, response.FailedResponse(1, "原密码错误"))
 		return
 	}

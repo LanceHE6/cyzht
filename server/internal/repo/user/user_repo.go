@@ -7,7 +7,7 @@ import (
 	mysql2 "server/internal/db/mysql"
 	"server/internal/model"
 	"server/pkg"
-	"server/pkg/hash"
+	"server/pkg/encrypt"
 	"strconv"
 	"time"
 )
@@ -114,7 +114,7 @@ func (u *userRepo) SelectByID(id int64) *model.UserModel {
 //	@return *model.UserModel 用户数据
 func (u *userRepo) SelectByAccountAndPsw(account, password string) *model.UserModel {
 	var user model.UserModel
-	err := u.modelMyDB().Where("account = ? and password = ?", account, hash.HashPsw(password)).First(&user)
+	err := u.modelMyDB().Where("account = ? and password = ?", account, encrypt.HashPsw(password)).First(&user)
 	if err.Error != nil {
 		return nil
 	}
@@ -140,7 +140,7 @@ func (u *userRepo) SelectAll() []model.UserModel {
 //	@return error 错误信息
 func (u *userRepo) Insert(user model.UserModel) error {
 	// 密码加密
-	user.Password = hash.HashPsw(user.Password)
+	user.Password = encrypt.HashPsw(user.Password)
 	return u.modelMyDB().Create(&user).Error
 }
 
@@ -163,7 +163,7 @@ func (u *userRepo) UpdateSessionID(id int64, sessionID string) error {
 //	@param newPsw string 新密码
 //	@return error 错误信息
 func (u *userRepo) UpdatePassword(id int64, newPsw string) error {
-	return u.modelMyDB().Where("id = ?", id).Update("password", hash.HashPsw(newPsw)).Error
+	return u.modelMyDB().Where("id = ?", id).Update("password", encrypt.HashPsw(newPsw)).Error
 }
 
 func (u *userRepo) SearchUsers(params pkg.SearchUsersParams) ([]model.UserModel, int) {
