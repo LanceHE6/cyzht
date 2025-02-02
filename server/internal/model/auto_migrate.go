@@ -11,4 +11,6 @@ import (
 func CreateTable(db *gorm.DB) {
 	db.AutoMigrate(&UserModel{})
 	db.AutoMigrate(&ActivityModel{})
+	db.AutoMigrate(&MsgModel{})
+	db.AutoMigrate(&ExhibitorModel{})
 }

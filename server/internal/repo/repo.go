@@ -9,6 +9,8 @@ type Repo struct {
 	UserRepo       UserRepoInterface
 	VerifyCodeRepo VerifyCodeRepoInterface
 	ActivityRepo   ActivityRepoInterface
+	ExhibitorRepo  ExhibitorRepoInterface
+	MsgRepo        MsgRepoInterface
 }
 
 // repo 全局repo单例
@@ -23,6 +25,8 @@ func InitRepo(conn *db.DBConn) *Repo {
 				UserRepo:       NewUserRepo(conn.MySQLConn, conn.RedisConn),
 				VerifyCodeRepo: NewVerifyCodeRepo(conn.RedisConn),
 				ActivityRepo:   NewActivityRepo(conn.MySQLConn),
+				ExhibitorRepo:  NewExhibitorRepo(conn.MySQLConn),
+				MsgRepo:        NewMsgRepo(conn.MySQLConn),
 			}
 		})
 	}
