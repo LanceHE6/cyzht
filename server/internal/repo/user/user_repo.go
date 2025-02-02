@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
-	mysql2 "server/internal/db/mysql"
 	"server/internal/model"
-	"server/pkg"
 	"server/pkg/encrypt"
 	"strconv"
 	"time"
@@ -31,7 +29,6 @@ type UserRepoInterface interface {
 	UpdateOnlineStatus(id int64, onlineStatus int) error
 	UpdateAvatar(id int64, avatarUrl string) error
 	UpdateProfile(id int64, nickname string, sex int) error
-	SearchUsers(params pkg.SearchUsersParams) ([]model.UserModel, int)
 
 	// SetUserOnline 设置用户在线状态
 	SetUserOnline(userID int64, sessionID string, activityID uint) error
@@ -164,50 +161,6 @@ func (u *userRepo) UpdateSessionID(id int64, sessionID string) error {
 //	@return error 错误信息
 func (u *userRepo) UpdatePassword(id int64, newPsw string) error {
 	return u.modelMyDB().Where("id = ?", id).Update("password", encrypt.HashPsw(newPsw)).Error
-}
-
-func (u *userRepo) SearchUsers(params pkg.SearchUsersParams) ([]model.UserModel, int) {
-	query := mysql2.GetMySQLConnection().Table("users")
-	if params.Account != nil {
-		query = query.Where("account like ?", "%"+*params.Account+"%")
-	}
-	if params.Name != nil {
-		query = query.Where("name like ?", "%"+*params.Name+"%")
-	}
-	if params.Keyword != nil {
-		query = query.Where("account like ? OR name like ? ",
-			"%"+*params.Keyword+"%",
-			"%"+*params.Keyword+"%",
-		)
-	}
-	if params.Direction != nil {
-		// 未填写方向的
-		if *params.Direction == 0 {
-			query = query.Where("JSON_LENGTH(direction) = 0")
-		} else // 填写了两个方向的
-		if *params.Direction == 3 {
-			query = query.Where("JSON_CONTAINS(direction, '1') AND JSON_CONTAINS(direction, '2')")
-		} else {
-			// 查询单个方向的
-			query = query.Where("JSON_CONTAINS(direction, ?)", strconv.Itoa(*params.Direction))
-		}
-	}
-	// 统计总数
-	var count int
-	query.Count(&count)
-	// 分页
-	if params.Limit != nil {
-		query = query.Limit(*params.Limit)
-	} else {
-		params.Limit = new(int)
-		*params.Limit = 10
-	}
-	if params.Page != nil {
-		query = query.Offset((*params.Page - 1) * *params.Limit)
-	}
-	var users []model.UserModel
-	query.Find(&users)
-	return users, count
 }
 
 // UpdateOnlineStatus
