@@ -26,28 +26,26 @@ var upgrade = websocket.Upgrader{
 var ClientConn = wsmanager.NewWSManager()
 
 // OnlineHeartbeat
-func (s userHandler) OnlineHeartbeat() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		// 从查询参数中获取 token
-		token := context.Query("token")
-		if token == "" {
-			context.JSON(http.StatusUnauthorized, response.ErrorResponse(11, "未提供token", nil))
-			return
-		}
-		conn, err := upgrade.Upgrade(context.Writer, context.Request, nil)
-		if err != nil {
-			context.JSON(http.StatusBadRequest, response.ErrorResponse(10, "无法建立ws连接", err))
-			return
-		}
-		// 鉴权获取用户信息
-		claims, ok := jwt.Check(token)
-		if !ok {
-			_ = conn.WriteMessage(websocket.TextMessage, []byte("认证失败"))
-			return
-		}
-		// 使用协程处理ws连接
-		go s.handleWebSocketConnection(conn, claims)
+func (s userHandler) OnlineHeartbeat(ctx *gin.Context) {
+	// 从查询参数中获取 token
+	token := ctx.Query("token")
+	if token == "" {
+		ctx.JSON(http.StatusUnauthorized, response.ErrorResponse(11, "未提供token", nil))
+		return
 	}
+	conn, err := upgrade.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(10, "无法建立ws连接", err))
+		return
+	}
+	// 鉴权获取用户信息
+	claims, ok := jwt.Check(token)
+	if !ok {
+		_ = conn.WriteMessage(websocket.TextMessage, []byte("认证失败"))
+		return
+	}
+	// 使用协程处理ws连接
+	go s.handleWebSocketConnection(conn, claims)
 }
 
 // handleWebSocketConnection 处理 WebSocket 连接
