@@ -12,7 +12,7 @@ func (a *activityHandler) DeleteActivity(ctx *gin.Context) {
 	type delActivityRequest struct {
 		ID int64 `json:"id" binding:"required"`
 	}
-	data := bindparams.BindParams[delActivityRequest](ctx)
+	data := bindparams.BindPostParams[delActivityRequest](ctx)
 	if data == nil {
 		return
 	}
