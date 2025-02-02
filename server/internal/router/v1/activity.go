@@ -14,4 +14,5 @@ func RegisterActivityRouter(group *gin.RouterGroup, activityHandler activity.Act
 	userGroup := group.Group("/activity")
 	userGroup.POST("/add", middleware.Auth(), activityHandler.AddActivity)
 	userGroup.DELETE("/del", middleware.Auth(), activityHandler.DeleteActivity)
+	userGroup.GET("/search", activityHandler.SearchActivity)
 }
