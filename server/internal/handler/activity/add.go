@@ -41,7 +41,7 @@ func (a *activityHandler) AddActivity(ctx *gin.Context) {
 		StartAt:      *startAt,
 		EndAt:        *endAt,
 		Location:     data.Location,
-		PromoterID:   claims.ID,
+		CreatorID:    claims.ID,
 	}
 	err = a.ActivityRepo.Insert(&activity)
 	if err != nil {
