@@ -19,7 +19,7 @@ func (a *activityHandler) AddActivity(ctx *gin.Context) {
 		EndAt     string `json:"end_at" binding:"required"`
 		Location  string `json:"location" binding:"required"`
 	}
-	data := bindparams.BindParams[addActivityRequest](ctx)
+	data := bindparams.BindPostParams[addActivityRequest](ctx)
 	if data == nil {
 		return
 	}
@@ -36,12 +36,12 @@ func (a *activityHandler) AddActivity(ctx *gin.Context) {
 
 	claims, _ := jwt.GetClaimsByContext(ctx)
 	activity := model.ActivityModel{
-		ActivityName: data.Name,
-		Introduce:    data.Introduce,
-		StartAt:      *startAt,
-		EndAt:        *endAt,
-		Location:     data.Location,
-		CreatorID:    claims.ID,
+		Name:      data.Name,
+		Introduce: data.Introduce,
+		StartAt:   *startAt,
+		EndAt:     *endAt,
+		Location:  data.Location,
+		CreatorID: claims.ID,
 	}
 	err = a.ActivityRepo.Insert(&activity)
 	if err != nil {
