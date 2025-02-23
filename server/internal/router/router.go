@@ -14,7 +14,7 @@ func InitRouter(gin *gin.Engine, handler *handler.Handler) {
 	api := gin.Group("/api")
 	apiV1 := api.Group("/v1")
 
-	v1.RegisterUserRouter(apiV1, handler.UserHandler)         // 用户路由组
-	v1.RegisterVersionRouter(apiV1, handler.VersionHandler)   // 版本路由组
-	v1.RegisterActivityRouter(apiV1, handler.ActivityHandler) // 版本路由组
+	v1.RegisterUserRouter(apiV1, handler.UserHandler)                              // 用户路由组
+	v1.RegisterVersionRouter(apiV1, handler.VersionHandler)                        // 版本路由组
+	v1.RegisterActivityRouter(apiV1, handler.ActivityHandler, handler.ChatHandler) // 展会路由组
 }

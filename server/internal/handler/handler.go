@@ -4,6 +4,7 @@ import (
 	"github.com/zeromicro/go-zero/zrpc"
 	"server/internal/config"
 	"server/internal/handler/activity"
+	"server/internal/handler/chat"
 	"server/internal/handler/user"
 	"server/internal/handler/version"
 	"server/internal/repo"
@@ -13,11 +14,12 @@ import (
 )
 
 type Handler struct {
-	VersionHandler   version.VersionHandlerInterface
-	UserHandler      user.UserHandlerInterface
+	VersionHandler   version.HandlerInterface
+	UserHandler      user.HandlerInterface
 	FileServerClient file_server.FileServiceClient
 
-	ActivityHandler activity.ActivityHandlerInterface
+	ActivityHandler activity.HandlerInterface
+	ChatHandler     chat.HandlerInterface
 }
 
 // handler 全局单例
@@ -42,6 +44,7 @@ func InitHandler(c *config.Config, repo *repo.Repo) *Handler {
 				UserHandler:      user.NewUserHandler(c, repo.UserRepo, repo.VerifyCodeRepo, fileServer),
 				FileServerClient: fileServer,
 				ActivityHandler:  activity.NewActivityHandler(repo.ActivityRepo),
+				ChatHandler:      chat.NewChatHandler(repo.MsgRepo),
 			}
 		})
 	}

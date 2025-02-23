@@ -9,7 +9,7 @@ import (
 //
 //	@Description: 版本路由
 //	@param group *gin.RouterGroup
-func RegisterVersionRouter(group *gin.RouterGroup, handler version.VersionHandlerInterface) {
+func RegisterVersionRouter(group *gin.RouterGroup, handler version.HandlerInterface) {
 	group.GET("/ver", handler.GetVersion)
 	group.GET("/ping", handler.GetVersion)
 }

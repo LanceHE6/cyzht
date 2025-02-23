@@ -5,7 +5,7 @@ import (
 	"server/internal/repo/activity"
 )
 
-type ActivityHandlerInterface interface {
+type HandlerInterface interface {
 	AddActivity(ctx *gin.Context)
 	DeleteActivity(ctx *gin.Context)
 	SearchActivity(ctx *gin.Context)
@@ -15,7 +15,7 @@ type activityHandler struct {
 	ActivityRepo activity.ActivityRepoInterface
 }
 
-func NewActivityHandler(activityRepo activity.ActivityRepoInterface) ActivityHandlerInterface {
+func NewActivityHandler(activityRepo activity.ActivityRepoInterface) HandlerInterface {
 	return &activityHandler{
 		ActivityRepo: activityRepo,
 	}

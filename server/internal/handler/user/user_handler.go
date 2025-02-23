@@ -8,10 +8,10 @@ import (
 	"server/pkg/rpc/file_server/api/v1/file_server"
 )
 
-// UserHandlerInterface
+// HandlerInterface
 //
 //	@Description: 用户服务接口
-type UserHandlerInterface interface {
+type HandlerInterface interface {
 	RegisterAndLoginSendCode(ctx *gin.Context)   // 发送登录注册验证码
 	RegisterAndLoginVerifyCode(ctx *gin.Context) // 验证登录注册验证码
 	Login(ctx *gin.Context)                      // 用户登录
@@ -35,13 +35,13 @@ type userHandler struct {
 // NewUserHandler
 //
 //	@Description: 创建用户服务实例
-//	@return UserHandlerInterface 用户服务实例
+//	@return HandlerInterface 用户服务实例
 func NewUserHandler(
 	c *config.Config,
 	userRepo user.UserRepoInterface,
 	verifyCodeRepo verifycode.VerifyCodeRepoInterface,
 	fileRpcServer file_server.FileServiceClient,
-) UserHandlerInterface {
+) HandlerInterface {
 	return &userHandler{
 		C:              c,
 		UserRepo:       userRepo,
