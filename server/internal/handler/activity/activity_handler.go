@@ -12,10 +12,10 @@ type HandlerInterface interface {
 }
 
 type activityHandler struct {
-	ActivityRepo activity.ActivityRepoInterface
+	ActivityRepo activity.RepoInterface
 }
 
-func NewActivityHandler(activityRepo activity.ActivityRepoInterface) HandlerInterface {
+func NewActivityHandler(activityRepo activity.RepoInterface) HandlerInterface {
 	return &activityHandler{
 		ActivityRepo: activityRepo,
 	}

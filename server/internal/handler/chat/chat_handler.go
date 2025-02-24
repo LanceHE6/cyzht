@@ -7,13 +7,14 @@ import (
 
 type HandlerInterface interface {
 	SendToActivity(ctx *gin.Context)
+	GetActivityMsg(ctx *gin.Context)
 }
 
 type chatHandler struct {
-	MsgRepo msg.MsgRepoInterface
+	MsgRepo msg.RepoInterface
 }
 
-func NewChatHandler(msgRepo msg.MsgRepoInterface) HandlerInterface {
+func NewChatHandler(msgRepo msg.RepoInterface) HandlerInterface {
 	return &chatHandler{
 		MsgRepo: msgRepo,
 	}
