@@ -21,4 +21,6 @@ func RegisterActivityRouter(group *gin.RouterGroup,
 	routerGroup.GET("/search", activityHandler.SearchActivity)
 	routerGroup.POST("/:aid/send", middleware.Auth(), chatHandler.SendToActivity)
 	routerGroup.GET("/:aid/msg", middleware.Auth(), chatHandler.GetActivityMsg)
+	routerGroup.POST("/:aid/join", middleware.Auth(), activityHandler.JoinActivity)
+	routerGroup.POST("/:aid/exit", middleware.Auth(), activityHandler.ExitActivity)
 }

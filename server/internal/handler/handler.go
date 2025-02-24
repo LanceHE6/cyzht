@@ -43,7 +43,7 @@ func InitHandler(c *config.Config, repo *repo.Repo) *Handler {
 				VersionHandler:   version.NewVersionHandler(),
 				UserHandler:      user.NewUserHandler(c, repo.UserRepo, repo.VerifyCodeRepo, fileServer),
 				FileServerClient: fileServer,
-				ActivityHandler:  activity.NewActivityHandler(repo.ActivityRepo),
+				ActivityHandler:  activity.NewActivityHandler(repo.ActivityRepo, repo.ActivityUserRepo),
 				ChatHandler:      chat.NewChatHandler(repo.MsgRepo),
 			}
 		})
