@@ -27,8 +27,8 @@ type HandlerInterface interface {
 //	@Description: 用户服务实现
 type userHandler struct {
 	C              *config.Config
-	UserRepo       user.UserRepoInterface
-	VerifyCodeRepo verifycode.VerifyCodeRepoInterface
+	UserRepo       user.RepoInterface
+	VerifyCodeRepo verifycode.RepoInterface
 	FileRpcServer  file_server.FileServiceClient
 }
 
@@ -38,8 +38,8 @@ type userHandler struct {
 //	@return HandlerInterface 用户服务实例
 func NewUserHandler(
 	c *config.Config,
-	userRepo user.UserRepoInterface,
-	verifyCodeRepo verifycode.VerifyCodeRepoInterface,
+	userRepo user.RepoInterface,
+	verifyCodeRepo verifycode.RepoInterface,
 	fileRpcServer file_server.FileServiceClient,
 ) HandlerInterface {
 	return &userHandler{

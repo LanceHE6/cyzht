@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type ActivityRepoInterface interface {
+type RepoInterface interface {
 	// Insert 插入
 	Insert(activity *model.ActivityModel) error
 	// SelectByID 依id查询
@@ -16,7 +16,7 @@ type ActivityRepoInterface interface {
 	// Search 查询
 	// 使用option模式
 	// 使用示例: Search(WithName(&name), WithPage(&page,&limit))
-	Search(params ...SearchActivityParams) (*[]model.ActivityModel, int, error)
+	Search(params ...PagingParams) (*[]model.ActivityModel, int, error)
 	// update 更新
 	update(activity *model.ActivityModel) error
 }
@@ -25,9 +25,12 @@ type activityRepo struct {
 	MyDB *gorm.DB
 }
 
-type SearchActivityParams func(*gorm.DB) *gorm.DB
+type PagingParams func(*gorm.DB) *gorm.DB
 
-func (a *activityRepo) Search(params ...SearchActivityParams) (*[]model.ActivityModel, int, error) {
+// Search 查询
+// 使用option模式
+// 使用示例: Search(WithName(&name), WithPage(&page,&limit))
+func (a *activityRepo) Search(params ...PagingParams) (*[]model.ActivityModel, int, error) {
 	db := a.modelDB()
 	for _, param := range params {
 		db = param(db)
@@ -48,7 +51,7 @@ func (a *activityRepo) Search(params ...SearchActivityParams) (*[]model.Activity
 }
 
 // WithPage 设置分页
-func WithPage(page, limit *int) SearchActivityParams {
+func WithPage(page, limit *int) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		if page == nil {
 			page = new(int)
@@ -69,7 +72,7 @@ func WithPage(page, limit *int) SearchActivityParams {
 }
 
 // WithName 根据名称搜索
-func WithName(name *string) SearchActivityParams {
+func WithName(name *string) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		if name != nil {
 			db = db.Where("name LIKE ?", "%"+*name+"%")
@@ -79,7 +82,7 @@ func WithName(name *string) SearchActivityParams {
 }
 
 // WithID 根据ID搜索
-func WithID(ID *int64) SearchActivityParams {
+func WithID(ID *int64) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		if ID != nil {
 			db = db.Where("id = ?", *ID)
@@ -89,7 +92,7 @@ func WithID(ID *int64) SearchActivityParams {
 }
 
 // WithCreator 根据创建者搜索
-func WithCreator(creator *string) SearchActivityParams {
+func WithCreator(creator *string) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		// TODO 实现根据用户名搜索
 		if creator != nil {
@@ -100,7 +103,7 @@ func WithCreator(creator *string) SearchActivityParams {
 }
 
 // WithLocation 根据举办地点搜索
-func WithLocation(location *string) SearchActivityParams {
+func WithLocation(location *string) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		if location != nil {
 			db = db.Where("location LIKE ?", "%"+*location+"%")
@@ -110,7 +113,7 @@ func WithLocation(location *string) SearchActivityParams {
 }
 
 // WithKeyword 根据关键字搜索(关键字范围: 活动名称,活动地点,活动描述)
-func WithKeyword(keyword *string) SearchActivityParams {
+func WithKeyword(keyword *string) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		if keyword != nil {
 			db = db.Where("name LIKE ? or introduce LIKE ? or location LIKE ?",
@@ -124,7 +127,7 @@ func WithKeyword(keyword *string) SearchActivityParams {
 }
 
 // WithIsInProgress 根据活动是否进行中搜索
-func WithIsInProgress(isInProgress *bool) SearchActivityParams {
+func WithIsInProgress(isInProgress *bool) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		if isInProgress != nil {
 			// 根据当前时间判断活动是否正在进行中
@@ -171,7 +174,7 @@ func (a *activityRepo) update(activity *model.ActivityModel) error {
 	return a.modelDB().Save(&activity).Error
 }
 
-func NewActivityRepo(mysqlConn *gorm.DB) ActivityRepoInterface {
+func NewActivityRepo(mysqlConn *gorm.DB) RepoInterface {
 	return &activityRepo{
 		MyDB: mysqlConn,
 	}

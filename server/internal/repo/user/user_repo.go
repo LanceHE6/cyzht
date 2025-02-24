@@ -16,9 +16,9 @@ const (
 	userStatusKey  = "user:%d:status"
 )
 
-// UserRepoInterface
+// RepoInterface
 // @Description: 用户仓库接口
-type UserRepoInterface interface {
+type RepoInterface interface {
 	SelectByID(id int64) *model.UserModel
 	SelectAll() []model.UserModel
 	SelectByAccount(account string) *model.UserModel
@@ -47,8 +47,8 @@ type UserRepoInterface interface {
 // NewUserRepo
 //
 //	@Description: 创建用户仓库实例
-//	@return UserRepoInterface 用户仓库实例
-func NewUserRepo(mysqlConn *gorm.DB, redisConn *redis.Client) UserRepoInterface {
+//	@return RepoInterface 用户仓库实例
+func NewUserRepo(mysqlConn *gorm.DB, redisConn *redis.Client) RepoInterface {
 	return &userRepo{
 		MyDB:  mysqlConn,
 		Redis: redisConn,

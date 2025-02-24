@@ -11,11 +11,11 @@ import (
 )
 
 type Repo struct {
-	UserRepo       user.UserRepoInterface
-	VerifyCodeRepo verifycode.VerifyCodeRepoInterface
-	ActivityRepo   activity.ActivityRepoInterface
+	UserRepo       user.RepoInterface
+	VerifyCodeRepo verifycode.RepoInterface
+	ActivityRepo   activity.RepoInterface
 	ExhibitorRepo  exhibitor.ExhibitorRepoInterface
-	MsgRepo        msg.MsgRepoInterface
+	MsgRepo        msg.RepoInterface
 }
 
 // repo 全局repo单例

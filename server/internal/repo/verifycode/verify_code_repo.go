@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type VerifyCodeRepoInterface interface {
+type RepoInterface interface {
 	SetVerifyCode(account string, code string)
 	GetVerifyCode(account string) string // 获取验证码
 	DeleteVerifyCode(account string)     // 删除验证码
@@ -14,8 +14,8 @@ type VerifyCodeRepoInterface interface {
 // NewVerifyCodeRepo
 //
 //	@Description: 初始化验证码repo
-//	@return VerifyCodeRepoInterface 验证码repo
-func NewVerifyCodeRepo(redisConn *redis.Client) VerifyCodeRepoInterface {
+//	@return RepoInterface 验证码repo
+func NewVerifyCodeRepo(redisConn *redis.Client) RepoInterface {
 	return &verifyCodeRepo{RDB: redisConn}
 }
 
