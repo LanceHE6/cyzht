@@ -1,35 +1,35 @@
-package wsmanager
+package ws
 
 import (
 	"github.com/gorilla/websocket"
 	"sync"
 )
 
-// WSManager 管理ws连接
-type WSManager struct {
+// ClientManager 管理ws连接
+type ClientManager struct {
 	connections map[int64]*websocket.Conn
 	mu          sync.RWMutex // 读写锁
 }
 
-func NewWSManager() *WSManager {
-	return &WSManager{
+func NewClientManager() *ClientManager {
+	return &ClientManager{
 		connections: make(map[int64]*websocket.Conn),
 	}
 }
 
-func (uc *WSManager) Add(userID int64, conn *websocket.Conn) {
+func (uc *ClientManager) Add(userID int64, conn *websocket.Conn) {
 	uc.mu.Lock()
 	defer uc.mu.Unlock()
 	uc.connections[userID] = conn
 }
 
-func (uc *WSManager) Remove(userID int64) {
+func (uc *ClientManager) Remove(userID int64) {
 	uc.mu.Lock()
 	defer uc.mu.Unlock()
 	delete(uc.connections, userID)
 }
 
-func (uc *WSManager) Get(userID int64) (*websocket.Conn, bool) {
+func (uc *ClientManager) Get(userID int64) (*websocket.Conn, bool) {
 	uc.mu.RLock()
 	defer uc.mu.RUnlock()
 	conn, exists := uc.connections[userID]
