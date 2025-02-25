@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"server/internal/ws"
 	"server/pkg/jwt"
 	"server/pkg/logger"
 	"server/pkg/response"
-	"server/pkg/wsmanager"
 	"time"
 )
 
@@ -22,10 +22,7 @@ var upgrade = websocket.Upgrader{
 	},
 }
 
-// ClientConn 全局ws连接管理
-var ClientConn = wsmanager.NewWSManager()
-
-// OnlineHeartbeat
+// OnlineHeartbeat 在线心跳
 func (s userHandler) OnlineHeartbeat(ctx *gin.Context) {
 	// 从查询参数中获取 token
 	token := ctx.Query("token")
@@ -59,7 +56,7 @@ func (s userHandler) handleWebSocketConnection(conn *websocket.Conn, claims jwt.
 	logger.Logger.Debugf("用户 %d 已上线", claims.ID)
 
 	// 添加连接到管理器
-	ClientConn.Add(claims.ID, conn)
+	ws.Clients.Add(claims.ID, conn)
 	// 关闭连接
 	defer func(conn *websocket.Conn, user jwt.MyClaims) {
 		// 设置用户离线状态
@@ -72,7 +69,7 @@ func (s userHandler) handleWebSocketConnection(conn *websocket.Conn, claims jwt.
 			return
 		}
 		// 移除连接
-		ClientConn.Remove(claims.ID)
+		ws.Clients.Remove(claims.ID)
 	}(conn, claims)
 
 	go s.heartbeat(conn, claims) // 启动心跳协程

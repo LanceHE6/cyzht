@@ -8,6 +8,7 @@ import (
 	"server/internal/middleware"
 	"server/internal/repo"
 	"server/internal/router"
+	"server/internal/ws"
 	"server/pkg/logo"
 	"server/pkg/smtp"
 )
@@ -38,6 +39,9 @@ func main() {
 	)
 	// 加载路由
 	router.InitRouter(ginServer, svc)
+
+	// 初始化消息广播
+	ws.InitBroadcast(repository.ActivityUserRepo)
 
 	err := ginServer.Run(":" + c.Server.Port)
 	if err != nil {

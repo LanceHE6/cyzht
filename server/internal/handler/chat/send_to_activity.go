@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"server/internal/model"
+	"server/internal/ws"
 	"server/pkg/bindparams"
 	"server/pkg/jwt"
 	"server/pkg/response"
@@ -45,5 +46,8 @@ func (c *chatHandler) SendToActivity(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-1, err.Error()))
 		return
 	}
+	// 将消息写入消息推送队列
+	ws.ActivityMQ <- &msg
+
 	ctx.JSON(http.StatusOK, response.SuccessResponse(nil))
 }
