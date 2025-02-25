@@ -40,8 +40,12 @@ func InitHandler(c *config.Config, repo *repo.Repo) *Handler {
 			logger.Logger.Info("connect file server success")
 
 			handler = &Handler{
-				VersionHandler:   version.NewVersionHandler(),
-				UserHandler:      user.NewUserHandler(c, repo.UserRepo, repo.VerifyCodeRepo, fileServer),
+				VersionHandler: version.NewVersionHandler(),
+				UserHandler: user.NewUserHandler(c,
+					repo.UserRepo,
+					repo.VerifyCodeRepo,
+					repo.ActivityUserRepo,
+					fileServer),
 				FileServerClient: fileServer,
 				ActivityHandler:  activity.NewActivityHandler(repo.ActivityRepo, repo.ActivityUserRepo),
 				ChatHandler:      chat.NewChatHandler(repo.MsgRepo),
