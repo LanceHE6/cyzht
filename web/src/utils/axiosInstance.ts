@@ -3,16 +3,16 @@ import axios from "axios";
 
 import { getToken, removeToken, removeUser } from "./localStorage.js";
 
-const base_url = "http://localhost:8080";
+export const BASE_URL = "http://localhost:8080";
 
 // 创建一个 Axios 实例
 export const axiosInstance = axios.create({
-  baseURL: base_url, // 设置基本URL
+  baseURL: BASE_URL, // 设置基本URL
   timeout: 5000, // 设置超时时间
 });
 // 创建一个有鉴权头的Axios实例
 export const axiosInstanceWithAuth = axios.create({
-  baseURL: base_url,
+  baseURL: BASE_URL,
   timeout: 5000,
   headers: {
     Authorization: `Bearer ` + getToken(),
