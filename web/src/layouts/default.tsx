@@ -1,7 +1,8 @@
 // import { Link } from "@nextui-org/link";
 
-import { Navbar } from "@/components/navbar";
 import { ToastContainer } from "react-toastify";
+
+import { Navbar } from "@/components/navbar";
 
 export default function DefaultLayout({
   children,
