@@ -15,7 +15,7 @@ import { setToken, setUser } from "@/utils/localStorage";
 import { axiosInstance } from "@/utils/axiosInstance.ts";
 import { websocketClient } from "@/utils/websocket.ts";
 // 验证码登陆面板
-export default function VcLoginPanel() {
+export default function VCLoginPanel() {
   const navigate = useNavigate();
   const [sendCodeBtn, setSendCodeBtn] = useState<React.ReactNode>("发送验证码");
   const [loginOrRegisterBtn, setLoginOrRegisterBtn] =
@@ -117,7 +117,7 @@ export default function VcLoginPanel() {
               isClearable
               isRequired
               className="px-3"
-              description="未注册的邮箱将会直接注册账号"
+              description="首次登录将自动注册账号"
               errorMessage={({ validationDetails }) => {
                 if (validationDetails.valueMissing) {
                   return "请输入邮箱";

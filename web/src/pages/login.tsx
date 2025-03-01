@@ -3,7 +3,7 @@ import { Card, CardBody, Image, Tab, Tabs } from "@nextui-org/react";
 import cover1 from "../assets/imgs/cover1.jpg";
 
 import DefaultLayout from "@/layouts/default.tsx";
-import VcLoginPanel from "@/components/login-panel/vclogin.tsx";
+import VCLoginPanel from "@/components/login-panel/vclogin.tsx";
 import PswLoginPanel from "@/components/login-panel/pswlogin";
 
 export default function Login() {
@@ -25,7 +25,7 @@ export default function Login() {
               <br />
               <Tabs aria-label="Options">
                 <Tab key="vc" className={"w-10/12"} title="验证码登录">
-                  <VcLoginPanel />
+                  <VCLoginPanel />
                 </Tab>
 
                 <Tab key="psw" className={"w-5/6"} title="密码登录">
