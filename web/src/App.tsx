@@ -1,17 +1,17 @@
 import { Route, Routes } from "react-router-dom";
 
-import IndexPage from "@/pages/index";
 import DocsPage from "@/pages/docs";
 import PricingPage from "@/pages/pricing";
 import BlogPage from "@/pages/blog";
 import AboutPage from "@/pages/about";
 import LoginPage from "@/pages/login";
+import Home from "@/pages/Home";
 
 function App() {
   return (
     // 定义路由
     <Routes>
-      <Route element={<IndexPage />} path="/" />
+      <Route element={<Home />} path="/" />
       <Route element={<LoginPage />} path="/login" />
       <Route element={<DocsPage />} path="/docs" />
       <Route element={<PricingPage />} path="/pricing" />
