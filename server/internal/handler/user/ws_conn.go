@@ -113,7 +113,7 @@ func (s userHandler) heartbeat(conn *websocket.Conn, claims jwt.MyClaims) {
 				if err := s.UserRepo.SetUserOffline(claims.ID); err != nil {
 					logger.Logger.Errorf("设置用户 %d 离线状态失败: %s", claims.ID, err.Error())
 				}
-				logger.Logger.Debugf("用户 %d 已下线线", claims.ID)
+				logger.Logger.Debugf("用户 %d 已下线", claims.ID)
 				return // 发送心跳失败可能表示连接已断开
 			}
 			// 更新用户心跳
