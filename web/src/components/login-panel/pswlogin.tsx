@@ -10,9 +10,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import { setToken, setUser } from "@/utils/localStorage";
-import { axiosInstance } from "@/utils/axiosInstance.ts";
-import { websocketClient } from "@/utils/websocket.ts";
+import { axiosInstance } from "@/utils/axios-instance.ts";
+import { WebSocketClient, LocalStorage } from "@/utils/utils.ts";
 export default function PswLoginPanel() {
   const navigate = useNavigate();
 
@@ -40,11 +39,11 @@ export default function PswLoginPanel() {
         toast.error(`请求出错: ${response.data.msg}`);
       } else if (response.data.code === 0 || response.data.code === 1) {
         toast.success("登录成功");
-        setToken(response.data.data.token);
-        setUser(response.data.data.user);
+        LocalStorage.setToken(response.data.data.token);
+        LocalStorage.setUser(response.data.data.user);
         setTimeout(() => {
           // 初始化在线心跳
-          websocketClient.close();
+          WebSocketClient.close();
           navigate("/");
         }, 1000);
       } else {

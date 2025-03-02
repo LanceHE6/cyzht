@@ -11,21 +11,34 @@ import {
 } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 
+import { useEffect, useState } from "react";
+
 import {
   MessageIcon,
   FriendsIcon,
   SelectionMenuIcon,
 } from "@/components/icons";
-import { removeToken, removeUser } from "@/utils/localStorage.ts";
 import DefaultLayout from "@/layouts/default.tsx";
+import UserProfilePopover from "@/components/user-profile-popover.tsx";
+import { WebSocketClient, LocalStorage } from "@/utils/utils.ts";
 
 export default function Home() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const user = LocalStorage.getUser();
+
+    setUser(user);
+  });
+
   // 用户信息处理
+
   // 登出
   const logout = () => {
-    removeUser();
-    removeToken();
+    LocalStorage.removeToken();
+    LocalStorage.removeUser();
+    WebSocketClient.close(); // 关闭ws连接
     navigate("/login");
   };
 
@@ -39,7 +52,8 @@ export default function Home() {
           >
             <text className="text-medium justify-self-center">重邮展会通</text>
             <Spacer y={4} />
-            {/*<UserProfilePopover avatar={avatar} user={formattedUser} />*/}
+
+            <UserProfilePopover user={user} />
             <Spacer y={4} />
             <div className="w-full max-w-[260px] px-2 py-2 flex-grow">
               <Tabs isVertical defaultSelectedKey="message" variant="light">

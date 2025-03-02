@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Avatar,
+  AvatarIcon,
   Button,
   Card,
   CardBody,
@@ -25,19 +27,45 @@ import {
   Textarea,
   useDisclosure,
 } from "@nextui-org/react";
+import { toast } from "react-toastify";
 
-import { axiosInstanceWithAuth } from "../utils/axiosInstance.ts";
+import { axiosInstanceWithAuth } from "../utils/axios-instance.ts";
 
-const UserProfilePopover = (user: any, avatar: string) => {
+export interface UserInfoProps {
+  user: any;
+}
+const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
+  const { user } = props;
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [nickname, setNickname] = useState(user.nickname);
-  const [sex, setSex] = useState(user.sex);
-  const [signature, setSignature] = useState(user.signature);
+  const [nickname, setNickname] = useState("unknown");
+  const [account, setAccount] = useState("unknown");
+  const [sex, setSex] = useState("未知");
+  const [signature, setSignature] = useState("无");
+  const [avatar, setAvatar] = useState(
+    <Avatar icon={<AvatarIcon />} size="lg" />,
+  );
 
   useEffect(() => {
+    if (user === null) {
+      return;
+    }
     setNickname(() => user.nickname);
+    setAccount(() => user.account);
     setSex(() => user.sex);
     setSignature(() => user.signature);
+
+    if (user.avatar !== "") {
+      setAvatar(() => (
+        <Avatar
+          isBordered
+          as="button"
+          className="cursor-pointer"
+          size="lg"
+          src={user.avatar}
+        />
+      ));
+    }
   }, [user]);
 
   const updateProfile = async () => {
@@ -63,6 +91,8 @@ const UserProfilePopover = (user: any, avatar: string) => {
 
     if (response.status !== 200) {
     }
+    toast.success("更新成功");
+    onOpenChange();
     console.log(response.data);
   };
 
@@ -82,10 +112,10 @@ const UserProfilePopover = (user: any, avatar: string) => {
                 {avatar}
                 <div className="flex flex-col items-start justify-center">
                   <h4 className="text-small font-semibold leading-none text-default-600">
-                    {user.nickname}
+                    {nickname}
                   </h4>
                   <h5 className="text-small tracking-tight text-default-500">
-                    {user.account}
+                    {account}
                   </h5>
                 </div>
               </div>
@@ -103,11 +133,11 @@ const UserProfilePopover = (user: any, avatar: string) => {
                 <TableBody>
                   <TableRow key="1">
                     <TableCell className="text-gray-400">性别</TableCell>
-                    <TableCell>{user.sex}</TableCell>
+                    <TableCell>{sex}</TableCell>
                   </TableRow>
                   <TableRow key="2">
                     <TableCell className="text-gray-400">个性签名</TableCell>
-                    <TableCell>{user.signature}</TableCell>
+                    <TableCell>{signature}</TableCell>
                   </TableRow>
                   <TableRow key="3">
                     <TableCell className="text-gray-400">注册时间</TableCell>

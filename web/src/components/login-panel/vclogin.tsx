@@ -11,9 +11,8 @@ import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-import { setToken, setUser } from "@/utils/localStorage";
-import { axiosInstance } from "@/utils/axiosInstance.ts";
-import { websocketClient } from "@/utils/websocket.ts";
+import { axiosInstance } from "@/utils/axios-instance.ts";
+import { WebSocketClient, LocalStorage } from "@/utils/utils.ts";
 // 验证码登陆面板
 export default function VCLoginPanel() {
   const navigate = useNavigate();
@@ -70,11 +69,11 @@ export default function VCLoginPanel() {
         toast.error(`请求出错: ${response.data.msg}`);
       } else if (response.data.code === 0 || response.data.code === 1) {
         toast.success("登录成功");
-        setToken(response.data.data.token);
-        setUser(response.data.data.user);
+        LocalStorage.setToken(response.data.data.token);
+        LocalStorage.setUser(response.data.data.user);
         setTimeout(() => {
           // 初始化在线心跳
-          websocketClient.close();
+          WebSocketClient.close();
           navigate("/");
         }, 1000);
       } else {
