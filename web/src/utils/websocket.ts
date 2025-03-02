@@ -1,22 +1,25 @@
-import { getToken } from "@/utils/localStorage";
+import { LocalStorageManager } from "@/utils/local-storage.ts";
 
 const WS_BASE_URL = "ws://127.0.0.1:8080/api/v1/user/ws/online"; // WebSocket 服务器地址
 
-class WebSocketClient {
+export class WebSocketManager {
   private ws: WebSocket | null = null;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private readonly reconnectDelay: number = 5000; // 重连延迟时间，单位：毫秒
   private readonly heartbeatIntervalTime: number = 5000; // 心跳间隔时间，单位：毫秒
+  private localStorage: LocalStorageManager | null = null;
 
   // 构造函数
-  constructor() {
+  constructor(localStorage: LocalStorageManager) {
+    this.localStorage = localStorage;
     this.connect();
   }
 
   // 连接 WebSocket
   private connect() {
-    const token = getToken();
+    // 延迟初始化
+    const token = this.localStorage?.getToken();
 
     if (!token) {
       console.warn("No token found, WebSocket connection aborted.");
@@ -103,6 +106,3 @@ class WebSocketClient {
     }
   }
 }
-
-// 导出单例模式的 WebSocket 客户端
-export const websocketClient = new WebSocketClient();

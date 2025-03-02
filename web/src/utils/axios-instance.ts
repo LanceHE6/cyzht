@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-import { getToken, removeToken, removeUser } from "./localStorage.js";
+import { LocalStorage, WebSocketClient } from "@/utils/utils.ts";
 
 export const BASE_URL = "http://localhost:8080";
 
@@ -15,7 +15,7 @@ export const axiosInstanceWithAuth = axios.create({
   baseURL: BASE_URL,
   timeout: 5000,
   headers: {
-    Authorization: `Bearer ` + getToken(),
+    Authorization: `Bearer ` + LocalStorage.getUser(),
   },
 });
 
@@ -30,8 +30,9 @@ axios.interceptors.response.use(
     // 超出 2xx 范围的状态码都会触发该函数。
     // 登录过期
     if (error.response.status === 401) {
-      removeUser();
-      removeToken();
+      LocalStorage.removeToken();
+      LocalStorage.removeUser();
+      WebSocketClient.close();
       const navigate = useNavigate();
 
       navigate("/login");
