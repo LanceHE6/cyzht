@@ -43,16 +43,6 @@ func (s userHandler) UpdateAvatar(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-1, "上传文件失败 "+err.Error()))
 			return
 		}
-		//base64Str := base64.StdEncoding.EncodeToString(data)
-		//
-		//userAvatar := mongodb.UserAvatarModel{
-		//	CreatedAt: time.Now(),
-		//	UpdatedAt: time.Now(),
-		//	UID:       userInfo.ID,
-		//	FileName:  filename,
-		//	FileSize:  header.Size,
-		//	Base64:    base64Str,
-		//}
 		err = s.UserRepo.UpdateAvatar(userInfo.ID, rep.FileUrl)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-2, "更新头像失败", err))
