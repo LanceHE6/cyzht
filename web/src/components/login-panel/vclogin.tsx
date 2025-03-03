@@ -6,13 +6,12 @@ import {
   Button,
   InputOtp,
   CircularProgress,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 import { axiosInstance } from "@/utils/axios-instance.ts";
-import { WebSocketClient, LocalStorage } from "@/utils/utils.ts";
+import { WebSocketClient, LocalStorage, Toast } from "@/utils/utils.ts";
 // 验证码登陆面板
 export default function VCLoginPanel() {
   const navigate = useNavigate();
@@ -39,13 +38,13 @@ export default function VCLoginPanel() {
 
     console.log("data:", response.data);
     if (response.status !== 200) {
-      toast.error(`请求出错: ${response.data.msg}`);
+      Toast.danger("请求出错", response.data.msg);
     } else if (response.data.code === 0) {
-      toast.success("验证码发送成功");
+      Toast.success("验证码发送成功", null);
       startCountdown();
       setIsCodeInputVisible(true);
     } else {
-      toast.error(`验证码发送失败: ${response.data.msg}`);
+      Toast.danger("验证码发送失败", response.data.msg);
     }
   };
 
@@ -66,9 +65,9 @@ export default function VCLoginPanel() {
       );
 
       if (response.status !== 200) {
-        toast.error(`请求出错: ${response.data.msg}`);
+        Toast.danger("请求出错", response.data.msg);
       } else if (response.data.code === 0 || response.data.code === 1) {
-        toast.success("登录成功");
+        Toast.success("登录成功", null);
         LocalStorage.setToken(response.data.data.token);
         LocalStorage.setUser(response.data.data.user);
         setTimeout(() => {
@@ -77,7 +76,7 @@ export default function VCLoginPanel() {
           navigate("/");
         }, 1000);
       } else {
-        toast.error(`登录失败: ${response.data.msg}`);
+        Toast.warning("登录失败", response.data.msg);
       }
 
       setLoginOrRegisterBtn(() => "登录/注册");
@@ -135,9 +134,9 @@ export default function VCLoginPanel() {
             <Button
               className="px-3 w-1/2"
               color="primary"
+              isDisabled={!(sendCodeBtn === "发送验证码")}
               size="lg"
               type={"submit"}
-              isDisabled={!(sendCodeBtn === "发送验证码")}
             >
               {sendCodeBtn}
             </Button>

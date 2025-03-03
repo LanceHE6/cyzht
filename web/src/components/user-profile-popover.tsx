@@ -26,7 +26,7 @@ import {
   TableRow,
   Textarea,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { toast } from "react-toastify";
 
 import { axiosInstanceWithAuth } from "../utils/axios-instance.ts";
@@ -39,6 +39,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [nickname, setNickname] = useState("unknown");
+  const [createdAt, setCreatedAt] = useState("unknown");
   const [account, setAccount] = useState("unknown");
   const [sex, setSex] = useState("未知");
   const [signature, setSignature] = useState("无");
@@ -54,6 +55,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
     setAccount(() => user.account);
     setSex(() => user.sex);
     setSignature(() => user.signature);
+    setCreatedAt(() => user.created_at);
 
     if (user.avatar !== "") {
       setAvatar(() => (
@@ -141,7 +143,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
                   </TableRow>
                   <TableRow key="3">
                     <TableCell className="text-gray-400">注册时间</TableCell>
-                    <TableCell>{user.created_at}</TableCell>
+                    <TableCell>{createdAt}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

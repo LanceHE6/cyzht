@@ -1,4 +1,4 @@
-import { Card, CardBody, Image, Tab, Tabs } from "@nextui-org/react";
+import { Card, CardBody, Image, Tab, Tabs } from "@heroui/react";
 
 import cover1 from "../assets/imgs/cover1.jpg";
 

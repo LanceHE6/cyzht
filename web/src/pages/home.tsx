@@ -8,9 +8,8 @@ import {
   Spacer,
   Tab,
   Tabs,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate } from "react-router-dom";
-
 import { useEffect, useState } from "react";
 
 import {
@@ -29,6 +28,9 @@ export default function Home() {
   useEffect(() => {
     const user = LocalStorage.getUser();
 
+    if (user === null) {
+      navigate("/login");
+    }
     setUser(user);
   });
 

@@ -5,13 +5,12 @@ import {
   Input,
   Button,
   CircularProgress,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 
 import { axiosInstance } from "@/utils/axios-instance.ts";
-import { WebSocketClient, LocalStorage } from "@/utils/utils.ts";
+import { WebSocketClient, LocalStorage, Toast } from "@/utils/utils.ts";
 export default function PswLoginPanel() {
   const navigate = useNavigate();
 
@@ -36,9 +35,9 @@ export default function PswLoginPanel() {
       const response = await axiosInstance.post("/api/v1/user/login", data);
 
       if (response.status !== 200) {
-        toast.error(`请求出错: ${response.data.msg}`);
+        Toast.danger("请求出错", response.data.msg);
       } else if (response.data.code === 0 || response.data.code === 1) {
-        toast.success("登录成功");
+        Toast.success("登录成功", null);
         LocalStorage.setToken(response.data.data.token);
         LocalStorage.setUser(response.data.data.user);
         setTimeout(() => {
@@ -47,7 +46,7 @@ export default function PswLoginPanel() {
           navigate("/");
         }, 1000);
       } else {
-        toast.error(`登录失败: ${response.data.msg}`);
+        Toast.warning("登录失败", response.data.msg);
       }
       setLoginBtn(() => "登录");
     }, 1000);
