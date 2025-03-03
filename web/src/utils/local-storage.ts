@@ -6,7 +6,7 @@ export class LocalStorageManager {
   constructor() {}
 
   private readonly TOKEN_KEY: string = window.btoa("token");
-  private readonly USER_KEY: string = "user";
+  private readonly USER_KEY: string = window.btoa("user");
 
   // 将token字段加密存储
   public setToken(token: string) {
@@ -33,9 +33,13 @@ export class LocalStorageManager {
   }
 
   // 获取 user
-  public getUser(): object {
+  public getUser(): object | null {
     const jsonUser = localStorage.getItem(this.USER_KEY);
-    const user = jsonUser ? window.atob(jsonUser) : "";
+
+    if (jsonUser === null) {
+      return null;
+    }
+    const user = window.atob(jsonUser);
 
     return JSON.parse(user);
   }
