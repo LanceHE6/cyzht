@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-import { LocalStorage, WebSocketClient } from "@/utils/utils.ts";
+import { LocalStorage, Toast, WebSocketClient } from "@/utils/utils.ts";
 
 export const BASE_URL = "http://localhost:8080";
 
@@ -15,12 +15,12 @@ export const axiosInstanceWithAuth = axios.create({
   baseURL: BASE_URL,
   timeout: 5000,
   headers: {
-    Authorization: `Bearer ` + LocalStorage.getUser(),
+    Authorization: `Bearer ` + LocalStorage.getToken(),
   },
 });
 
 // 添加响应拦截器
-axios.interceptors.response.use(
+axiosInstanceWithAuth.interceptors.response.use(
   function (response) {
     // 2xx 范围内的状态码都会触发该函数。
     // 对响应数据做点什么
@@ -35,9 +35,10 @@ axios.interceptors.response.use(
       WebSocketClient.close();
       const navigate = useNavigate();
 
+      Toast.danger("登录过期，请重新登录", error.response.data.msg);
+
       navigate("/login");
     }
-    console.log("请求出错了: " + error.response.status);
 
     return Promise.reject(error);
   },

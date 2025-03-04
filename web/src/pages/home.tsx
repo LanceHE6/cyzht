@@ -21,20 +21,16 @@ import DefaultLayout from "@/layouts/default.tsx";
 import UserProfilePopover from "@/components/user-profile-popover.tsx";
 import { WebSocketClient, LocalStorage } from "@/utils/utils.ts";
 
-export default function Home() {
+export default function HomePage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(LocalStorage.getUser());
 
   useEffect(() => {
-    const user = LocalStorage.getUser();
-
     if (user === null) {
       navigate("/login");
     }
     setUser(user);
-  });
-
-  // 用户信息处理
+  }, []);
 
   // 登出
   const logout = () => {
