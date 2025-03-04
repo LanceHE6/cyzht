@@ -1,13 +1,11 @@
 package user
 
 import (
-	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"path"
 	"server/pkg/jwt"
 	"server/pkg/response"
-	"server/pkg/rpc/file_server/api/v1/file_server"
 )
 
 var imageExt = map[string]bool{
@@ -23,29 +21,20 @@ func (s userHandler) UpdateAvatar(ctx *gin.Context) {
 	if err == nil {
 		filename := header.Filename
 		userInfo, _ := jwt.GetClaimsByContext(ctx)
-		// 判断文件类型是否为图片
 		// 获取文件后缀
 		extString := path.Ext(filename)
+
 		if !imageExt[extString] {
-			ctx.JSON(http.StatusBadRequest, response.FailedResponse(10, "文件类型不支持"))
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, "不支持的文件格式"))
 			return
 		}
-		// 转换为base64
+
 		var data = make([]byte, header.Size)
 		_, _ = file.Read(data)
-		rep, err := s.FileRpcServer.UploadAvatar(context.Background(), &file_server.UploadAvatarRequest{
-			Id:          userInfo.ID,
-			FileContent: data,
-			FileName:    filename,
-			FileType:    extString,
-		})
-		if err != nil || rep.FileUrl == "" {
-			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-1, "上传文件失败 "+err.Error()))
-			return
-		}
-		err = s.UserRepo.UpdateAvatar(userInfo.ID, rep.FileUrl)
+
+		err := s.UserRepo.UploadAvatar(userInfo.ID, filename, data)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-2, "更新头像失败", err))
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, err.Error()))
 			return
 		}
 		ctx.JSON(http.StatusOK, response.SuccessResponse("更新头像成功"))

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/zeromicro/go-zero/zrpc"
 	"server/internal/config"
 	"server/internal/db"
 	"server/internal/handler"
@@ -9,7 +10,9 @@ import (
 	"server/internal/repo"
 	"server/internal/router"
 	"server/internal/ws"
+	"server/pkg/logger"
 	"server/pkg/logo"
+	"server/pkg/rpc/file_server/api/v1/file_server"
 	"server/pkg/smtp"
 )
 
@@ -23,10 +26,19 @@ func main() {
 
 	// 获取配置
 	c := config.InitConfig()
+	// 连接文件服务器
+	logger.Logger.Infof("connecting file server: %s", c.Server.FileServer.RpcDNS)
+	fileServerConn := zrpc.MustNewClient(zrpc.RpcClientConf{
+		Target: c.Server.FileServer.RpcDNS,
+	})
+
+	fileServer := file_server.NewFileServiceClient(fileServerConn.Conn())
+	logger.Logger.Info("connect file server success")
+
 	// 初始化数据库连接
 	dbConn := db.InitDBConn(c)
 	// 初始化repo
-	repository := repo.InitRepo(dbConn)
+	repository := repo.InitRepo(c, dbConn, fileServer)
 	// 初始化服务类
 	svc := handler.InitHandler(c, repository)
 

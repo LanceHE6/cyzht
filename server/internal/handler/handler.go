@@ -1,22 +1,18 @@
 package handler
 
 import (
-	"github.com/zeromicro/go-zero/zrpc"
 	"server/internal/config"
 	"server/internal/handler/activity"
 	"server/internal/handler/chat"
 	"server/internal/handler/user"
 	"server/internal/handler/version"
 	"server/internal/repo"
-	"server/pkg/logger"
-	"server/pkg/rpc/file_server/api/v1/file_server"
 	"sync"
 )
 
 type Handler struct {
-	VersionHandler   version.HandlerInterface
-	UserHandler      user.HandlerInterface
-	FileServerClient file_server.FileServiceClient
+	VersionHandler version.HandlerInterface
+	UserHandler    user.HandlerInterface
 
 	ActivityHandler activity.HandlerInterface
 	ChatHandler     chat.HandlerInterface
@@ -30,14 +26,6 @@ var once sync.Once
 func InitHandler(c *config.Config, repo *repo.Repo) *Handler {
 	if handler == nil {
 		once.Do(func() {
-			// 连接文件服务器
-			logger.Logger.Infof("connecting file server: %s", c.Server.FileServer.RpcDNS)
-			fileServerConn := zrpc.MustNewClient(zrpc.RpcClientConf{
-				Target: c.Server.FileServer.RpcDNS,
-			})
-
-			fileServer := file_server.NewFileServiceClient(fileServerConn.Conn())
-			logger.Logger.Info("connect file server success")
 
 			handler = &Handler{
 				VersionHandler: version.NewVersionHandler(),
@@ -45,10 +33,9 @@ func InitHandler(c *config.Config, repo *repo.Repo) *Handler {
 					repo.UserRepo,
 					repo.VerifyCodeRepo,
 					repo.ActivityUserRepo,
-					fileServer),
-				FileServerClient: fileServer,
-				ActivityHandler:  activity.NewActivityHandler(repo.ActivityRepo, repo.ActivityUserRepo),
-				ChatHandler:      chat.NewChatHandler(repo.MsgRepo),
+				),
+				ActivityHandler: activity.NewActivityHandler(repo.ActivityRepo, repo.ActivityUserRepo),
+				ChatHandler:     chat.NewChatHandler(repo.MsgRepo),
 			}
 		})
 	}
