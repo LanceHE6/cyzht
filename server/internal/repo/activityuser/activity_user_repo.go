@@ -2,6 +2,7 @@ package activityuser
 
 import (
 	"github.com/jinzhu/gorm"
+	"server/internal/db"
 	"server/internal/model"
 )
 
@@ -59,8 +60,8 @@ func (a *activityUserRepo) update(activityUser *model.ActivityUserModel) error {
 	panic("implement me")
 }
 
-func NewActivityUserRepo(mysqlConn *gorm.DB) RepoInterface {
+func NewActivityUserRepo(dbConn *db.DBConn) RepoInterface {
 	return &activityUserRepo{
-		MyDB: mysqlConn,
+		MyDB: dbConn.MySQLConn,
 	}
 }

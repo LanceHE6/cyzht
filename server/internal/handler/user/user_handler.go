@@ -6,7 +6,6 @@ import (
 	"server/internal/repo/activityuser"
 	"server/internal/repo/user"
 	"server/internal/repo/verifycode"
-	"server/pkg/rpc/file_server/api/v1/file_server"
 )
 
 // HandlerInterface
@@ -31,7 +30,6 @@ type userHandler struct {
 	UserRepo         user.RepoInterface
 	VerifyCodeRepo   verifycode.RepoInterface
 	ActivityUserRepo activityuser.RepoInterface
-	FileRpcServer    file_server.FileServiceClient
 }
 
 // NewUserHandler
@@ -43,13 +41,11 @@ func NewUserHandler(
 	userRepo user.RepoInterface,
 	verifyCodeRepo verifycode.RepoInterface,
 	activityUserRepo activityuser.RepoInterface,
-	fileRpcServer file_server.FileServiceClient,
 ) HandlerInterface {
 	return &userHandler{
 		C:                c,
 		UserRepo:         userRepo,
 		VerifyCodeRepo:   verifyCodeRepo,
 		ActivityUserRepo: activityUserRepo,
-		FileRpcServer:    fileRpcServer,
 	}
 }

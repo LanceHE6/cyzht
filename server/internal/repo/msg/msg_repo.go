@@ -2,6 +2,7 @@ package msg
 
 import (
 	"github.com/jinzhu/gorm"
+	"server/internal/db"
 	"server/internal/model"
 )
 
@@ -97,8 +98,8 @@ func (e *msgRepo) update(msg *model.MsgModel) error {
 	return e.modelDB().Save(&msg).Error
 }
 
-func NewMsgRepo(mysqlConn *gorm.DB) RepoInterface {
+func NewMsgRepo(dbConn *db.DBConn) RepoInterface {
 	return &msgRepo{
-		MyDB: mysqlConn,
+		MyDB: dbConn.MySQLConn,
 	}
 }

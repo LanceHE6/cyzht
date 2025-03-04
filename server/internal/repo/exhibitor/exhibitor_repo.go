@@ -2,6 +2,7 @@ package exhibitor
 
 import (
 	"github.com/jinzhu/gorm"
+	"server/internal/db"
 	"server/internal/model"
 )
 
@@ -45,8 +46,8 @@ func (e *exhibitorRepo) update(exhibitor *model.ExhibitorModel) error {
 	return e.modelDB().Save(&exhibitor).Error
 }
 
-func NewExhibitorRepo(mysqlConn *gorm.DB) ExhibitorRepoInterface {
+func NewExhibitorRepo(dbConn *db.DBConn) ExhibitorRepoInterface {
 	return &exhibitorRepo{
-		MyDB: mysqlConn,
+		MyDB: dbConn.MySQLConn,
 	}
 }

@@ -2,6 +2,7 @@ package verifycode
 
 import (
 	"github.com/go-redis/redis"
+	"server/internal/db"
 	"time"
 )
 
@@ -15,8 +16,8 @@ type RepoInterface interface {
 //
 //	@Description: 初始化验证码repo
 //	@return RepoInterface 验证码repo
-func NewVerifyCodeRepo(redisConn *redis.Client) RepoInterface {
-	return &verifyCodeRepo{RDB: redisConn}
+func NewVerifyCodeRepo(dbConn *db.DBConn) RepoInterface {
+	return &verifyCodeRepo{RDB: dbConn.RedisConn}
 }
 
 // verifyCodeRepo

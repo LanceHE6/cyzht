@@ -1,7 +1,6 @@
 package user
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -9,7 +8,6 @@ import (
 	"server/pkg/jwt"
 	"server/pkg/random"
 	"server/pkg/response"
-	"server/pkg/rpc/file_server/api/v1/file_server"
 	"server/pkg/smtp"
 )
 
@@ -122,15 +120,6 @@ func (s userHandler) RegisterAndLoginVerifyCode(ctx *gin.Context) {
 	// 移除验证码
 	s.VerifyCodeRepo.DeleteVerifyCode(data.Account)
 
-	var avatar string
-	rep, err := s.FileRpcServer.GetAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{Id: u.ID}) // 获取头像
-	if err != nil {
-		fmt.Println("failed to get avatar url:", err.Error())
-	} else {
-		avatar = rep.FileUrl
-		u.Avatar = avatar
-	}
-
 	ctx.JSON(http.StatusOK, response.SuccessResponse(map[string]any{
 		"token": token,
 		"user":  u,
@@ -175,14 +164,6 @@ func (s userHandler) Login(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-2, "更新session_id失败"))
 		return
-	}
-	var avatar string
-	rep, err := s.FileRpcServer.GetAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{Id: u.ID}) // 获取头像
-	if err != nil {
-		fmt.Println("failed to get avatar url:", err.Error())
-	} else {
-		avatar = rep.FileUrl
-		u.Avatar = avatar
 	}
 	ctx.JSON(http.StatusOK, response.SuccessResponse(map[string]any{
 		"token": token,

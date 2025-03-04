@@ -2,6 +2,7 @@ package activity
 
 import (
 	"github.com/jinzhu/gorm"
+	"server/internal/db"
 	"server/internal/model"
 	"time"
 )
@@ -174,8 +175,8 @@ func (a *activityRepo) update(activity *model.ActivityModel) error {
 	return a.modelDB().Save(&activity).Error
 }
 
-func NewActivityRepo(mysqlConn *gorm.DB) RepoInterface {
+func NewActivityRepo(dbConn *db.DBConn) RepoInterface {
 	return &activityRepo{
-		MyDB: mysqlConn,
+		MyDB: dbConn.MySQLConn,
 	}
 }

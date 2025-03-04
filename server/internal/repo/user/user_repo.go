@@ -1,11 +1,18 @@
 package user
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
+	"path"
+	"server/internal/config"
+	"server/internal/db"
 	"server/internal/model"
 	"server/pkg/encrypt"
+	"server/pkg/logger"
+	"server/pkg/rpc/file_server/api/v1/file_server"
 	"strconv"
 	"time"
 )
@@ -28,6 +35,7 @@ type RepoInterface interface {
 	UpdatePassword(id int64, newPsw string) error
 	UpdateOnlineStatus(id int64, onlineStatus int) error
 	UpdateAvatar(id int64, avatarUrl string) error
+	UploadAvatar(id int64, filename string, data []byte) error
 	UpdateProfile(id int64, nickname string, sex int) error
 
 	// SetUserOnline 设置用户在线状态
@@ -48,10 +56,15 @@ type RepoInterface interface {
 //
 //	@Description: 创建用户仓库实例
 //	@return RepoInterface 用户仓库实例
-func NewUserRepo(mysqlConn *gorm.DB, redisConn *redis.Client) RepoInterface {
+func NewUserRepo(
+	c *config.Config,
+	dbConn *db.DBConn,
+	fileRpcServer file_server.FileServiceClient) RepoInterface {
 	return &userRepo{
-		MyDB:  mysqlConn,
-		Redis: redisConn,
+		C:             c,
+		MyDB:          dbConn.MySQLConn,
+		Redis:         dbConn.RedisConn,
+		FileRpcServer: fileRpcServer,
 	}
 }
 
@@ -59,8 +72,10 @@ func NewUserRepo(mysqlConn *gorm.DB, redisConn *redis.Client) RepoInterface {
 //
 //	@Description: 用户仓库实现
 type userRepo struct {
-	MyDB  *gorm.DB
-	Redis *redis.Client
+	C             *config.Config
+	MyDB          *gorm.DB
+	Redis         *redis.Client
+	FileRpcServer file_server.FileServiceClient
 }
 
 // modelMyDB
@@ -95,10 +110,32 @@ func (u *userRepo) SelectByAccount(account string) *model.UserModel {
 //	@return *model.UserModel 用户数据
 func (u *userRepo) SelectByID(id int64) *model.UserModel {
 	var user model.UserModel
-	err := u.modelMyDB().Where("id = ?", id).First(&user)
-	if err.Error != nil {
+	err := u.modelMyDB().Where("id = ?", id).First(&user).Error
+	if err != nil {
 		return nil
 	}
+
+	// 获取文件服务器中的头像地址
+	rsp, err := u.FileRpcServer.GetAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
+		Id: user.ID,
+	})
+	if err != nil {
+		logger.Logger.Errorf("获取用户头像失败: %s", err.Error())
+	} else {
+		// 如果文件服务器和本地数据库的头像地址不一致，更新本地数据库数据库
+		if rsp.FileUrl != user.Avatar {
+			user.Avatar = rsp.FileUrl
+			err = u.UpdateAvatar(user.ID, rsp.FileUrl)
+			if err != nil {
+				logger.Logger.Errorf("更新用户头像失败: %s", err.Error())
+			}
+		}
+		// 拼接头像地址
+		if user.Avatar != "" {
+			user.Avatar = u.C.Server.FileServer.StaticURL + user.Avatar
+		}
+	}
+
 	return &user
 }
 
@@ -111,9 +148,29 @@ func (u *userRepo) SelectByID(id int64) *model.UserModel {
 //	@return *model.UserModel 用户数据
 func (u *userRepo) SelectByAccountAndPsw(account, password string) *model.UserModel {
 	var user model.UserModel
-	err := u.modelMyDB().Where("account = ? and password = ?", account, encrypt.HashPsw(password)).First(&user)
-	if err.Error != nil {
+	err := u.modelMyDB().Where("account = ? and password = ?", account, encrypt.HashPsw(password)).First(&user).Error
+	if err != nil {
 		return nil
+	}
+	// 获取文件服务器中的头像地址
+	rsp, err := u.FileRpcServer.GetAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
+		Id: user.ID,
+	})
+	if err != nil {
+		logger.Logger.Errorf("获取用户头像失败: %s", err.Error())
+	} else {
+		// 如果文件服务器和本地数据库的头像地址不一致，更新本地数据库数据库
+		if rsp.FileUrl != user.Avatar {
+			user.Avatar = rsp.FileUrl
+			err = u.UpdateAvatar(user.ID, rsp.FileUrl)
+			if err != nil {
+				logger.Logger.Errorf("更新用户头像失败: %s", err.Error())
+			}
+		}
+		// 拼接头像地址
+		if user.Avatar != "" {
+			user.Avatar = u.C.Server.FileServer.StaticURL + user.Avatar
+		}
 	}
 	return &user
 }
@@ -174,14 +231,38 @@ func (u *userRepo) UpdateOnlineStatus(id int64, onlineStatus int) error {
 	return u.modelMyDB().Where("id = ?", id).Update("online_status", onlineStatus).Error
 }
 
+// UploadAvatar
+//
+//	@Description: 上传用户头像至文件服务器
+//	@receiver u userRepo
+//	@param id int64 用户id
+//	@param filename string 文件名
+//	@param data []byte 文件数据
+//	@return error 错误信息
+func (u *userRepo) UploadAvatar(id int64, filename string, data []byte) error {
+	// 获取文件后缀
+	extString := path.Ext(filename)
+	rep, err := u.FileRpcServer.UploadAvatar(context.Background(), &file_server.UploadAvatarRequest{
+		Id:          id,
+		FileContent: data,
+		FileName:    filename,
+		FileType:    extString,
+	})
+	if err != nil || rep.FileUrl == "" {
+		return errors.New("文件上传服务器失败")
+	}
+	return u.UpdateAvatar(id, rep.FileUrl)
+}
+
 // UpdateAvatar
 //
-//	@Description: 更新用户头像
-//	@receiver u userRepo
-//	@param avatar mongodb.UserAvatarModel
-//	@return error 错误信息
-func (u *userRepo) UpdateAvatar(id int64, avatarUrl string) error {
-	return u.modelMyDB().Where("id = ?", id).Update("avatar", avatarUrl).Error
+//	@Description: 更新数据库用户头像地址
+//	@receiver u
+//	@param id
+//	@param fileURL
+//	@return error
+func (u *userRepo) UpdateAvatar(id int64, avatarURL string) error {
+	return u.modelMyDB().Where("id = ?", id).Update("avatar", avatarURL).Error
 }
 
 // UpdateProfile
