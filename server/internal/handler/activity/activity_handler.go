@@ -12,6 +12,7 @@ type HandlerInterface interface {
 	SearchActivity(ctx *gin.Context)
 	JoinActivity(ctx *gin.Context)
 	ExitActivity(ctx *gin.Context)
+	GetJoinedActivity(ctx *gin.Context)
 }
 
 type activityHandler struct {
