@@ -4,7 +4,7 @@ package model
 type ActivityUserModel struct {
 	BaseModel
 	ActivityID int64         `gorm:"column:activity_id;type:bigint;not null" json:"activity_id"`
-	Activity   ActivityModel `gorm:"foreignKey:ActivityID;references:ID" json:"-"`
+	Activity   ActivityModel `gorm:"foreignKey:ActivityID;references:ID" json:"activity"`
 	UserID     int64         `gorm:"column:user_id;type:bigint;not null" json:"user_id"`
 	User       UserModel     `gorm:"foreignKey:UserID;references:ID" json:"-"`
 }
