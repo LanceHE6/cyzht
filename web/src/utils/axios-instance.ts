@@ -14,10 +14,25 @@ export const axiosInstance = axios.create({
 export const axiosInstanceWithAuth = axios.create({
   baseURL: BASE_URL,
   timeout: 5000,
-  headers: {
-    Authorization: `Bearer ` + LocalStorage.getToken(),
-  },
 });
+
+// 添加请求拦截器
+axiosInstanceWithAuth.interceptors.request.use(
+  function (config) {
+    // 在发送请求之前做些什么
+    const token = LocalStorage.getToken();
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  function (error) {
+    // 对请求错误做些什么
+    return Promise.reject(error);
+  },
+);
 
 // 添加响应拦截器
 axiosInstanceWithAuth.interceptors.response.use(
@@ -35,9 +50,8 @@ axiosInstanceWithAuth.interceptors.response.use(
       WebSocketClient.close();
       const navigate = useNavigate();
 
-      Toast.danger("登录过期，请重新登录", error.response.data.msg);
-
       navigate("/login");
+      Toast.danger("登录过期，请重新登录", error.response.data.msg);
     }
 
     return Promise.reject(error);
