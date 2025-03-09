@@ -10,7 +10,11 @@ module.exports = {
     "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      gridTemplateColumns: {
+        "16": 'repeat(16, minmax(0, 1fr))'
+      }
+    },
   },
   darkMode: "class",
   plugins: [heroui()],
