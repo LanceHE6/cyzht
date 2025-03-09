@@ -6,7 +6,7 @@ import {
   Button,
   InputOtp,
   CircularProgress,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";

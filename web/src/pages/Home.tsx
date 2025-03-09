@@ -8,7 +8,7 @@ import {
   Spacer,
   Tab,
   Tabs,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 
 import {

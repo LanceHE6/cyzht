@@ -24,7 +24,7 @@ import {
   TableRow,
   Textarea,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import { axiosInstanceWithAuth } from "../utils/axiosInstance.ts";
 
