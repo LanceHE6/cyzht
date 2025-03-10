@@ -45,10 +45,11 @@ func main() {
 		//静态文件目录
 		fs := http.Dir("./storage")
 		//访问url，如"/static/",注意末尾的"/"不能少。
-		server := rest.MustNewServer(c2.RestConf, rest.WithFileServer("/static/", fs))
-		server.Start()
+		staticServer := rest.MustNewServer(c2.RestConf, rest.WithFileServer("/static/", fs))
+		fmt.Printf("Starting static resources staticServer at %d...\n", c2.Port)
+		staticServer.Start()
 	}()
 
-	fmt.Printf("Starting file rpc server at %s...\n", c1.ListenOn)
+	fmt.Printf("file rpc server listening on %s...\n", c1.ListenOn)
 	s.Start()
 }
