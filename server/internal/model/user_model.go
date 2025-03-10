@@ -8,7 +8,7 @@ type UserModel struct {
 	Account  string `gorm:"column:account;type:varchar(255);not null;unique" json:"account"` // 账号
 	Password string `gorm:"column:password;type:varchar(255);not null" json:"-"`             // 密码
 	Nickname string `gorm:"column:nickname;type:varchar(255);not null" json:"nickname"`      // 姓名
-	Avatar   string `gorm:"column:avatar;type:varchar(255);" json:"avatar"`                  // mongodb头像ID
+	Avatar   string `gorm:"column:user_avatar;type:varchar(255);" json:"user_avatar"`        // mongodb头像ID
 	Sex      int    `gorm:"column:sex;type:int;default -1" json:"sex"`                       // 性别1:男 2:女 -1:保密 避免零值
 	//Signature    string `gorm:"column:signature;type:varchar(255);" json:"signature"`            // 个性签名
 	//OnlineStatus int    `gorm:"column:online_status;type:int;default '0'" json:"online_status"`  // 在线状态0为离线1为在线

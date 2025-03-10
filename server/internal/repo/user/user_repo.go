@@ -116,7 +116,7 @@ func (u *userRepo) SelectByID(id int64) *model.UserModel {
 	}
 
 	// 获取文件服务器中的头像地址
-	rsp, err := u.FileRpcServer.GetAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
+	rsp, err := u.FileRpcServer.GetUserAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
 		Id: user.ID,
 	})
 	if err != nil {
@@ -153,7 +153,7 @@ func (u *userRepo) SelectByAccountAndPsw(account, password string) *model.UserMo
 		return nil
 	}
 	// 获取文件服务器中的头像地址
-	rsp, err := u.FileRpcServer.GetAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
+	rsp, err := u.FileRpcServer.GetUserAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
 		Id: user.ID,
 	})
 	if err != nil {
@@ -242,13 +242,16 @@ func (u *userRepo) UpdateOnlineStatus(id int64, onlineStatus int) error {
 func (u *userRepo) UploadAvatar(id int64, filename string, data []byte) error {
 	// 获取文件后缀
 	extString := path.Ext(filename)
-	rep, err := u.FileRpcServer.UploadAvatar(context.Background(), &file_server.UploadAvatarRequest{
+	rep, err := u.FileRpcServer.UploadUserAvatar(context.Background(), &file_server.UploadAvatarRequest{
 		Id:          id,
 		FileContent: data,
 		FileName:    filename,
 		FileType:    extString,
 	})
 	if err != nil || rep.FileUrl == "" {
+		if err != nil {
+			logger.Logger.Errorf("文件上传服务器失败: %s", err.Error())
+		}
 		return errors.New("文件上传服务器失败")
 	}
 	return u.UpdateAvatar(id, rep.FileUrl)
@@ -262,7 +265,7 @@ func (u *userRepo) UploadAvatar(id int64, filename string, data []byte) error {
 //	@param fileURL
 //	@return error
 func (u *userRepo) UpdateAvatar(id int64, avatarURL string) error {
-	return u.modelMyDB().Where("id = ?", id).Update("avatar", avatarURL).Error
+	return u.modelMyDB().Where("id = ?", id).Update("user_avatar", avatarURL).Error
 }
 
 // UpdateProfile
