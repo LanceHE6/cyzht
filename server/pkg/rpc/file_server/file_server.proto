@@ -6,8 +6,11 @@ option go_package="./file_server";
 // 定义文件存储服务
 service FileService {
   // 上传文件的RPC方法
-  rpc UploadAvatar(UploadAvatarRequest) returns (UploadAvatarResponse) {}
-  rpc GetAvatarUrl(GetAvatarUrlRequest) returns (GetAvatarUrlResponse) {}
+  rpc UploadUserAvatar(UploadAvatarRequest) returns (UploadAvatarResponse) {}
+  rpc GetUserAvatarUrl(GetAvatarUrlRequest) returns (GetAvatarUrlResponse) {}
+
+  rpc UploadActivityAvatar(UploadAvatarRequest) returns (UploadAvatarResponse) {}
+  rpc GetActivityAvatarUrl(GetAvatarUrlRequest) returns (GetAvatarUrlResponse) {}
 }
 
 // 文件上传请求消息结构体
