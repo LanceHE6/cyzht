@@ -24,6 +24,7 @@ import DefaultLayout from "@/layouts/default.tsx";
 import UserProfilePopover from "@/components/user-profile-popover.tsx";
 import { WebSocketClient, LocalStorage, Toast } from "@/utils/utils.ts";
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
+import { AddActivity } from "@/components/add-activity.tsx";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -34,20 +35,19 @@ export default function HomePage() {
       key: "message",
       title: "私信",
       icon: <MessageIcon />,
+      component: <MessageList />,
     },
     {
       key: "explore",
       title: "发现展会",
       icon: <ExploreIcon />,
-    },
-    {
-      key: "add",
-      title: "添加展会",
-      icon: <AddIcon />,
+      component: <ExploreActivities />,
     },
   ];
   // 左侧菜单
   const [menuTabs, setMenuTabs] = useState(defaultMenuTabs);
+  const [selectedTab, setSelectedTab] = useState("explore");
+  const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
 
   useEffect(() => {
     if (user === null) {
@@ -84,15 +84,27 @@ export default function HomePage() {
         key: activityUser.id,
         title: activityUser.activity.name,
         icon: <DefaultActivityIcon />,
+        component: <JoinedActivity activity={activityUser.activity} />,
       }));
 
       // 更新 menuTabs 状态
       setMenuTabs([...defaultMenuTabs, ...newTabs]);
-      console.log("menuTabs: ", menuTabs);
     } catch (error) {
       console.error("Error fetching joined activities:", error);
       Toast.danger("获取已加入展会列表失败", "网络错误或其他问题");
     }
+  };
+
+  // 渲染当前选中的 Tab 的组件
+  const renderSelectedComponent = () => {
+
+    const selectedTabItem = menuTabs.find((tab) => tab.key === selectedTab);
+
+    if (selectedTabItem) {
+      return selectedTabItem.component;
+    }
+
+    return null;
   };
 
   return (
@@ -116,7 +128,9 @@ export default function HomePage() {
                 isVertical
                 className={"menuTabs px-0"}
                 defaultSelectedKey="explore"
+                selectedKey={selectedTab}
                 variant="light"
+                onSelectionChange={(key) => setSelectedTab(key as string)}
               >
                 {menuTabs.map((item) => (
                   <Tab
@@ -125,8 +139,10 @@ export default function HomePage() {
                     title={
                       <Tooltip
                         key={item.key}
+                        showArrow
                         color="default"
                         content={item.title}
+                        offset={15}
                         placement={"right"}
                       >
                         <div>{item.icon}</div>
@@ -135,6 +151,27 @@ export default function HomePage() {
                   />
                 ))}
               </Tabs>
+              <Spacer y={4} />
+              <Button
+                isIconOnly
+                className={"px-2 border-0 w-full"}
+                variant={"light"}
+                onPress={() => {
+                  setIsAddActivityModalOpen(true);
+                }}
+              >
+                <Tooltip
+                  showArrow
+                  color="default"
+                  content={"添加展会"}
+                  offset={15}
+                  placement={"right"}
+                >
+                  <div>
+                    <AddIcon />
+                  </div>
+                </Tooltip>
+              </Button>
             </div>
 
             <div className="w-full max-w-[260px] px-2 py-2 flex items-end justify-end">
@@ -152,21 +189,44 @@ export default function HomePage() {
                 <DropdownMenu aria-label="Static Actions">
                   <DropdownItem key="setting">设置</DropdownItem>
                   <DropdownItem key="about">关于</DropdownItem>
-                  <DropdownItem key="logout" color="danger" onClick={logout}>
+                  <DropdownItem key="logout" color="danger" onPress={logout}>
                     退出登录
                   </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
             </div>
           </Card>
-          <div className="message-list col-span-5 min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]">
-            消息列表
-          </div>
-          <div className="menus col-span-10 min-w-52 border-r-emerald-500 border-0 bg-[#F2F2F2]">
-            聊天框
+          <div className="message-list col-span-15 min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]">
+            {renderSelectedComponent()}
+            <AddActivity
+              isOpen={isAddActivityModalOpen}
+              onClose={() => setIsAddActivityModalOpen(false)}
+            />
           </div>
         </Card>
       </div>
     </DefaultLayout>
   );
 }
+
+// 示例子组件
+const MessageList = () => (
+  <div>
+    <h2>消息列表</h2>
+    {/* 消息列表内容 */}
+  </div>
+);
+
+const ExploreActivities = () => (
+  <div>
+    <h2>发现展会</h2>
+    {/* 发现展会内容 */}
+  </div>
+);
+
+const JoinedActivity = ({ activity }: { activity: any }) => (
+  <div>
+    <h2>{activity.name}</h2>
+    {/* 已加入展会内容 */}
+  </div>
+);
