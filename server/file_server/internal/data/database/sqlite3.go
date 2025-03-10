@@ -16,5 +16,9 @@ func NewSqlite3(dbPath string) *gorm.DB {
 	if err != nil {
 		panic("failed to migrate database")
 	}
+	err = db.AutoMigrate(&models.ActivityAvatarModel{})
+	if err != nil {
+		panic("failed to migrate database")
+	}
 	return db
 }

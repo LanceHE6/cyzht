@@ -19,19 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FileService_UploadAvatar_FullMethodName = "/file_server.FileService/UploadAvatar"
-	FileService_GetAvatarUrl_FullMethodName = "/file_server.FileService/GetAvatarUrl"
+	FileService_UploadUserAvatar_FullMethodName     = "/file_server.FileService/UploadUserAvatar"
+	FileService_GetUserAvatarUrl_FullMethodName     = "/file_server.FileService/GetUserAvatarUrl"
+	FileService_UploadActivityAvatar_FullMethodName = "/file_server.FileService/UploadActivityAvatar"
+	FileService_GetActivityAvatarUrl_FullMethodName = "/file_server.FileService/GetActivityAvatarUrl"
 )
 
-// FileServiceClient is the client API for FileService handler.
+// FileServiceClient is the client API for FileService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // 定义文件存储服务
 type FileServiceClient interface {
 	// 上传文件的RPC方法
-	UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
-	GetAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error)
+	UploadUserAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
+	GetUserAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error)
+	UploadActivityAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
+	GetActivityAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error)
 }
 
 type fileServiceClient struct {
@@ -42,35 +46,57 @@ func NewFileServiceClient(cc grpc.ClientConnInterface) FileServiceClient {
 	return &fileServiceClient{cc}
 }
 
-func (c *fileServiceClient) UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error) {
+func (c *fileServiceClient) UploadUserAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UploadAvatarResponse)
-	err := c.cc.Invoke(ctx, FileService_UploadAvatar_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FileService_UploadUserAvatar_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *fileServiceClient) GetAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error) {
+func (c *fileServiceClient) GetUserAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAvatarUrlResponse)
-	err := c.cc.Invoke(ctx, FileService_GetAvatarUrl_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FileService_GetUserAvatarUrl_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// FileServiceServer is the server API for FileService handler.
+func (c *fileServiceClient) UploadActivityAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadAvatarResponse)
+	err := c.cc.Invoke(ctx, FileService_UploadActivityAvatar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *fileServiceClient) GetActivityAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAvatarUrlResponse)
+	err := c.cc.Invoke(ctx, FileService_GetActivityAvatarUrl_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// FileServiceServer is the server API for FileService service.
 // All implementations must embed UnimplementedFileServiceServer
 // for forward compatibility.
 //
 // 定义文件存储服务
 type FileServiceServer interface {
 	// 上传文件的RPC方法
-	UploadAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error)
-	GetAvatarUrl(context.Context, *GetAvatarUrlRequest) (*GetAvatarUrlResponse, error)
+	UploadUserAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error)
+	GetUserAvatarUrl(context.Context, *GetAvatarUrlRequest) (*GetAvatarUrlResponse, error)
+	UploadActivityAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error)
+	GetActivityAvatarUrl(context.Context, *GetAvatarUrlRequest) (*GetAvatarUrlResponse, error)
 	mustEmbedUnimplementedFileServiceServer()
 }
 
@@ -81,16 +107,22 @@ type FileServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFileServiceServer struct{}
 
-func (UnimplementedFileServiceServer) UploadAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UploadAvatar not implemented")
+func (UnimplementedFileServiceServer) UploadUserAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadUserAvatar not implemented")
 }
-func (UnimplementedFileServiceServer) GetAvatarUrl(context.Context, *GetAvatarUrlRequest) (*GetAvatarUrlResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAvatarUrl not implemented")
+func (UnimplementedFileServiceServer) GetUserAvatarUrl(context.Context, *GetAvatarUrlRequest) (*GetAvatarUrlResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserAvatarUrl not implemented")
+}
+func (UnimplementedFileServiceServer) UploadActivityAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadActivityAvatar not implemented")
+}
+func (UnimplementedFileServiceServer) GetActivityAvatarUrl(context.Context, *GetAvatarUrlRequest) (*GetAvatarUrlResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetActivityAvatarUrl not implemented")
 }
 func (UnimplementedFileServiceServer) mustEmbedUnimplementedFileServiceServer() {}
 func (UnimplementedFileServiceServer) testEmbeddedByValue()                     {}
 
-// UnsafeFileServiceServer may be embedded to opt out of forward compatibility for this handler.
+// UnsafeFileServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to FileServiceServer will
 // result in compilation errors.
 type UnsafeFileServiceServer interface {
@@ -108,43 +140,79 @@ func RegisterFileServiceServer(s grpc.ServiceRegistrar, srv FileServiceServer) {
 	s.RegisterService(&FileService_ServiceDesc, srv)
 }
 
-func _FileService_UploadAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FileService_UploadUserAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UploadAvatarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FileServiceServer).UploadAvatar(ctx, in)
+		return srv.(FileServiceServer).UploadUserAvatar(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FileService_UploadAvatar_FullMethodName,
+		FullMethod: FileService_UploadUserAvatar_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).UploadAvatar(ctx, req.(*UploadAvatarRequest))
+		return srv.(FileServiceServer).UploadUserAvatar(ctx, req.(*UploadAvatarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FileService_GetAvatarUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FileService_GetUserAvatarUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAvatarUrlRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FileServiceServer).GetAvatarUrl(ctx, in)
+		return srv.(FileServiceServer).GetUserAvatarUrl(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FileService_GetAvatarUrl_FullMethodName,
+		FullMethod: FileService_GetUserAvatarUrl_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).GetAvatarUrl(ctx, req.(*GetAvatarUrlRequest))
+		return srv.(FileServiceServer).GetUserAvatarUrl(ctx, req.(*GetAvatarUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// FileService_ServiceDesc is the grpc.ServiceDesc for FileService handler.
+func _FileService_UploadActivityAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadAvatarRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).UploadActivityAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_UploadActivityAvatar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).UploadActivityAvatar(ctx, req.(*UploadAvatarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FileService_GetActivityAvatarUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAvatarUrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FileServiceServer).GetActivityAvatarUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FileService_GetActivityAvatarUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FileServiceServer).GetActivityAvatarUrl(ctx, req.(*GetAvatarUrlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// FileService_ServiceDesc is the grpc.ServiceDesc for FileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var FileService_ServiceDesc = grpc.ServiceDesc{
@@ -152,12 +220,20 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*FileServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UploadAvatar",
-			Handler:    _FileService_UploadAvatar_Handler,
+			MethodName: "UploadUserAvatar",
+			Handler:    _FileService_UploadUserAvatar_Handler,
 		},
 		{
-			MethodName: "GetAvatarUrl",
-			Handler:    _FileService_GetAvatarUrl_Handler,
+			MethodName: "GetUserAvatarUrl",
+			Handler:    _FileService_GetUserAvatarUrl_Handler,
+		},
+		{
+			MethodName: "UploadActivityAvatar",
+			Handler:    _FileService_UploadActivityAvatar_Handler,
+		},
+		{
+			MethodName: "GetActivityAvatarUrl",
+			Handler:    _FileService_GetActivityAvatarUrl_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

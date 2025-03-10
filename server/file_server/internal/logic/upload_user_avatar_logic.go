@@ -14,26 +14,26 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type UploadAvatarLogic struct {
+type UploadUserAvatarLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewUploadAvatarLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UploadAvatarLogic {
-	return &UploadAvatarLogic{
+func NewUploadUserAvatarLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UploadUserAvatarLogic {
+	return &UploadUserAvatarLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-// UploadAvatar 上传文件的RPC方法
-func (l *UploadAvatarLogic) UploadAvatar(in *file_server.UploadAvatarRequest) (*file_server.UploadAvatarResponse, error) {
+// UploadUserAvatar 上传文件的RPC方法
+func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadAvatarRequest) (*file_server.UploadAvatarResponse, error) {
 	// 生成唯一的文件ID，这里简单使用时间戳+自增数字（实际可使用更严谨的UUID等方式）
 	filename := strconv.FormatInt(time.Now().UnixNano(), 10)
-	avatarPath := l.svcCtx.Config.StoragePath + "/avatar/" + filename + in.FileType
-	url := "/avatar/" + filename + in.FileType
+	avatarPath := l.svcCtx.Config.StoragePath + "/user_avatar/" + filename + in.FileType
+	url := "/user_avatar/" + filename + in.FileType
 	// 保存文件到本地磁盘
 	err := os.WriteFile(avatarPath, in.FileContent, 0644)
 	if err != nil {
@@ -42,13 +42,15 @@ func (l *UploadAvatarLogic) UploadAvatar(in *file_server.UploadAvatarRequest) (*
 
 	// 将文件信息插入到数据库中
 	_, err = l.svcCtx.Repo.UserAvatarRepo.InsertOrUpdate(&models.UserAvatarModel{
-		BaseModel: models.BaseModel{
-			ID: in.Id,
+		AvatarModel: models.AvatarModel{
+			BaseModel: models.BaseModel{
+				ID: in.Id,
+			},
+			FileName: filename,
+			FileType: in.FileType,
+			FileSize: int64(len(in.FileContent)),
+			FileURL:  url,
 		},
-		FileName: filename,
-		FileType: in.FileType,
-		FileSize: int64(len(in.FileContent)),
-		FileURL:  url,
 	},
 	)
 	if err != nil {
@@ -58,5 +60,4 @@ func (l *UploadAvatarLogic) UploadAvatar(in *file_server.UploadAvatarRequest) (*
 	return &file_server.UploadAvatarResponse{
 		FileUrl: url,
 	}, nil
-
 }

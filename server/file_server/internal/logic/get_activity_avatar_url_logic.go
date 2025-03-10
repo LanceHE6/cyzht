@@ -9,22 +9,22 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type GetAvatarUrlLogic struct {
+type GetActivityAvatarUrlLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewGetAvatarUrlLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetAvatarUrlLogic {
-	return &GetAvatarUrlLogic{
+func NewGetActivityAvatarUrlLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetActivityAvatarUrlLogic {
+	return &GetActivityAvatarUrlLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-func (l *GetAvatarUrlLogic) GetAvatarUrl(in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
-	avatar, err := l.svcCtx.Repo.UserAvatarRepo.FindByID(in.Id)
+func (l *GetActivityAvatarUrlLogic) GetActivityAvatarUrl(in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
+	avatar, err := l.svcCtx.Repo.ActivityAvatarRepo.FindByID(in.Id)
 	if avatar == nil {
 		return &file_server.GetAvatarUrlResponse{}, err
 	}

@@ -24,12 +24,22 @@ func NewFileServiceServer(svcCtx *svc.ServiceContext) *FileServiceServer {
 }
 
 // 上传文件的RPC方法
-func (s *FileServiceServer) UploadAvatar(ctx context.Context, in *file_server.UploadAvatarRequest) (*file_server.UploadAvatarResponse, error) {
-	l := logic.NewUploadAvatarLogic(ctx, s.svcCtx)
-	return l.UploadAvatar(in)
+func (s *FileServiceServer) UploadUserAvatar(ctx context.Context, in *file_server.UploadAvatarRequest) (*file_server.UploadAvatarResponse, error) {
+	l := logic.NewUploadUserAvatarLogic(ctx, s.svcCtx)
+	return l.UploadUserAvatar(in)
 }
 
-func (s *FileServiceServer) GetAvatarUrl(ctx context.Context, in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
-	l := logic.NewGetAvatarUrlLogic(ctx, s.svcCtx)
-	return l.GetAvatarUrl(in)
+func (s *FileServiceServer) GetUserAvatarUrl(ctx context.Context, in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
+	l := logic.NewGetUserAvatarUrlLogic(ctx, s.svcCtx)
+	return l.GetUserAvatarUrl(in)
+}
+
+func (s *FileServiceServer) UploadActivityAvatar(ctx context.Context, in *file_server.UploadAvatarRequest) (*file_server.UploadAvatarResponse, error) {
+	l := logic.NewUploadActivityAvatarLogic(ctx, s.svcCtx)
+	return l.UploadActivityAvatar(in)
+}
+
+func (s *FileServiceServer) GetActivityAvatarUrl(ctx context.Context, in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
+	l := logic.NewGetActivityAvatarUrlLogic(ctx, s.svcCtx)
+	return l.GetActivityAvatarUrl(in)
 }

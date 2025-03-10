@@ -21,8 +21,10 @@ type (
 
 	FileService interface {
 		// 上传文件的RPC方法
-		UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
-		GetAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error)
+		UploadUserAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
+		GetUserAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error)
+		UploadActivityAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
+		GetActivityAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error)
 	}
 
 	defaultFileService struct {
@@ -37,12 +39,22 @@ func NewFileService(cli zrpc.Client) FileService {
 }
 
 // 上传文件的RPC方法
-func (m *defaultFileService) UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error) {
+func (m *defaultFileService) UploadUserAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error) {
 	client := file_server.NewFileServiceClient(m.cli.Conn())
-	return client.UploadAvatar(ctx, in, opts...)
+	return client.UploadUserAvatar(ctx, in, opts...)
 }
 
-func (m *defaultFileService) GetAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error) {
+func (m *defaultFileService) GetUserAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error) {
 	client := file_server.NewFileServiceClient(m.cli.Conn())
-	return client.GetAvatarUrl(ctx, in, opts...)
+	return client.GetUserAvatarUrl(ctx, in, opts...)
+}
+
+func (m *defaultFileService) UploadActivityAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error) {
+	client := file_server.NewFileServiceClient(m.cli.Conn())
+	return client.UploadActivityAvatar(ctx, in, opts...)
+}
+
+func (m *defaultFileService) GetActivityAvatarUrl(ctx context.Context, in *GetAvatarUrlRequest, opts ...grpc.CallOption) (*GetAvatarUrlResponse, error) {
+	client := file_server.NewFileServiceClient(m.cli.Conn())
+	return client.GetActivityAvatarUrl(ctx, in, opts...)
 }

@@ -5,11 +5,13 @@ import (
 )
 
 type Repo struct {
-	UserAvatarRepo UserAvatarRepoInterface
+	UserAvatarRepo     UserAvatarRepoInterface
+	ActivityAvatarRepo ActivityAvatarRepoInterface
 }
 
 func NewRepository(db *gorm.DB) *Repo {
 	return &Repo{
-		UserAvatarRepo: NewUserAvatarRepo(db),
+		UserAvatarRepo:     NewUserAvatarRepo(db),
+		ActivityAvatarRepo: NewActivityAvatarRepo(db),
 	}
 }
