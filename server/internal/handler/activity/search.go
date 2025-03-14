@@ -14,7 +14,7 @@ func (a *activityHandler) SearchActivity(ctx *gin.Context) {
 		Page  *int `form:"page"`      // 页码
 		Limit *int `form:"page_size"` // 每页条数
 
-		ID           *int64  `form:"id"`
+		ID           *int64  `form:"id,string"`
 		Name         *string `form:"name"`
 		Creator      *string `form:"creator"`
 		Location     *string `form:"location"`

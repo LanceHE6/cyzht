@@ -10,7 +10,7 @@ import (
 // DeleteActivity 删除活动
 func (a *activityHandler) DeleteActivity(ctx *gin.Context) {
 	type delActivityRequest struct {
-		ID int64 `json:"id" binding:"required"`
+		ID int64 `json:"id,string" binding:"required"`
 	}
 	data := bindparams.BindPostParams[delActivityRequest](ctx)
 	if data == nil {

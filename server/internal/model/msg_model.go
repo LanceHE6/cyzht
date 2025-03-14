@@ -9,12 +9,12 @@ const (
 
 // MetaMsg 消息元数据
 type MetaMsg struct {
-	UserID   int64   `gorm:"column:user_id;type:bigint;not null" json:"user_id"`
-	SendTo   int64   `gorm:"column:send_to;type:bigint;not null" json:"send_to"`
+	UserID   int64   `gorm:"column:user_id;type:bigint;not null" json:"user_id,string"`
+	SendTo   int64   `gorm:"column:send_to;type:bigint;not null" json:"send_to,string"`
 	MsgType  MsgType `gorm:"column:msg_type;type:tinyint;not null" json:"msg_type"`
 	TextMsg  string  `gorm:"column:text_msg;type:text;not null" json:"text_msg"`
 	FileURL  string  `gorm:"column:file_url;type:varchar(255);not null" json:"file_url"`
-	FileSize int64   `gorm:"column:file_size;type:bigint;not null" json:"file_size"`
+	FileSize int64   `gorm:"column:file_size;type:bigint;not null" json:"file_size,string"`
 }
 
 // MsgModel 聊天消息表
