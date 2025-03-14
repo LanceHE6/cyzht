@@ -46,7 +46,7 @@ func main() {
 		fs := http.Dir("./storage")
 		//访问url，如"/static/",注意末尾的"/"不能少。
 		staticServer := rest.MustNewServer(c2.RestConf, rest.WithFileServer("/static/", fs))
-		fmt.Printf("Starting static resources staticServer at %d...\n", c2.Port)
+		fmt.Printf("Starting static resources Server at %d...\n", c2.Port)
 		staticServer.Start()
 	}()
 
