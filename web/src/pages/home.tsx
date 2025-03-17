@@ -83,7 +83,16 @@ export default function HomePage() {
       const newTabs = response.data.data.rows.map((activityUser: any) => ({
         key: activityUser.id,
         title: activityUser.activity.name,
-        icon: <DefaultActivityIcon />,
+        icon: activityUser.activity.avatar ? (
+          <Avatar
+            isBordered
+            className="cursor-pointer"
+            size="sm"
+            src={activityUser.activity.avatar}
+          />
+        ) : (
+          <DefaultActivityIcon />
+        ),
         component: <JoinedActivity activity={activityUser.activity} />,
       }));
 
@@ -97,7 +106,6 @@ export default function HomePage() {
 
   // 渲染当前选中的 Tab 的组件
   const renderSelectedComponent = () => {
-
     const selectedTabItem = menuTabs.find((tab) => tab.key === selectedTab);
 
     if (selectedTabItem) {
