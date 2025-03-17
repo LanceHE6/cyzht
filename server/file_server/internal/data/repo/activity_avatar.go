@@ -7,8 +7,8 @@ import (
 )
 
 type ActivityAvatarRepoInterface interface {
-	InsertOrUpdate(userAvatar *models.ActivityAvatarModel) (avatar *models.ActivityAvatarModel, err error)
-	Update(userAvatar *models.ActivityAvatarModel) (avatar *models.ActivityAvatarModel, err error)
+	InsertOrUpdate(aa *models.ActivityAvatarModel) (avatar *models.ActivityAvatarModel, err error)
+	Update(aa *models.ActivityAvatarModel) (avatar *models.ActivityAvatarModel, err error)
 	FindByID(id int64) (avatar *models.ActivityAvatarModel, err error)
 }
 
@@ -32,9 +32,9 @@ func (u activityAvatarRepo) InsertOrUpdate(userAvatar *models.ActivityAvatarMode
 	return userAvatar, err
 }
 
-func (u activityAvatarRepo) Update(userAvatar *models.ActivityAvatarModel) (avatar *models.ActivityAvatarModel, err error) {
-	err = u.DB.Model(&models.ActivityAvatarModel{}).Where("id = ?", userAvatar.ID).Updates(userAvatar).Error
-	return userAvatar, err
+func (u activityAvatarRepo) Update(aa *models.ActivityAvatarModel) (avatar *models.ActivityAvatarModel, err error) {
+	err = u.DB.Model(&models.ActivityAvatarModel{}).Where("id = ?", aa.ID).Updates(aa).Error
+	return aa, err
 }
 
 func (u activityAvatarRepo) FindByID(id int64) (avatar *models.ActivityAvatarModel, err error) {
