@@ -265,7 +265,7 @@ func (u *userRepo) UploadAvatar(id int64, filename string, data []byte) error {
 //	@param fileURL
 //	@return error
 func (u *userRepo) UpdateAvatar(id int64, avatarURL string) error {
-	return u.modelMyDB().Where("id = ?", id).Update("user_avatar", avatarURL).Error
+	return u.modelMyDB().Where("id = ?", id).Update("avatar", avatarURL).Error
 }
 
 // UpdateProfile
