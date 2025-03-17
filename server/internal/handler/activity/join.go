@@ -15,6 +15,11 @@ func (a *activityHandler) JoinActivity(ctx *gin.Context) {
 		return
 	}
 
+	activity, err := a.ActivityRepo.SelectByID(aid)
+	if activity == nil || err != nil {
+		ctx.JSON(http.StatusOK, response.FailedResponse(1, "展会不存在"))
+		return
+	}
 	claims, _ := jwt.GetClaimsByContext(ctx)
 	err = a.ActivityUserRepo.Insert(claims.ID, aid)
 	if err != nil {
