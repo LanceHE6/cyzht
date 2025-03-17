@@ -34,10 +34,10 @@ func InitRepo(c *config.Config, conn *db.DBConn, fileRpcServer file_server.FileS
 			repo = &Repo{
 				UserRepo:         user.NewUserRepo(c, conn, fileRpcServer),
 				VerifyCodeRepo:   verifycode.NewVerifyCodeRepo(conn),
-				ActivityRepo:     activity.NewActivityRepo(conn),
+				ActivityRepo:     activity.NewActivityRepo(c, conn, fileRpcServer),
 				ExhibitorRepo:    exhibitor.NewExhibitorRepo(conn),
 				MsgRepo:          msg.NewMsgRepo(conn),
-				ActivityUserRepo: activityuser.NewActivityUserRepo(conn),
+				ActivityUserRepo: activityuser.NewActivityUserRepo(c, conn, fileRpcServer),
 			}
 		})
 	}
