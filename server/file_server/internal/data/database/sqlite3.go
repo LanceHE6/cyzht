@@ -2,6 +2,7 @@ package database
 
 import (
 	"file_server/internal/data/models"
+	"fmt"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -11,14 +12,12 @@ func NewSqlite3(dbPath string) *gorm.DB {
 	if err != nil {
 		panic("failed to connect database")
 	}
-
-	err = db.AutoMigrate(&models.UserAvatarModel{})
+	fmt.Println("Connect to SQLite database successfully")
+	fmt.Println("AutoMigrate...")
+	err = db.AutoMigrate(&models.UserAvatarModel{}, &models.ActivityAvatarModel{})
 	if err != nil {
 		panic("failed to migrate database")
 	}
-	err = db.AutoMigrate(&models.ActivityAvatarModel{})
-	if err != nil {
-		panic("failed to migrate database")
-	}
+	fmt.Println("AutoMigrate successfully")
 	return db
 }
