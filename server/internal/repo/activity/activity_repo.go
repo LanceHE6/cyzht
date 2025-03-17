@@ -1,15 +1,21 @@
 package activity
 
 import (
+	"context"
+	"errors"
 	"github.com/jinzhu/gorm"
+	"path"
+	"server/internal/config"
 	"server/internal/db"
 	"server/internal/model"
+	"server/pkg/logger"
+	"server/pkg/rpc/file_server/api/v1/file_server"
 	"time"
 )
 
 type RepoInterface interface {
-	// Insert 插入
-	Insert(activity *model.ActivityModel) error
+	// Insert 插入并返回id
+	Insert(activity *model.ActivityModel) (int64, error)
 	// SelectByID 依id查询
 	SelectByID(id int64) (*model.ActivityModel, error)
 	// DeleteByID 删除
@@ -20,10 +26,20 @@ type RepoInterface interface {
 	Search(params ...PagingParams) (*[]model.ActivityModel, int, error)
 	// update 更新
 	update(activity *model.ActivityModel) error
+	// UpdateAvatar 更新展会头像地址
+	UpdateAvatar(id int64, avatarUrl string) error
+	// UploadAvatar 上传展会头像并更新头像地址
+	UploadAvatar(id int64, filename string, data []byte) error
 }
 
 type activityRepo struct {
-	MyDB *gorm.DB
+	C             *config.Config
+	MyDB          *gorm.DB
+	FileRpcServer file_server.FileServiceClient
+}
+
+func (a *activityRepo) modelMyDB() *gorm.DB {
+	return a.MyDB.Model(&model.ActivityModel{})
 }
 
 type PagingParams func(*gorm.DB) *gorm.DB
@@ -32,7 +48,7 @@ type PagingParams func(*gorm.DB) *gorm.DB
 // 使用option模式
 // 使用示例: Search(WithName(&name), WithPage(&page,&limit))
 func (a *activityRepo) Search(params ...PagingParams) (*[]model.ActivityModel, int, error) {
-	db := a.modelDB()
+	db := a.modelDB().Preload("Creator") // 预加载创建者信息
 	for _, param := range params {
 		db = param(db)
 	}
@@ -46,6 +62,12 @@ func (a *activityRepo) Search(params ...PagingParams) (*[]model.ActivityModel, i
 
 	if err := db.Find(&activities).Error; err != nil {
 		return nil, 0, err
+	}
+	// 拼接头像地址
+	for i := range activities {
+		if activities[i].Avatar != "" {
+			activities[i].Avatar = a.C.Server.FileServer.StaticURL + activities[i].Avatar
+		}
 	}
 
 	return &activities, total, nil
@@ -97,7 +119,7 @@ func WithCreator(creator *string) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
 		// TODO 实现根据用户名搜索
 		if creator != nil {
-			db = db.Preloads("user").Where("creator = ?", *creator)
+			db = db.Preload("user").Where("creator = ?", *creator)
 		}
 		return db
 	}
@@ -156,10 +178,32 @@ func (a *activityRepo) DeleteByID(id int64) error {
 
 func (a *activityRepo) SelectByID(id int64) (*model.ActivityModel, error) {
 	var activity model.ActivityModel
-	err := a.modelDB().Where("id = ? and is_deleted = false", id).First(&activity).Error
+	err := a.modelMyDB().Where("id = ? AND is_deleted = ?", id, false).First(&activity).Error
 	if err != nil {
 		return nil, err
 	}
+
+	// 获取文件服务器中的头像地址
+	rsp, err := a.FileRpcServer.GetActivityAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
+		Id: activity.ID,
+	})
+	if err != nil {
+		logger.Logger.Errorf("获取展会头像失败: %s", err.Error())
+	} else {
+		// 如果文件服务器和本地数据库的头像地址不一致，更新本地数据库数据库
+		if rsp.FileUrl != activity.Avatar {
+			activity.Avatar = rsp.FileUrl
+			err = a.UpdateAvatar(activity.ID, rsp.FileUrl)
+			if err != nil {
+				logger.Logger.Errorf("更新展会头像失败: %s", err.Error())
+			}
+		}
+		// 拼接头像地址
+		if activity.Avatar != "" {
+			activity.Avatar = a.C.Server.FileServer.StaticURL + activity.Avatar
+		}
+	}
+
 	return &activity, nil
 }
 
@@ -167,16 +211,60 @@ func (a *activityRepo) modelDB() *gorm.DB {
 	return a.MyDB.Model(&model.ActivityModel{})
 }
 
-func (a *activityRepo) Insert(activity *model.ActivityModel) error {
-	return a.modelDB().Create(&activity).Error
+func (a *activityRepo) Insert(activity *model.ActivityModel) (int64, error) {
+	err := a.modelDB().Create(&activity).Error
+	if err != nil {
+		return -1, err
+	}
+	// 若插入成功activity会自动赋值id
+	return activity.ID, nil
 }
 
 func (a *activityRepo) update(activity *model.ActivityModel) error {
 	return a.modelDB().Save(&activity).Error
 }
 
-func NewActivityRepo(dbConn *db.DBConn) RepoInterface {
+// UploadAvatar
+//
+//	@Description: 上传用户头像至文件服务器
+//	@receiver u userRepo
+//	@param id int64 用户id
+//	@param filename string 文件名
+//	@param data []byte 文件数据
+//	@return error 错误信息
+func (a *activityRepo) UploadAvatar(id int64, filename string, data []byte) error {
+	// 获取文件后缀
+	extString := path.Ext(filename)
+	rep, err := a.FileRpcServer.UploadActivityAvatar(context.Background(), &file_server.UploadAvatarRequest{
+		Id:          id,
+		FileContent: data,
+		FileName:    filename,
+		FileType:    extString,
+	})
+	if err != nil || rep.FileUrl == "" {
+		if err != nil {
+			logger.Logger.Errorf("文件上传服务器失败: %s", err.Error())
+		}
+		return errors.New("文件上传服务器失败")
+	}
+	return a.UpdateAvatar(id, rep.FileUrl)
+}
+
+// UpdateAvatar
+//
+//	@Description: 更新数据库用户头像地址
+//	@receiver u
+//	@param id
+//	@param fileURL
+//	@return error
+func (a *activityRepo) UpdateAvatar(id int64, avatarURL string) error {
+	return a.modelMyDB().Where("id = ?", id).Update("avatar", avatarURL).Error
+}
+
+func NewActivityRepo(c *config.Config, dbConn *db.DBConn, fileRpcServer file_server.FileServiceClient) RepoInterface {
 	return &activityRepo{
-		MyDB: dbConn.MySQLConn,
+		C:             c,
+		MyDB:          dbConn.MySQLConn,
+		FileRpcServer: fileRpcServer,
 	}
 }
