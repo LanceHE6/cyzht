@@ -1,7 +1,5 @@
 // import { Link } from "@heroui/link";
 
-import { ToastContainer } from "react-toastify";
-
 import { Navbar } from "@/components/navbar";
 
 export default function DefaultLayout({
@@ -26,7 +24,6 @@ export default function DefaultLayout({
       {/*    <p className="text-primary">NextUI</p>*/}
       {/*  </Link>*/}
       {/*</footer>*/}
-      <ToastContainer />
     </div>
   );
 }
