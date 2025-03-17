@@ -25,7 +25,7 @@ func (s userHandler) UpdateAvatar(ctx *gin.Context) {
 		extString := path.Ext(filename)
 
 		if !imageExt[extString] {
-			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, "不支持的文件格式"))
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(10, "不支持的文件格式"))
 			return
 		}
 
@@ -38,5 +38,8 @@ func (s userHandler) UpdateAvatar(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusOK, response.SuccessResponse("更新头像成功"))
+	} else {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-1, "获取头像文件失败", err))
+		return
 	}
 }
