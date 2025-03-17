@@ -12,7 +12,7 @@ import {
   ModalHeader,
   Spacer,
 } from "@heroui/react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Textarea } from "@heroui/input";
 
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
@@ -177,62 +177,50 @@ export const AddActivity = ({
     </>
   );
 
+  const [aid, setAid] = useState("");
+  // 处理加入展会表单提交
+  const handleJoinEvent = async () => {
+    const response = await axiosInstanceWithAuth.post(
+      `/api/v1/activity/${aid}/join`,
+    );
+
+    if (response.data.code === 0) {
+      Toast.success("加入展会成功", null);
+      closeModal();
+    } else {
+      Toast.warning("加入展会失败", response.data.msg);
+    }
+  };
   // 加入展会表单
   const joinEventForm = (
     <>
       <ModalHeader className="flex flex-col gap-1">加入展会</ModalHeader>
       <ModalBody>
-        <Form onSubmit={(e) => handleJoinEvent(e)}>
-          <Input
-            isRequired
-            label="展会ID"
-            labelPlacement="outside"
-            size="lg"
-            type="number"
-          />
-        </Form>
+        <Input
+          isRequired
+          label="展会ID"
+          labelPlacement="outside"
+          size="lg"
+          type="number"
+          value={aid}
+          onValueChange={setAid}
+        />
       </ModalBody>
       <ModalFooter>
         <Button color="default" onPress={() => setSelectedOption(null)}>
           返回
         </Button>
-        <Button color="primary" type="submit">
+        <Button color="primary" onPress={handleJoinEvent}>
           加入
         </Button>
       </ModalFooter>
     </>
   );
 
-  // 处理加入展会表单提交
-  const handleJoinEvent = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const inviteLink = formData.get("inviteLink") as string;
-
-    try {
-      const response = await axiosInstanceWithAuth.post(
-        "/api/v1/activity/join",
-        {
-          inviteLink,
-        },
-      );
-
-      if (response.data.code === 0) {
-        Toast.success("加入展会成功", null);
-        closeModal();
-      } else {
-        Toast.danger("加入展会失败", response.data.msg);
-      }
-    } catch (error) {
-      console.error("Error joining event:", error);
-      Toast.danger("加入展会失败", "网络错误或其他问题");
-    }
-  };
-
   return (
     <>
       {/* 模态框 */}
-      <Modal backdrop="opaque" isOpen={isOpen} onClose={onClose}>
+      <Modal backdrop="transparent" isOpen={isOpen} onClose={onClose}>
         <ModalContent>
           {!selectedOption && (
             <>
