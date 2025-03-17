@@ -41,15 +41,14 @@ func (l *UploadActivityAvatarLogic) UploadActivityAvatar(in *file_server.UploadA
 
 	// 将文件信息插入到数据库中
 	_, err = l.svcCtx.Repo.ActivityAvatarRepo.InsertOrUpdate(&models.ActivityAvatarModel{
-		AvatarModel: models.AvatarModel{
-			BaseModel: models.BaseModel{
-				ID: in.Id,
-			},
-			FileName: filename,
-			FileType: in.FileType,
-			FileSize: int64(len(in.FileContent)),
-			FileURL:  url,
+
+		BaseModel: models.BaseModel{
+			ID: in.Id,
 		},
+		FileName: filename,
+		FileType: in.FileType,
+		FileSize: int64(len(in.FileContent)),
+		FileURL:  url,
 	},
 	)
 	if err != nil {
