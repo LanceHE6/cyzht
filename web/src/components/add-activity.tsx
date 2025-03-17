@@ -1,17 +1,36 @@
 import {
+  Avatar,
   Button,
+  DateInput,
+  DateValue,
+  Form,
+  Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Spacer,
 } from "@heroui/react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { Textarea } from "@heroui/input";
 
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
 import { Toast } from "@/utils/utils.ts";
+import {
+  CreateActivityIcon,
+  DefaultActivityIcon,
+  JoinActivityIcon,
+} from "@/components/icons.tsx";
+import { getCurrentDateTime } from "@/utils/datetime.ts";
 
-export const AddActivity = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+export const AddActivity = ({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) => {
   // 新增状态管理
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -21,93 +40,39 @@ export const AddActivity = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     setSelectedOption(null);
   };
 
-  // 创建展会表单
-  const createEventForm = (
-    <form onSubmit={(e) => handleCreateEvent(e)}>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="name"
-        >
-          展会名称
-        </label>
-        <input
-          required
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="name"
-          placeholder="展会名称"
-          type="text"
-        />
-      </div>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="description"
-        >
-          展会描述
-        </label>
-        <textarea
-          required
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="description"
-          placeholder="展会描述"
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <Button color="primary" type="submit">
-          提交
-        </Button>
-        <Button color="danger" onPress={closeModal}>
-          取消
-        </Button>
-      </div>
-    </form>
+  // 创建展会表单数据
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState(
+    <Avatar icon={<DefaultActivityIcon />} size="lg" />,
   );
-
-  // 加入展会表单
-  const joinEventForm = (
-    <form onSubmit={(e) => handleJoinEvent(e)}>
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="inviteLink"
-        >
-          服务器ID
-        </label>
-        <input
-          required
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          id="inviteLink"
-          placeholder="输入邀请链接或服务器ID"
-          type="text"
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <Button color="primary" type="submit">
-          加入
-        </Button>
-        <Button color="danger" onPress={closeModal}>
-          取消
-        </Button>
-      </div>
-    </form>
+  const [name, setName] = useState("");
+  const [introduce, setIntroduce] = useState("");
+  const [startAt, setStartAt] = useState<DateValue | null>(
+    getCurrentDateTime(),
   );
-
+  const [endAt, setEndAt] = useState<DateValue | null>(getCurrentDateTime());
+  const [location, setLocation] = useState("");
   // 处理创建展会表单提交
-  const handleCreateEvent = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
+  const handleCreateEvent = async () => {
+    const formData = new FormData();
+
+    if (avatarFile) {
+      formData.append("avatar", avatarFile);
+    }
+    formData.append("name", name);
+    formData.append("introduce", introduce);
+    formData.append("start_at", startAt?.toString() ?? "");
+    formData.append("end_at", endAt?.toString() ?? "");
+    formData.append("location", location);
 
     try {
       const response = await axiosInstanceWithAuth.post(
-        "/api/v1/activity/create",
-        {
-          name,
-          description,
-        },
+        "/api/v1/activity/add",
+        formData,
       );
+
+      console.log("response: ", response);
 
       if (response.data.code === 0) {
         Toast.success("创建展会成功", null);
@@ -120,6 +85,123 @@ export const AddActivity = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       Toast.danger("创建展会失败", "网络错误或其他问题");
     }
   };
+  // 创建展会表单
+  const createEventForm = (
+    <>
+      <ModalHeader className="flex flex-col gap-1">创建展会</ModalHeader>
+      <ModalBody>
+        <Form>
+          <div className="flex justify-center mb-4">
+            {avatarPreview ? (
+              <Avatar
+                isBordered
+                as="button"
+                className="cursor-pointer"
+                size="lg"
+                src={avatarPreview}
+              />
+            ) : (
+              avatar
+            )}
+          </div>
+          <Input
+            accept="image/*"
+            type="file"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+
+              if (file) {
+                setAvatarFile(file);
+                setAvatarPreview(URL.createObjectURL(file));
+              }
+            }}
+          />
+          <Input
+            isRequired
+            label="展会名称"
+            labelPlacement="outside"
+            size="lg"
+            type="text"
+            value={name}
+            onValueChange={setName}
+          />
+          <Spacer y={4} />
+          <Textarea
+            label="展会描述"
+            labelPlacement="outside"
+            size="lg"
+            value={introduce}
+            onValueChange={setIntroduce}
+          />
+          <Spacer y={4} />
+          <div className="w-full max-w-xl flex flex-row gap-4">
+            <div className="w-full flex flex-col gap-1">
+              <DateInput
+                hideTimeZone
+                defaultValue={getCurrentDateTime()}
+                label="开始时间"
+                minValue={getCurrentDateTime().subtract({ days: 1 })}
+                value={startAt}
+                onChange={setStartAt}
+              />
+            </div>
+            <div className="w-full flex flex-col gap-2">
+              <DateInput
+                defaultValue={getCurrentDateTime().add({ days: 1 })}
+                label="结束时间"
+                // maxValue={today(getLocalTimeZone())}
+                value={endAt}
+                onChange={setEndAt}
+              />
+            </div>
+          </div>
+          <Input
+            isRequired
+            label="举办地点"
+            labelPlacement="outside"
+            size="lg"
+            type="text"
+            value={location}
+            onValueChange={setLocation}
+          />
+        </Form>
+      </ModalBody>
+      <ModalFooter>
+        <Button color="default" onPress={() => setSelectedOption(null)}>
+          返回
+        </Button>
+        <Button color="primary" type="submit" onPress={handleCreateEvent}>
+          创建
+        </Button>
+      </ModalFooter>
+    </>
+  );
+
+  // 加入展会表单
+  const joinEventForm = (
+    <>
+      <ModalHeader className="flex flex-col gap-1">加入展会</ModalHeader>
+      <ModalBody>
+        <Form onSubmit={(e) => handleJoinEvent(e)}>
+          <Input
+            isRequired
+            label="展会ID"
+            labelPlacement="outside"
+            size="lg"
+            type="number"
+          />
+        </Form>
+      </ModalBody>
+      <ModalFooter>
+        <Button color="default" onPress={() => setSelectedOption(null)}>
+          返回
+        </Button>
+        <Button color="primary" type="submit">
+          加入
+        </Button>
+      </ModalFooter>
+    </>
+  );
 
   // 处理加入展会表单提交
   const handleJoinEvent = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -150,24 +232,37 @@ export const AddActivity = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   return (
     <>
       {/* 模态框 */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal backdrop="opaque" isOpen={isOpen} onClose={onClose}>
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-1">添加展会</ModalHeader>
-          <ModalBody>
-            {!selectedOption && (
-              <>
-                <Button onPress={() => setSelectedOption("create")}>
+          {!selectedOption && (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                添加展会
+              </ModalHeader>
+              <ModalBody className="py-10">
+                <Button
+                  color="default"
+                  size="lg"
+                  startContent={<CreateActivityIcon />}
+                  variant="shadow"
+                  onPress={() => setSelectedOption("create")}
+                >
                   创建展会
                 </Button>
-                <Button onPress={() => setSelectedOption("join")}>
+                <Button
+                  color="default"
+                  size="lg"
+                  startContent={<JoinActivityIcon />}
+                  variant="shadow"
+                  onPress={() => setSelectedOption("join")}
+                >
                   加入展会
                 </Button>
-              </>
-            )}
-            {selectedOption === "create" && createEventForm}
-            {selectedOption === "join" && joinEventForm}
-          </ModalBody>
-          <ModalFooter>{/* 你可以在这里添加其他操作 */}</ModalFooter>
+              </ModalBody>
+            </>
+          )}
+          {selectedOption === "create" && createEventForm}
+          {selectedOption === "join" && joinEventForm}
         </ModalContent>
       </Modal>
     </>
