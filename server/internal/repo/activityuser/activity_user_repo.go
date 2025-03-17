@@ -2,8 +2,10 @@ package activityuser
 
 import (
 	"github.com/jinzhu/gorm"
+	"server/internal/config"
 	"server/internal/db"
 	"server/internal/model"
+	"server/pkg/rpc/file_server/api/v1/file_server"
 )
 
 type RepoInterface interface {
@@ -16,7 +18,9 @@ type RepoInterface interface {
 }
 
 type activityUserRepo struct {
-	MyDB *gorm.DB
+	C             *config.Config
+	MyDB          *gorm.DB
+	FileRpcServer file_server.FileServiceClient
 }
 
 func (a *activityUserRepo) modelDB() *gorm.DB {
@@ -40,12 +44,24 @@ func (a *activityUserRepo) SelectByUID(uid int64) (*[]model.ActivityUserModel, e
 		Joins("JOIN activity ON activity_user.activity_id = activity.id").
 		Where("activity_user.user_id = ? AND activity.is_deleted = ?", uid, false).
 		Find(&activityUser).Error
+	// 拼接展会图标地址
+	for i, au := range activityUser {
+		if au.Activity.Avatar != "" {
+			activityUser[i].Activity.Avatar = a.C.Server.FileServer.StaticURL + au.Activity.Avatar
+		}
+	}
 	return &activityUser, err
 }
 
 func (a *activityUserRepo) SelectByAID(aid int64) (*[]model.ActivityUserModel, error) {
 	var activityUser []model.ActivityUserModel
 	err := a.modelDB().Where("activity_id = ?", aid).Find(&activityUser).Error
+	// 拼接展会图标地址
+	for i, au := range activityUser {
+		if au.Activity.Avatar != "" {
+			activityUser[i].Activity.Avatar = a.C.Server.FileServer.StaticURL + au.Activity.Avatar
+		}
+	}
 	return &activityUser, err
 }
 
@@ -63,8 +79,10 @@ func (a *activityUserRepo) update(activityUser *model.ActivityUserModel) error {
 	panic("implement me")
 }
 
-func NewActivityUserRepo(dbConn *db.DBConn) RepoInterface {
+func NewActivityUserRepo(c *config.Config, dbConn *db.DBConn, fileRpcServer file_server.FileServiceClient) RepoInterface {
 	return &activityUserRepo{
-		MyDB: dbConn.MySQLConn,
+		MyDB:          dbConn.MySQLConn,
+		C:             c,
+		FileRpcServer: fileRpcServer,
 	}
 }
