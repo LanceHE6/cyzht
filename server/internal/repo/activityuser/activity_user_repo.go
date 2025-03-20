@@ -40,7 +40,7 @@ func (a *activityUserRepo) Insert(uid, aid int64) error {
 
 func (a *activityUserRepo) SelectByUID(uid int64) (*[]model.ActivityUserModel, error) {
 	var activityUser []model.ActivityUserModel
-	err := a.modelDB().Preload("Activity").
+	err := a.modelDB().Preload("Activity.Creator").
 		Joins("JOIN activity ON activity_user.activity_id = activity.id").
 		Where("activity_user.user_id = ? AND activity.is_deleted = ?", uid, false).
 		Find(&activityUser).Error
