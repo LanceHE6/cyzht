@@ -115,27 +115,6 @@ func (u *userRepo) SelectByID(id int64) *model.UserModel {
 		return nil
 	}
 
-	// 获取文件服务器中的头像地址
-	rsp, err := u.FileRpcServer.GetUserAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
-		Id: user.ID,
-	})
-	if err != nil {
-		logger.Logger.Errorf("获取用户头像失败: %s", err.Error())
-	} else {
-		// 如果文件服务器和本地数据库的头像地址不一致，更新本地数据库数据库
-		if rsp.FileUrl != user.Avatar {
-			user.Avatar = rsp.FileUrl
-			err = u.UpdateAvatar(user.ID, rsp.FileUrl)
-			if err != nil {
-				logger.Logger.Errorf("更新用户头像失败: %s", err.Error())
-			}
-		}
-		// 拼接头像地址
-		if user.Avatar != "" {
-			user.Avatar = u.C.Server.FileServer.StaticURL + user.Avatar
-		}
-	}
-
 	return &user
 }
 
@@ -151,26 +130,6 @@ func (u *userRepo) SelectByAccountAndPsw(account, password string) *model.UserMo
 	err := u.modelMyDB().Where("account = ? and password = ?", account, encrypt.HashPsw(password)).First(&user).Error
 	if err != nil {
 		return nil
-	}
-	// 获取文件服务器中的头像地址
-	rsp, err := u.FileRpcServer.GetUserAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
-		Id: user.ID,
-	})
-	if err != nil {
-		logger.Logger.Errorf("获取用户头像失败: %s", err.Error())
-	} else {
-		// 如果文件服务器和本地数据库的头像地址不一致，更新本地数据库数据库
-		if rsp.FileUrl != user.Avatar {
-			user.Avatar = rsp.FileUrl
-			err = u.UpdateAvatar(user.ID, rsp.FileUrl)
-			if err != nil {
-				logger.Logger.Errorf("更新用户头像失败: %s", err.Error())
-			}
-		}
-		// 拼接头像地址
-		if user.Avatar != "" {
-			user.Avatar = u.C.Server.FileServer.StaticURL + user.Avatar
-		}
 	}
 	return &user
 }

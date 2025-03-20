@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"github.com/jinzhu/gorm"
+	"server/internal/config"
+	"time"
+)
 
 // ActivityModel
 //
@@ -20,4 +24,12 @@ type ActivityModel struct {
 
 func (*ActivityModel) TableName() string {
 	return "activity"
+}
+
+// AfterFind 钩子函数, 在查询到数据后, 拼接完整的头像url
+func (a *ActivityModel) AfterFind(*gorm.DB) (err error) {
+	if a.Avatar != "" {
+		a.Avatar = config.GetConfig().Server.FileServer.StaticURL + a.Avatar
+	}
+	return nil
 }

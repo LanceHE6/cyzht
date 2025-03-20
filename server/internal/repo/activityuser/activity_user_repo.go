@@ -44,24 +44,12 @@ func (a *activityUserRepo) SelectByUID(uid int64) (*[]model.ActivityUserModel, e
 		Joins("JOIN activity ON activity_user.activity_id = activity.id").
 		Where("activity_user.user_id = ? AND activity.is_deleted = ?", uid, false).
 		Find(&activityUser).Error
-	// 拼接展会图标地址
-	for i, au := range activityUser {
-		if au.Activity.Avatar != "" {
-			activityUser[i].Activity.Avatar = a.C.Server.FileServer.StaticURL + au.Activity.Avatar
-		}
-	}
 	return &activityUser, err
 }
 
 func (a *activityUserRepo) SelectByAID(aid int64) (*[]model.ActivityUserModel, error) {
 	var activityUser []model.ActivityUserModel
 	err := a.modelDB().Where("activity_id = ?", aid).Find(&activityUser).Error
-	// 拼接展会图标地址
-	for i, au := range activityUser {
-		if au.Activity.Avatar != "" {
-			activityUser[i].Activity.Avatar = a.C.Server.FileServer.StaticURL + au.Activity.Avatar
-		}
-	}
 	return &activityUser, err
 }
 

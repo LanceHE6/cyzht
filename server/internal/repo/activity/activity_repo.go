@@ -63,12 +63,6 @@ func (a *activityRepo) Search(params ...PagingParams) (*[]model.ActivityModel, i
 	if err := db.Find(&activities).Error; err != nil {
 		return nil, 0, err
 	}
-	// 拼接头像地址
-	for i := range activities {
-		if activities[i].Avatar != "" {
-			activities[i].Avatar = a.C.Server.FileServer.StaticURL + activities[i].Avatar
-		}
-	}
 
 	return &activities, total, nil
 }
@@ -181,27 +175,6 @@ func (a *activityRepo) SelectByID(id int64) (*model.ActivityModel, error) {
 	err := a.modelMyDB().Where("id = ? AND is_deleted = ?", id, false).First(&activity).Error
 	if err != nil {
 		return nil, err
-	}
-
-	// 获取文件服务器中的头像地址
-	rsp, err := a.FileRpcServer.GetActivityAvatarUrl(context.Background(), &file_server.GetAvatarUrlRequest{
-		Id: activity.ID,
-	})
-	if err != nil {
-		logger.Logger.Errorf("获取展会头像失败: %s", err.Error())
-	} else {
-		// 如果文件服务器和本地数据库的头像地址不一致，更新本地数据库数据库
-		if rsp.FileUrl != activity.Avatar {
-			activity.Avatar = rsp.FileUrl
-			err = a.UpdateAvatar(activity.ID, rsp.FileUrl)
-			if err != nil {
-				logger.Logger.Errorf("更新展会头像失败: %s", err.Error())
-			}
-		}
-		// 拼接头像地址
-		if activity.Avatar != "" {
-			activity.Avatar = a.C.Server.FileServer.StaticURL + activity.Avatar
-		}
 	}
 
 	return &activity, nil

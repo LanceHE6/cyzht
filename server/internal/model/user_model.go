@@ -1,5 +1,10 @@
 package model
 
+import (
+	"github.com/jinzhu/gorm"
+	"server/internal/config"
+)
+
 // UserModel
 //
 //	@Description: 用户表结构
@@ -17,4 +22,12 @@ type UserModel struct {
 
 func (*UserModel) TableName() string {
 	return "user"
+}
+
+// AfterFind 钩子函数, 在查询到数据后, 拼接完整的头像url
+func (u *UserModel) AfterFind(*gorm.DB) (err error) {
+	if u.Avatar != "" {
+		u.Avatar = config.GetConfig().Server.FileServer.StaticURL + u.Avatar
+	}
+	return nil
 }
