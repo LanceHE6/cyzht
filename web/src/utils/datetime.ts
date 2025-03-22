@@ -1,5 +1,7 @@
 import { parseDateTime } from "@internationalized/date";
 
+// 获取当前日期时间
+// 返回格式为 2023-07-01T09:00:00
 export const getCurrentDateTime = () => {
   const Dates = new Date();
   // 年份
@@ -25,4 +27,19 @@ export const getCurrentDateTime = () => {
   return parseDateTime(
     `${Year}-${Months}-${Day}T${Hours}:${Minutes}:${Seconds}`,
   );
+};
+
+// 格式化日期函数
+// 将 2023-07-01T09:00:00 格式化为 07-01 09:00
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+
+  return new Intl.DateTimeFormat("zh-CN", options).format(date);
 };
