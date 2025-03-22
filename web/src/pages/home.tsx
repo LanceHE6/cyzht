@@ -1,4 +1,5 @@
 import {
+  Avatar,
   Button,
   Card,
   Dropdown,
@@ -25,6 +26,7 @@ import UserProfilePopover from "@/components/user-profile-popover.tsx";
 import { WebSocketClient, LocalStorage, Toast } from "@/utils/utils.ts";
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
 import { AddActivity } from "@/components/add-activity.tsx";
+import { ExploreActivity } from "@/components/explore-activity.tsx";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -41,7 +43,7 @@ export default function HomePage() {
       key: "explore",
       title: "发现展会",
       icon: <ExploreIcon />,
-      component: <ExploreActivities />,
+      component: <ExploreActivity />,
     },
   ];
   // 左侧菜单
@@ -204,13 +206,13 @@ export default function HomePage() {
               </Dropdown>
             </div>
           </Card>
-          <div className="message-list col-span-15 min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]">
+          <Card className="col-span-15 items-center min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]">
             {renderSelectedComponent()}
             <AddActivity
               isOpen={isAddActivityModalOpen}
               onClose={() => setIsAddActivityModalOpen(false)}
             />
-          </div>
+          </Card>
         </Card>
       </div>
     </DefaultLayout>
@@ -222,13 +224,6 @@ const MessageList = () => (
   <div>
     <h2>消息列表</h2>
     {/* 消息列表内容 */}
-  </div>
-);
-
-const ExploreActivities = () => (
-  <div>
-    <h2>发现展会</h2>
-    {/* 发现展会内容 */}
   </div>
 );
 
