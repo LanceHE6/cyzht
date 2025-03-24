@@ -12,7 +12,7 @@ import {
   ModalHeader,
   Spacer,
 } from "@heroui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Textarea } from "@heroui/input";
 import { useNavigate } from "react-router-dom";
 
@@ -54,7 +54,7 @@ export const AddActivity = ({
   // 创建展会表单数据
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState(
+  const [avatar] = useState(
     <Avatar icon={<DefaultActivityIcon />} size="lg" />,
   );
   const [name, setName] = useState("");
