@@ -27,8 +27,12 @@ import {
   TableRow,
   useDisclosure,
 } from "@heroui/react";
+import { useNavigate } from "react-router-dom";
 
-import { axiosInstanceWithAuth } from "../utils/axios-instance.ts";
+import {
+  axiosInstanceWithAuth,
+  setNavigateCallback,
+} from "../utils/axios-instance.ts";
 
 import { LocalStorage, Toast } from "@/utils/utils.ts";
 
@@ -37,6 +41,13 @@ export interface UserInfoProps {
 }
 const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
   let { user } = props;
+
+  // 为请求设置导航回调
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setNavigateCallback(navigate);
+  }, [navigate]);
 
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [uid, setUID] = useState(user.id);
@@ -87,6 +98,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
         nickname: nickname || user.nickname,
         sex: sex === "1" ? 1 : sex === "2" ? 2 : -1,
       };
+
       console.log("data: ", data);
 
       // 调用资料更新接口

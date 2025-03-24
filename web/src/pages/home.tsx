@@ -24,12 +24,20 @@ import {
 import DefaultLayout from "@/layouts/default.tsx";
 import UserProfilePopover from "@/components/user-profile-popover.tsx";
 import { WebSocketClient, LocalStorage, Toast } from "@/utils/utils.ts";
-import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
+import {
+  axiosInstanceWithAuth,
+  setNavigateCallback,
+} from "@/utils/axios-instance.ts";
 import { AddActivity } from "@/components/add-activity.tsx";
 import { ExploreActivity } from "@/components/explore-activity.tsx";
+import { Activity } from "@/components/activity.tsx";
 
 export default function HomePage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setNavigateCallback(navigate);
+  }, [navigate]);
   const [user, setUser] = useState<any>(LocalStorage.getUser());
 
   const defaultMenuTabs = [
@@ -95,7 +103,7 @@ export default function HomePage() {
         ) : (
           <DefaultActivityIcon />
         ),
-        component: <JoinedActivity activity={activityUser.activity} />,
+        component: <Activity aid={activityUser.activity.id} />,
       }));
 
       // 更新 menuTabs 状态
@@ -224,12 +232,5 @@ const MessageList = () => (
   <div>
     <h2>消息列表</h2>
     {/* 消息列表内容 */}
-  </div>
-);
-
-const JoinedActivity = ({ activity }: { activity: any }) => (
-  <div>
-    <h2>{activity.name}</h2>
-    {/* 已加入展会内容 */}
   </div>
 );

@@ -14,8 +14,12 @@ import {
 } from "@heroui/react";
 import { useState } from "react";
 import { Textarea } from "@heroui/input";
+import { useNavigate } from "react-router-dom";
 
-import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
+import {
+  axiosInstanceWithAuth,
+  setNavigateCallback,
+} from "@/utils/axios-instance.ts";
 import { Toast } from "@/utils/utils.ts";
 import {
   CreateActivityIcon,
@@ -31,6 +35,13 @@ export const AddActivity = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
+  // 为请求设置导航回调
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setNavigateCallback(navigate);
+  }, [navigate]);
+
   // 新增状态管理
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
