@@ -1,3 +1,4 @@
+// websocket.ts
 import { LocalStorageManager } from "@/utils/local-storage.ts";
 
 const WS_BASE_URL = "ws://127.0.0.1:8080/api/v1/user/ws/online"; // WebSocket 服务器地址
@@ -9,6 +10,7 @@ export class WebSocketManager {
   private readonly reconnectDelay: number = 5000; // 重连延迟时间，单位：毫秒
   private readonly heartbeatIntervalTime: number = 5000; // 心跳间隔时间，单位：毫秒
   private localStorage: LocalStorageManager | null = null;
+  private messageHandlers: ((message: any) => void)[] = []; // 消息处理回调数组
 
   // 构造函数
   constructor(localStorage: LocalStorageManager) {
@@ -62,7 +64,12 @@ export class WebSocketManager {
       console.log("Heartbeat received.");
     } else {
       // 其他业务消息
-      // ...
+      try {
+        const parsedMessage = JSON.parse(message);
+        this.messageHandlers.forEach((handler) => handler(parsedMessage));
+      } catch (error) {
+        console.error("Failed to parse WebSocket message:", error);
+      }
     }
   }
 
@@ -104,5 +111,15 @@ export class WebSocketManager {
       console.log("WebSocket closed");
       this.ws.close();
     }
+  }
+
+  // 注册消息处理回调
+  public onMessage(handler: (message: any) => void) {
+    this.messageHandlers.push(handler);
+  }
+
+  // 移除消息处理回调
+  public offMessage(handler: (message: any) => void) {
+    this.messageHandlers = this.messageHandlers.filter((h) => h !== handler);
   }
 }
