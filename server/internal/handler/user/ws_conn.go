@@ -108,7 +108,7 @@ func (s userHandler) heartbeat(conn *websocket.Conn, claims jwt.MyClaims) {
 		case <-ticker.C:
 			logger.Logger.Debugf("向用户 %d 发送心跳", claims.ID)
 			// 发送心跳
-			if err := conn.WriteMessage(websocket.TextMessage, []byte("来自服务端的ping")); err != nil {
+			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				// 设置用户离线状态
 				if err := s.UserRepo.SetUserOffline(claims.ID); err != nil {
 					logger.Logger.Errorf("设置用户 %d 离线状态失败: %s", claims.ID, err.Error())
