@@ -13,7 +13,7 @@ func GetResetPasswordEmailHTML(account string, verifyCode string) string {
         <div style="">
             <div style="font-size: 24px; color: red">重置密码通知</div>
     </div>
-    <div style="font-family: Roboto-Regular,Helvetica,Arial,sans-serif; font-size: 14px; color: rgba(0,0,0,0.87); line-height: 20px;padding-top: 20px; text-align: left;">简行云仓库 收到了为账号 <span style="font-weight: bold;">${account}</span> 的重置密码的请求。<br><br>请使用此验证码完成重置密码的操作：<br>
+    <div style="font-family: Roboto-Regular,Helvetica,Arial,sans-serif; font-size: 14px; color: rgba(0,0,0,0.87); line-height: 20px;padding-top: 20px; text-align: left;">重邮展会通 收到了为账号 <span style="font-weight: bold;">${account}</span> 的重置密码的请求。<br><br>请使用此验证码完成重置密码的操作：<br>
         <div style="text-align: center; font-size: 36px; margin-top: 20px; line-height: 44px;">${code}</div><br>此验证码将在 5 分钟后失效。<br><br>如果不是您本人操作，您的账号和邮箱可能已经泄露，请忽略这封电子邮件。
         <br><br><br>系统邮件 请勿回复
     </div>

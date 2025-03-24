@@ -11,9 +11,9 @@ func GetTempPswEmailHTML(email string, tempPsw string) string {
     <div style="border-style: solid; border-width: thin; border-color:#dadce0; border-radius: 8px; padding: 40px 20px;" align="center" class="mdv2rw">
         <img src="https://jsd.onmicrosoft.cn/gh/LanceHE6/PicGo@main/imgs/logo2.png" width="74" height="74" aria-hidden="true" style="margin-bottom: 16px;">
         <div style="">
-            <div style="font-size: 24px;"> 欢迎加入NetChat </div>
+            <div style="font-size: 24px;"> 欢迎加入重邮展会通 </div>
         </div>
-        <div style="font-family: Roboto-Regular,Helvetica,Arial,sans-serif; font-size: 14px; color: rgba(0,0,0,0.87); line-height: 20px;padding-top: 20px; text-align: left;">亲爱的用户 <a style="font-weight: bold;">${email}</a> ,非常感谢注册NetChat。<br><br>请使用临时密码完成登录：<br>
+        <div style="font-family: Roboto-Regular,Helvetica,Arial,sans-serif; font-size: 14px; color: rgba(0,0,0,0.87); line-height: 20px;padding-top: 20px; text-align: left;">亲爱的用户 <a style="font-weight: bold;">${email}</a> ,非常感谢注册重邮展会通。<br><br>请使用临时密码完成登录：<br>
             <div style="text-align: center; font-size: 36px; margin-top: 20px; line-height: 44px;">${code}</div><br>为了您的账号安全,登录后请尽快修改您的密码。<br><br>如果不是您本人操作，请忽略这封电子邮件。
             <br><br><br>系统邮件 请勿回复
         </div>
