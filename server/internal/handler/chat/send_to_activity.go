@@ -34,20 +34,21 @@ func (c *chatHandler) SendToActivity(ctx *gin.Context) {
 		ActivityID:  aid,
 		ExhibitorID: 0, // 0 表示大厅聊天
 		MetaMsg: model.MetaMsg{
-			UserID:   userClaims.ID,
-			SendTo:   0, // 0 表示发送给所有人
+			FromUID:  userClaims.ID,
+			ToUID:    0, // 0 表示发送给所有人
 			MsgType:  model.TEXT,
 			TextMsg:  data.TextMsg,
 			FileURL:  data.FileURL,
 			FileSize: data.FileSize,
 		},
 	}
-	if err := c.MsgRepo.Insert(&msg); err != nil {
+	insertMsg, err := c.MsgRepo.Insert(&msg)
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-1, err.Error()))
 		return
 	}
 	// 将消息写入消息推送队列
-	ws.ActivityMQ <- &msg
+	ws.ActivityMQ <- insertMsg
 
 	ctx.JSON(http.StatusOK, response.SuccessResponse(nil))
 }

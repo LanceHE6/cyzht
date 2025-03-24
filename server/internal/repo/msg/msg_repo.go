@@ -8,7 +8,7 @@ import (
 
 type RepoInterface interface {
 	// Insert 插入
-	Insert(msg *model.MsgModel) error
+	Insert(msg *model.MsgModel) (*model.MsgModel, error)
 	// SelectByID 依id查询
 	SelectByID(id int64) (*model.MsgModel, error)
 	// DeleteByID 删除
@@ -87,11 +87,19 @@ func (e *msgRepo) SelectByID(id int64) (*model.MsgModel, error) {
 }
 
 func (e *msgRepo) modelDB() *gorm.DB {
-	return e.MyDB.Model(&model.MsgModel{})
+	return e.MyDB.Model(&model.MsgModel{}).
+		Preload("FromUser").
+		Preload("ToUser").
+		Preload("Exhibitor").
+		Preload("Activity")
 }
 
-func (e *msgRepo) Insert(msg *model.MsgModel) error {
-	return e.modelDB().Create(&msg).Error
+func (e *msgRepo) Insert(msg *model.MsgModel) (*model.MsgModel, error) {
+	if err := e.modelDB().Create(&msg).Error; err != nil {
+		return nil, err
+	}
+	newMsg, _ := e.SelectByID(msg.ID)
+	return newMsg, nil
 }
 
 func (e *msgRepo) update(msg *model.MsgModel) error {
