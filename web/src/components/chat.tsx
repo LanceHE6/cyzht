@@ -1,5 +1,4 @@
-// chat.tsx
-import { Avatar, Card, Divider, ScrollShadow } from "@heroui/react";
+import { Avatar, Button, Card, Divider, ScrollShadow } from "@heroui/react";
 import React, { useState, useEffect, useRef } from "react";
 import { Textarea } from "@heroui/input";
 import { useNavigate } from "react-router-dom";
@@ -9,18 +8,27 @@ import {
   setNavigateCallback,
 } from "@/utils/axios-instance.ts";
 import { LocalStorage, Toast, WebSocketClient } from "@/utils/utils.ts";
+import { formatDate } from "@/utils/datetime.ts";
 
 interface user {
   id: string;
   nickname: string;
   avatar: string;
 }
+interface activity {
+  id: string;
+  name: string;
+  introduce: string;
+  start_at: string;
+  end_at: string;
+  location: string;
+}
 
 interface Message {
   id: string;
   created_at: string;
   updated_at: string;
-  activity: {};
+  activity: activity;
   exhibitor: {};
   from_user: user;
   to_user: user | null;
@@ -42,8 +50,9 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   useEffect(() => {
     setNavigateCallback(navigate);
   }, [navigate]);
-
+  // 消息数组
   const [messages, setMessages] = useState<Message[]>([]);
+  // 聊天输入框数据
   const [inputValue, setInputValue] = useState<string>("");
 
   const [currentUser] = useState<any>(LocalStorage.getUser());
@@ -53,58 +62,69 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     navigate("/login");
   }
 
-  let { aid } = props;
+  let { aid } = props; // 组件传值
+
+  const aidRef = useRef(aid);
+
+  aidRef.current = aid;
 
   const fetchMsg = async () => {
-    try {
-      const response = await axiosInstanceWithAuth.get(
-        `/api/v1/activity/${aid}/msg`,
-      );
+    const response = await axiosInstanceWithAuth.get(
+      `/api/v1/activity/${aid}/msg`,
+      {
+        params: {
+          page: -1, // -1表示不分页
+          page_size: 10,
+        },
+      },
+    );
 
-      if (response.status !== 200) {
-        throw new Error(response.data.data.msg);
-      }
-      // 解析和映射数据
-      const parsedMessages: Message[] = response.data.data.rows.map(
-        (msg: any) => ({
-          id: msg.id,
-          created_at: msg.created_at,
-          updated_at: msg.updated_at,
-          activity: msg.activity,
-          exhibitor: msg.exhibitor,
-          from_user: {
-            id: msg.from_user.id,
-            nickname: msg.from_user.nickname,
-            avatar: msg.from_user.avatar,
-          },
-          to_user:
-            msg.to_user === null
-              ? null
-              : {
-                  id: msg.to_user.id,
-                  nickname: msg.to_user.nickname,
-                  avatar: msg.to_user.avatar,
-                },
-          msg_type: msg.msg_type,
-          text_msg: msg.text_msg,
-          file_url: msg.file_url,
-          file_size: msg.file_size,
-        }),
-      );
-
-      setMessages(parsedMessages);
-      console.log("parsed", parsedMessages);
-    } catch (error) {
-      Toast.danger("获取消息失败", error.message);
+    if (response.status !== 200) {
+      Toast.danger("获取消息失败", response.data.msg);
     }
+    // 解析和映射数据
+    const parsedMessages: Message[] = response.data.data.rows.map(
+      (msg: any) => ({
+        id: msg.id,
+        created_at: msg.created_at,
+        updated_at: msg.updated_at,
+        activity: msg.activity,
+        exhibitor: msg.exhibitor,
+        from_user: {
+          id: msg.from_user.id,
+          nickname: msg.from_user.nickname,
+          avatar: msg.from_user.avatar,
+        },
+        to_user:
+          msg.to_user === null
+            ? null
+            : {
+                id: msg.to_user.id,
+                nickname: msg.to_user.nickname,
+                avatar: msg.to_user.avatar,
+              },
+        msg_type: msg.msg_type,
+        text_msg: msg.text_msg,
+        file_url: msg.file_url,
+        file_size: msg.file_size,
+      }),
+    );
+
+    setMessages(parsedMessages);
+    console.log("parsed", parsedMessages);
   };
 
   useEffect(() => {
-    // 模拟从后端获取消息数据
+    console.log("aid:", aid);
+    // 获取消息数据
     fetchMsg();
-  }, []);
+  }, [aid]); // 添加aid作为依赖,aid变化时重新请求数据
 
   const sendMessage = () => {
+    // 判断消息是否为空
+    if (inputValue.trim() === "") {
+      return;
+    }
     const newMessage = {
       msg_type: 1,
       text_msg: inputValue,
@@ -121,8 +141,9 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     setInputValue("");
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+  // 发送消息快捷键 监听 ctrl + Enter 键
+  const handleHotKeysPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.ctrlKey && event.key === "Enter") {
       sendMessage();
     }
   };
@@ -144,7 +165,11 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   // WebSocket 消息处理回调
   const handleWebSocketMessage = (message: Message) => {
     console.log("WebSocket 消息处理回调:", message);
-    setMessages((prevMessages) => [...prevMessages, message]);
+    console.log("message activity id:", message.activity.id);
+    console.log("current aid:", aidRef.current);
+    if (message.activity.id === aidRef.current) {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    }
   };
 
   useEffect(() => {
@@ -189,21 +214,23 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                 className={`border-none max-w-md ${message.from_user.id === currentUser.id ? "bg-blue-100" : ""}`}
               >
                 <div className="message p-2">
-                  <div className="flex items-center">
-                    {/*适配自己消息,使名字始终为靠近头像的一侧*/}
+                  {/*适配自己消息,使名字始终为靠近头像的一侧*/}
+                  <div
+                    className={`flex ${message.from_user.id === currentUser.id ? "justify-end" : "justify-start"} px-1 items-center`}
+                  >
                     {message.from_user.id !== currentUser.id ? (
                       <>
                         <div className="text-sm font-bold mr-2">
                           {message.from_user.nickname}
                         </div>
                         <div className="text-gray-500 text-xs">
-                          {message.created_at}
+                          {formatDate(message.created_at)}
                         </div>
                       </>
                     ) : (
                       <>
                         <div className="text-gray-500 text-xs mr-2">
-                          {message.created_at}
+                          {formatDate(message.created_at)}
                         </div>
                         <div className="text-sm font-bold">
                           {message.from_user.nickname}
@@ -234,7 +261,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
       </Card>
 
       {/* 输入框 */}
-      <div className="sticky bottom-0 z-10 w-full bg-white border-t border-gray-200">
+      <div className="sticky bottom-0 z-10 w-full bg-white border-t border-gray-200 flex">
         <Textarea
           className=""
           maxRows={4}
@@ -243,9 +270,18 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
           size="lg"
           type="text"
           value={inputValue}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleHotKeysPress}
           onValueChange={setInputValue}
         />
+        <Button
+          className=""
+          color="primary"
+          isDisabled={inputValue.trim() === ""}
+          size="lg"
+          onPress={sendMessage}
+        >
+          发送
+        </Button>
       </div>
     </Card>
   );
