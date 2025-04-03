@@ -13,6 +13,7 @@ type HandlerInterface interface {
 	JoinActivity(ctx *gin.Context)
 	ExitActivity(ctx *gin.Context)
 	GetJoinedActivity(ctx *gin.Context)
+	GetJoinedUser(ctx *gin.Context)
 }
 
 type activityHandler struct {

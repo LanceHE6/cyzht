@@ -49,7 +49,7 @@ func (a *activityUserRepo) SelectByUID(uid int64) (*[]model.ActivityUserModel, e
 
 func (a *activityUserRepo) SelectByAID(aid int64) (*[]model.ActivityUserModel, error) {
 	var activityUser []model.ActivityUserModel
-	err := a.modelDB().Where("activity_id = ?", aid).Find(&activityUser).Error
+	err := a.modelDB().Preload("User").Where("activity_id = ?", aid).Find(&activityUser).Error
 	return &activityUser, err
 }
 

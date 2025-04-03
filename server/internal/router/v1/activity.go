@@ -24,4 +24,5 @@ func RegisterActivityRouter(group *gin.RouterGroup,
 	routerGroup.POST("/:aid/join", middleware.Auth(), activityHandler.JoinActivity)
 	routerGroup.POST("/:aid/exit", middleware.Auth(), activityHandler.ExitActivity)
 	routerGroup.GET("/joined", middleware.Auth(), activityHandler.GetJoinedActivity)
+	routerGroup.GET("/:aid/joined", middleware.Auth(), activityHandler.GetJoinedUser)
 }
