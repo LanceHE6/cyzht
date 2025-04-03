@@ -29,8 +29,8 @@ import {
   setNavigateCallback,
 } from "@/utils/axios-instance.ts";
 import { AddActivity } from "@/components/add-activity.tsx";
-import { ExploreActivity } from "@/components/explore-activity.tsx";
-import { Activity } from "@/components/activity.tsx";
+import { ExploreActivity } from "@/pages/explore-activity.tsx";
+import { Activity } from "@/pages/activity.tsx";
 
 export default function HomePage() {
   const navigate = useNavigate();
