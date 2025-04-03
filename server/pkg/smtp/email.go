@@ -48,7 +48,7 @@ func InitSMTPService(host string, port int, userName, password string) {
 //	@return error 错误信息
 func (s *SMTP) SendVerifyCodeEmail(targetEmail string, account string, code string, emailType EmailType) error {
 	m := gomail.NewMessage()
-	m.SetHeader("From", "NetChat"+"<"+s.UserName+">")
+	m.SetHeader("From", "重邮展会通"+"<"+s.UserName+">")
 	m.SetHeader("To", targetEmail)
 
 	if emailType == RegisterEmail {
@@ -111,7 +111,7 @@ func (s *SMTP) SendVerifyCodeEmail(targetEmail string, account string, code stri
 func (s *SMTP) SendTemporaryPswEmail(targetEmail string, psw string) error {
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", "NetChat"+"<"+s.UserName+">")
+	m.SetHeader("From", "重邮展会通"+"<"+s.UserName+">")
 	m.SetHeader("To", targetEmail)
 
 	message := email_template.GetTempPswEmailHTML(targetEmail, psw)
