@@ -10,6 +10,17 @@ export const axiosInstance = axios.create({
   timeout: 5000, // 设置超时时间
 });
 
+axiosInstance.interceptors.response.use(
+  function (response) {
+    return response;
+  },
+  function (error) {
+    Toast.danger("请求失败", error.response.data.msg);
+
+    return Promise.reject(error);
+  },
+);
+
 // 创建一个有鉴权头的Axios实例
 export const axiosInstanceWithAuth = axios.create({
   baseURL: BASE_URL,
