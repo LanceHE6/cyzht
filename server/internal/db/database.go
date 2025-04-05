@@ -22,9 +22,13 @@ var once sync.Once
 func InitDBConn(c *config.Config) *DBConn {
 	if dbConn == nil {
 		once.Do(func() {
+			// 显式初始化顺序,确保在mysql初始化之前redis已经初始化
+			// 用于确保gorm钩子函数中redis操作不会报错
+			r := redis.InitRedisConn(c)
+			m := mysql.InitMySQLConn(c)
 			dbConn = &DBConn{
-				MySQLConn: mysql.InitMySQLConn(c),
-				RedisConn: redis.InitRedisConn(c),
+				MySQLConn: m,
+				RedisConn: r,
 			}
 		})
 	}

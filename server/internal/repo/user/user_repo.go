@@ -39,7 +39,7 @@ type RepoInterface interface {
 	UpdateProfile(id int64, nickname string, sex int) error
 
 	// SetUserOnline 设置用户在线状态
-	SetUserOnline(userID int64, sessionID string, activityID uint) error
+	SetUserOnline(userID int64, sessionID string, status uint) error
 	// SetUserOffline 设置用户离线状态
 	SetUserOffline(userID int64) error
 	// IsUserOnline 判断用户是否在线
@@ -244,7 +244,14 @@ func (u *userRepo) UpdateProfile(id int64, nickname string, sex int) error {
 }
 
 // SetUserOnline 设置用户在线状态
-func (u *userRepo) SetUserOnline(userID int64, sessionID string, activityID uint) error {
+//
+//	@Description: 设置用户在线状态
+//	@receiver u
+//	@param userID 用户id
+//	@param sessionID 会话id
+//	@param status 状态码, 1为在线
+//	@return error
+func (u *userRepo) SetUserOnline(userID int64, sessionID string, status uint) error {
 	// 将用户 ID 添加到 online_users 集合中
 	if err := u.Redis.SAdd(onlineUsersKey, userID).Err(); err != nil {
 		return err
@@ -255,10 +262,10 @@ func (u *userRepo) SetUserOnline(userID int64, sessionID string, activityID uint
 
 	// 在 user:{userID}:status 中存储用户的详细信息
 	userStatus := map[string]interface{}{
-		"user_id":     userID,
-		"session_id":  sessionID,
-		"login_at":    time.Now().Format("2006-01-02 15:04:05"),
-		"activity_id": activityID,
+		"user_id":    userID,
+		"session_id": sessionID,
+		"login_at":   time.Now().Format("2006-01-02 15:04:05"),
+		"status":     status,
 	}
 	if err := u.Redis.HMSet(userStatusKey, userStatus).Err(); err != nil {
 		return err

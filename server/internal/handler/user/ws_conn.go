@@ -48,9 +48,8 @@ func (s userHandler) OnlineHeartbeat(ctx *gin.Context) {
 // handleWebSocketConnection 处理 WebSocket 连接
 func (s userHandler) handleWebSocketConnection(conn *websocket.Conn, claims jwt.MyClaims) {
 	// 设置用户在线状态
-	if err := s.UserRepo.SetUserOnline(claims.ID, claims.SessionID, 0); err != nil { // 假设初始活动ID为0
+	if err := s.UserRepo.SetUserOnline(claims.ID, claims.SessionID, 1); err != nil { // 假设初始活动ID为0
 		logger.Logger.Errorf("设置用户 %d 在线状态失败: %s", claims.ID, err.Error())
-		_ = conn.WriteMessage(websocket.TextMessage, []byte("设置在线状态失败"))
 		return
 	}
 	logger.Logger.Debugf("用户 %d 已上线", claims.ID)
