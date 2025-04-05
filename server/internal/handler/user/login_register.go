@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"server/internal/model"
@@ -30,7 +29,7 @@ func (s userHandler) RegisterAndLoginSendCode(ctx *gin.Context) {
 	if u != nil {
 		// 生成验证码
 		code := random.CreateRandomStr(6, random.Number)
-		fmt.Println(code)
+		//fmt.Println(code)
 		// 发送验证码
 		err := smtp.SMTPService.SendVerifyCodeEmail(data.Account, u.Nickname, code, smtp.LoginEmail)
 		if err != nil {
