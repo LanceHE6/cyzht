@@ -145,6 +145,13 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const handleHotKeysPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.ctrlKey && event.key === "Enter") {
       sendMessage();
+      if (messageContainerRef.current) {
+        const lastMessage = messageContainerRef.current.lastElementChild;
+
+        if (lastMessage) {
+          lastMessage.scrollIntoView({ behavior: "smooth" });
+        }
+      }
     }
   };
 
@@ -183,7 +190,10 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   }, []);
 
   return (
-    <Card className="col-span-8 h-full bg-[#FFF6FF] flex flex-col">
+    <Card
+      className="col-span-9 h-full bg-[#FFF6FF] flex flex-col"
+      radius="none"
+    >
       {/* 聊天室标题 */}
       <div className="sticky top-0 z-10 flex justify-between items-center p-4 px-10 bg-white border-b border-gray-200">
         <div className="text-xl font-bold">展会大厅</div>
@@ -211,9 +221,10 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                 />
               )}
               <Card
-                className={`border-none max-w-md ${message.from_user.id === currentUser.id ? "bg-blue-100" : ""}`}
+                className={`border-none w-fit ${message.from_user.id === currentUser.id ? "bg-blue-100" : ""} `}
+                style={{ maxWidth: "50%" }}
               >
-                <div className="message p-2">
+                <div className="message p-2 w-auto">
                   {/*适配自己消息,使名字始终为靠近头像的一侧*/}
                   <div
                     className={`flex ${message.from_user.id === currentUser.id ? "justify-end" : "justify-start"} px-1 items-center`}
@@ -238,12 +249,9 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                       </>
                     )}
                   </div>
-                  <Textarea
-                    disabled
-                    minRows={1}
-                    value={message.text_msg}
-                    variant="flat"
-                  />
+                  <div className="w-fit max-w-full px-2 py-2">
+                    <p>{message.text_msg}</p>
+                  </div>
                 </div>
               </Card>
               {message.from_user.id === currentUser.id && (

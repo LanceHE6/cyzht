@@ -21,7 +21,7 @@ export const Activity: React.FC<ActivityProps> = (props: ActivityProps) => {
         {/* 参展商列表内容 */}
       </Card>
       <Chat aid={aid} />
-      <Member />
+      <Member aid={aid} />
     </div>
   );
 };

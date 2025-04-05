@@ -168,7 +168,11 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
           >
             <CardHeader className="justify-between">
               <div className="flex gap-3">
-                <Badge color="success" content="" placement="bottom-right">
+                <Badge
+                  color={user.online_status === 1 ? "success" : "default"}
+                  content=""
+                  placement="bottom-right"
+                >
                   {avatar}
                 </Badge>
                 <div className="flex flex-col items-start justify-center">
