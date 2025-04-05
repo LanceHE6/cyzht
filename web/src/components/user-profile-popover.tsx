@@ -54,7 +54,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
   const [nickname, setNickname] = useState(user.nickname);
   const [sex, setSex] = useState("");
   const [avatar, setAvatar] = useState(
-    <Avatar icon={<AvatarIcon />} size="lg" />,
+    <Avatar icon={<AvatarIcon />} size="sm" />,
   );
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);

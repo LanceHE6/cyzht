@@ -127,10 +127,10 @@ export default function HomePage() {
 
   return (
     <DefaultLayout>
-      <div className="container flex items-center justify-center h-screen bg-white py-0">
+      <div className="flex items-center justify-center h-full w-full bg-white py-0">
         <Card
           isBlurred
-          className="card w-full h-5/6 min-w-96 grid grid-cols-16"
+          className="card w-full h-5/6 min-w-96 grid grid-cols-24"
         >
           <Card
             className="menus flex items-center col-span-1 py-2 bg-[#ECECEC]"
@@ -141,10 +141,10 @@ export default function HomePage() {
 
             <UserProfilePopover user={user} />
             <Spacer y={4} />
-            <div className="w-full max-w-[260px] px-1 py-2 flex-grow">
+            <div className="w-full max-w-[260px] py-2 flex-grow">
               <Tabs
                 isVertical
-                className={"menuTabs px-0"}
+                className={"menuTabs px-0 w-full"}
                 defaultSelectedKey="explore"
                 selectedKey={selectedTab}
                 variant="light"
@@ -153,7 +153,7 @@ export default function HomePage() {
                 {menuTabs.map((item) => (
                   <Tab
                     key={item.key}
-                    className={"h-full"}
+                    className={"h-full w-5/6"}
                     title={
                       <Tooltip
                         key={item.key}
@@ -214,7 +214,7 @@ export default function HomePage() {
               </Dropdown>
             </div>
           </Card>
-          <Card className="col-span-15 items-center min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]">
+          <Card className="col-span-23 items-center min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]">
             {renderSelectedComponent()}
             <AddActivity
               isOpen={isAddActivityModalOpen}

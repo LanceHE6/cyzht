@@ -150,7 +150,7 @@ export const ExploreActivity = () => {
           <h2 className="font-bold text-[32px] text-left">进行中</h2>
         </div>
         <Spacer y={10} />
-        <div className="w-full grid grid-cols-4 gap-4 px-10">
+        <div className="w-full grid grid-cols-6 gap-4 px-10">
           {activities.map((activity, index) => (
             <ActivityCard key={index} activity={activity} />
           ))}

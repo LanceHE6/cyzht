@@ -1,7 +1,8 @@
 import { Card } from "@heroui/react";
 import React from "react";
 
-import Chat from "@/components/chat.tsx";
+import Chat from "@/components/activity/chat.tsx";
+import Member from "@/components/activity/member.tsx";
 
 export interface ActivityProps {
   aid: string;
@@ -20,11 +21,7 @@ export const Activity: React.FC<ActivityProps> = (props: ActivityProps) => {
         {/* 参展商列表内容 */}
       </Card>
       <Chat aid={aid} />
-      <Card className="col-span-3 items-center border-b-blue-500 border-0 bg-[#FFF8FF]">
-        {/* 成员列表 */}
-        <h3>成员列表</h3>
-        {/* 成员列表内容 */}
-      </Card>
+      <Member />
     </div>
   );
 };
