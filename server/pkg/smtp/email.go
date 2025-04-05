@@ -3,6 +3,7 @@ package smtp
 import (
 	"crypto/tls"
 	"gopkg.in/gomail.v2"
+	"net/mail"
 	"server/pkg/logger"
 	"server/pkg/smtp/email_template"
 )
@@ -12,6 +13,7 @@ var SMTPService *SMTP
 type SMTP struct {
 	UserName string // 发送消息的用户名
 	D        *gomail.Dialer
+	M        *gomail.Message
 }
 
 // EmailType 邮件类型
@@ -32,9 +34,17 @@ const (
 //	@param password SMTP 服务器密码
 //	@return *smtpService SMTP 服务
 func InitSMTPService(host string, port int, userName, password string) {
+	m := gomail.NewMessage()
+	from := mail.Address{
+		Name:    "重邮展会通",
+		Address: userName,
+	}
+	m.SetHeader("From", from.String())
+
 	SMTPService = &SMTP{
 		UserName: userName,
 		D:        gomail.NewDialer(host, port, userName, password),
+		M:        m,
 	}
 }
 
@@ -47,8 +57,7 @@ func InitSMTPService(host string, port int, userName, password string) {
 //	@param emailType 邮件类别
 //	@return error 错误信息
 func (s *SMTP) SendVerifyCodeEmail(targetEmail string, account string, code string, emailType EmailType) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", "重邮展会通"+"<"+s.UserName+">")
+	m := s.M
 	m.SetHeader("To", targetEmail)
 
 	if emailType == RegisterEmail {
@@ -109,9 +118,7 @@ func (s *SMTP) SendVerifyCodeEmail(targetEmail string, account string, code stri
 //	@param psw 临时密码
 //	@return error 错误信息
 func (s *SMTP) SendTemporaryPswEmail(targetEmail string, psw string) error {
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", "重邮展会通"+"<"+s.UserName+">")
+	m := s.M
 	m.SetHeader("To", targetEmail)
 
 	message := email_template.GetTempPswEmailHTML(targetEmail, psw)
