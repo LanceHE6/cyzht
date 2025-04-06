@@ -1,6 +1,6 @@
 package models
 
-type ActivityAvatarModel struct {
+type ActivityIconModel struct {
 	BaseModel
 	FileName string `json:"file_name"`
 	FileType string `json:"file_type"`
@@ -8,6 +8,6 @@ type ActivityAvatarModel struct {
 	FileURL  string `json:"file_url"`
 }
 
-func (*ActivityAvatarModel) TableName() string {
-	return "activity_avatar"
+func (*ActivityIconModel) TableName() string {
+	return "activity_icon"
 }

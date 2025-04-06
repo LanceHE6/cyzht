@@ -2,40 +2,39 @@ package logic
 
 import (
 	"context"
+	"file_server/api/v1/file_server"
 	"file_server/internal/data/models"
+	"file_server/internal/svc"
 	"file_server/pkg/encrypt"
 	"fmt"
 	"os"
 
-	"file_server/api/v1/file_server"
-	"file_server/internal/svc"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type UploadUserAvatarLogic struct {
+type UploadActivityIconLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	logx.Logger
 }
 
-func NewUploadUserAvatarLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UploadUserAvatarLogic {
-	return &UploadUserAvatarLogic{
+func NewUploadActivityIconLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UploadActivityIconLogic {
+	return &UploadActivityIconLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Logger: logx.WithContext(ctx),
 	}
 }
 
-// UploadUserAvatar 上传文件的RPC方法
-func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
+// UploadActivityIcon 上传活动图标
+func (l *UploadActivityIconLogic) UploadActivityIcon(in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
 	// 计算hash
 	hash := encrypt.CalculateFileHash(in.FileContent)
 	// 检查是否已存在相同哈希值的文件
-	existingIcon, err := l.svcCtx.Repo.UserAvatarRepo.FindByHash(hash)
+	existingIcon, err := l.svcCtx.Repo.ActivityIconRepo.FindByHash(hash)
 	if err == nil {
-		// 文件已存在，直接更新该用户的头像数据
-		_, err := l.svcCtx.Repo.UserAvatarRepo.InsertOrUpdate(&models.UserAvatarModel{
+		// 文件已存在，直接更新数据
+		_, err := l.svcCtx.Repo.ActivityIconRepo.InsertOrUpdate(&models.ActivityIconModel{
 			BaseModel: models.BaseModel{
 				ID:   in.Id,
 				Hash: hash,
@@ -46,7 +45,7 @@ func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadFileReque
 			FileURL:  existingIcon.FileURL,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("更新用户头像数据失败: %v", err)
+			return nil, fmt.Errorf("更新活动图标数据失败: %v", err)
 		}
 
 		// 返回已有的 URL
@@ -56,17 +55,17 @@ func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadFileReque
 	}
 	// 文件名采用hash值
 	filename := hash
-	dir := "/user_avatar/"
-	avatarPath := l.svcCtx.Config.StoragePath + dir + filename + in.FileType
+	dir := "/activity_icon/"
+	iconPath := l.svcCtx.Config.StoragePath + dir + filename + in.FileType
 	url := dir + filename + in.FileType
 	// 保存文件到本地磁盘
-	err = os.WriteFile(avatarPath, in.FileContent, 0644)
+	err = os.WriteFile(iconPath, in.FileContent, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("保存文件到磁盘失败: %v", err.Error())
 	}
 
 	// 将文件信息插入到数据库中
-	_, err = l.svcCtx.Repo.UserAvatarRepo.InsertOrUpdate(&models.UserAvatarModel{
+	_, err = l.svcCtx.Repo.ActivityIconRepo.InsertOrUpdate(&models.ActivityIconModel{
 
 		BaseModel: models.BaseModel{
 			ID:   in.Id,

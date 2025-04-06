@@ -23,13 +23,13 @@ func NewGetUserAvatarUrlLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 	}
 }
 
-func (l *GetUserAvatarUrlLogic) GetUserAvatarUrl(in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
+func (l *GetUserAvatarUrlLogic) GetUserAvatarUrl(in *file_server.GetFileUrlRequest) (*file_server.GetFileUrlResponse, error) {
 	avatar, err := l.svcCtx.Repo.UserAvatarRepo.FindByID(in.Id)
 	if avatar == nil {
-		return &file_server.GetAvatarUrlResponse{}, err
+		return &file_server.GetFileUrlResponse{}, err
 	}
 
-	return &file_server.GetAvatarUrlResponse{
+	return &file_server.GetFileUrlResponse{
 		FileUrl: avatar.FileURL,
 	}, nil
 }

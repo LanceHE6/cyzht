@@ -14,7 +14,11 @@ func NewSqlite3(dbPath string) *gorm.DB {
 	}
 	fmt.Println("Connect to SQLite database successfully")
 	fmt.Println("AutoMigrate...")
-	err = db.AutoMigrate(&models.UserAvatarModel{}, &models.ActivityAvatarModel{})
+	err = db.AutoMigrate(
+		&models.UserAvatarModel{},
+		&models.FileModel{},
+		&models.ImageModel{},
+		&models.ActivityIconModel{})
 	if err != nil {
 		panic("failed to migrate database")
 	}

@@ -23,23 +23,46 @@ func NewFileServiceServer(svcCtx *svc.ServiceContext) *FileServiceServer {
 	}
 }
 
-// 上传文件的RPC方法
-func (s *FileServiceServer) UploadUserAvatar(ctx context.Context, in *file_server.UploadAvatarRequest) (*file_server.UploadAvatarResponse, error) {
+// 上传用户头像
+func (s *FileServiceServer) UploadUserAvatar(ctx context.Context, in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
 	l := logic.NewUploadUserAvatarLogic(ctx, s.svcCtx)
 	return l.UploadUserAvatar(in)
 }
 
-func (s *FileServiceServer) GetUserAvatarUrl(ctx context.Context, in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
+func (s *FileServiceServer) GetUserAvatarUrl(ctx context.Context, in *file_server.GetFileUrlRequest) (*file_server.GetFileUrlResponse, error) {
 	l := logic.NewGetUserAvatarUrlLogic(ctx, s.svcCtx)
 	return l.GetUserAvatarUrl(in)
 }
 
-func (s *FileServiceServer) UploadActivityAvatar(ctx context.Context, in *file_server.UploadAvatarRequest) (*file_server.UploadAvatarResponse, error) {
-	l := logic.NewUploadActivityAvatarLogic(ctx, s.svcCtx)
-	return l.UploadActivityAvatar(in)
+// 上传活动图标
+func (s *FileServiceServer) UploadActivityIcon(ctx context.Context, in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
+	l := logic.NewUploadActivityIconLogic(ctx, s.svcCtx)
+	return l.UploadActivityIcon(in)
 }
 
-func (s *FileServiceServer) GetActivityAvatarUrl(ctx context.Context, in *file_server.GetAvatarUrlRequest) (*file_server.GetAvatarUrlResponse, error) {
-	l := logic.NewGetActivityAvatarUrlLogic(ctx, s.svcCtx)
-	return l.GetActivityAvatarUrl(in)
+func (s *FileServiceServer) GetActivityIconUrl(ctx context.Context, in *file_server.GetFileUrlRequest) (*file_server.GetFileUrlResponse, error) {
+	l := logic.NewGetActivityIconUrlLogic(ctx, s.svcCtx)
+	return l.GetActivityIconUrl(in)
+}
+
+// 上传图片(消息)
+func (s *FileServiceServer) UploadImage(ctx context.Context, in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
+	l := logic.NewUploadImageLogic(ctx, s.svcCtx)
+	return l.UploadImage(in)
+}
+
+func (s *FileServiceServer) GetImageUrl(ctx context.Context, in *file_server.GetFileUrlRequest) (*file_server.GetFileUrlResponse, error) {
+	l := logic.NewGetImageUrlLogic(ctx, s.svcCtx)
+	return l.GetImageUrl(in)
+}
+
+// 上传文件(消息)
+func (s *FileServiceServer) UploadFile(ctx context.Context, in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
+	l := logic.NewUploadFileLogic(ctx, s.svcCtx)
+	return l.UploadFile(in)
+}
+
+func (s *FileServiceServer) GetFileUrl(ctx context.Context, in *file_server.GetFileUrlRequest) (*file_server.GetFileUrlResponse, error) {
+	l := logic.NewGetFileUrlLogic(ctx, s.svcCtx)
+	return l.GetFileUrl(in)
 }

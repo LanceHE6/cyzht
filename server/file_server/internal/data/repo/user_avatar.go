@@ -10,6 +10,7 @@ type UserAvatarRepoInterface interface {
 	InsertOrUpdate(userAvatar *models.UserAvatarModel) (avatar *models.UserAvatarModel, err error)
 	Update(userAvatar *models.UserAvatarModel) (avatar *models.UserAvatarModel, err error)
 	FindByID(id int64) (avatar *models.UserAvatarModel, err error)
+	FindByHash(hash string) (*models.UserAvatarModel, error)
 }
 
 func NewUserAvatarRepo(db *gorm.DB) UserAvatarRepoInterface {
@@ -22,7 +23,7 @@ type userAvatarRepo struct {
 	DB *gorm.DB
 }
 
-func (u userAvatarRepo) InsertOrUpdate(userAvatar *models.UserAvatarModel) (avatar *models.UserAvatarModel, err error) {
+func (u *userAvatarRepo) InsertOrUpdate(userAvatar *models.UserAvatarModel) (avatar *models.UserAvatarModel, err error) {
 	avatar, err = u.FindByID(userAvatar.ID)
 	if avatar != nil {
 		// update
@@ -32,15 +33,24 @@ func (u userAvatarRepo) InsertOrUpdate(userAvatar *models.UserAvatarModel) (avat
 	return userAvatar, err
 }
 
-func (u userAvatarRepo) Update(userAvatar *models.UserAvatarModel) (avatar *models.UserAvatarModel, err error) {
+func (u *userAvatarRepo) Update(userAvatar *models.UserAvatarModel) (avatar *models.UserAvatarModel, err error) {
 	err = u.DB.Model(&models.UserAvatarModel{}).Where("id = ?", userAvatar.ID).Updates(userAvatar).Error
 	return userAvatar, err
 }
 
-func (u userAvatarRepo) FindByID(id int64) (avatar *models.UserAvatarModel, err error) {
+func (u *userAvatarRepo) FindByID(id int64) (avatar *models.UserAvatarModel, err error) {
 	err = u.DB.Model(&models.UserAvatarModel{}).Where("id = ?", id).First(&avatar).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 	return avatar, err
+}
+
+func (u *userAvatarRepo) FindByHash(hash string) (*models.UserAvatarModel, error) {
+	var avatar models.UserAvatarModel
+	err := u.DB.Where("hash = ?", hash).First(&avatar).Error
+	if err != nil {
+		return nil, err
+	}
+	return &avatar, nil
 }

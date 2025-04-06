@@ -5,16 +5,22 @@ option go_package="./file_server";
 
 // 定义文件存储服务
 service FileService {
-  // 上传文件的RPC方法
-  rpc UploadUserAvatar(UploadAvatarRequest) returns (UploadAvatarResponse) {}
-  rpc GetUserAvatarUrl(GetAvatarUrlRequest) returns (GetAvatarUrlResponse) {}
-
-  rpc UploadActivityAvatar(UploadAvatarRequest) returns (UploadAvatarResponse) {}
-  rpc GetActivityAvatarUrl(GetAvatarUrlRequest) returns (GetAvatarUrlResponse) {}
+  // 上传用户头像
+  rpc UploadUserAvatar(UploadFileRequest) returns (UploadFileResponse) {}
+  rpc GetUserAvatarUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
+  // 上传活动图标
+  rpc UploadActivityIcon(UploadFileRequest) returns (UploadFileResponse) {}
+  rpc GetActivityIconUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
+  // 上传图片(消息)
+  rpc UploadImage(UploadFileRequest) returns (UploadFileResponse) {}
+  rpc GetImageUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
+  // 上传文件(消息)
+  rpc UploadFile(UploadFileRequest) returns (UploadFileResponse) {}
+  rpc GetFileUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
 }
 
 // 文件上传请求消息结构体
-message UploadAvatarRequest {
+message UploadFileRequest {
   int64 id = 1;
   bytes file_content = 2;
   string file_name = 3;
@@ -22,15 +28,15 @@ message UploadAvatarRequest {
 }
 
 // 文件上传响应消息结构体，包含返回的文件ID
-message UploadAvatarResponse {
+message UploadFileResponse {
   string file_url = 1;
 }
 
-message GetAvatarUrlRequest {
+message GetFileUrlRequest {
   int64 id = 1;
 }
 
-message GetAvatarUrlResponse {
+message GetFileUrlResponse {
   string file_url = 1;
 }
 
