@@ -6,6 +6,12 @@
       <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
       <excludeFolder url="file://$MODULE_DIR$/file_server/.idea/dataSources" />
       <excludeFolder url="file://$MODULE_DIR$/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/inspectionProfiles" />
+      <excludeFolder url="file://$MODULE_DIR$/file_server/storage/activity_avatar" />
+      <excludeFolder url="file://$MODULE_DIR$/file_server/storage/user_avatar" />
+      <excludeFolder url="file://$MODULE_DIR$/file_server/storage/activity_icon" />
+      <excludeFolder url="file://$MODULE_DIR$/file_server/storage/file" />
+      <excludeFolder url="file://$MODULE_DIR$/file_server/storage/image" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
