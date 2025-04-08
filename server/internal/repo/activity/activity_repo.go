@@ -208,7 +208,7 @@ func (a *activityRepo) update(activity *model.ActivityModel) error {
 func (a *activityRepo) UploadAvatar(id int64, filename string, data []byte) error {
 	// 获取文件后缀
 	extString := path.Ext(filename)
-	rep, err := a.FileRpcServer.UploadActivityIcon(context.Background(), &file_server.UploadFileRequest{
+	rep, err := a.FileRpcServer.UploadActivityIcon(context.Background(), &file_server.UploadAvatarOrIconRequest{
 		Id:          id,
 		FileContent: data,
 		FileName:    filename,
