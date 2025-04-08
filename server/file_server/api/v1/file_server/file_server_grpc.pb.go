@@ -36,14 +36,14 @@ const (
 // 定义文件存储服务
 type FileServiceClient interface {
 	// 上传用户头像
-	UploadUserAvatar(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
-	GetUserAvatarUrl(ctx context.Context, in *GetFileUrlRequest, opts ...grpc.CallOption) (*GetFileUrlResponse, error)
+	UploadUserAvatar(ctx context.Context, in *UploadAvatarOrIconRequest, opts ...grpc.CallOption) (*UploadAvatarOrIconResponse, error)
+	GetUserAvatarUrl(ctx context.Context, in *GetAvatarOrIconUrlRequest, opts ...grpc.CallOption) (*GetAvatarOrIconUrlResponse, error)
 	// 上传活动图标
-	UploadActivityIcon(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
-	GetActivityIconUrl(ctx context.Context, in *GetFileUrlRequest, opts ...grpc.CallOption) (*GetFileUrlResponse, error)
+	UploadActivityIcon(ctx context.Context, in *UploadAvatarOrIconRequest, opts ...grpc.CallOption) (*UploadAvatarOrIconResponse, error)
+	GetActivityIconUrl(ctx context.Context, in *GetAvatarOrIconUrlRequest, opts ...grpc.CallOption) (*GetAvatarOrIconUrlResponse, error)
 	// 上传图片(消息)
-	UploadImage(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
-	GetImageUrl(ctx context.Context, in *GetFileUrlRequest, opts ...grpc.CallOption) (*GetFileUrlResponse, error)
+	UploadImage(ctx context.Context, in *UploadImageRequest, opts ...grpc.CallOption) (*UploadImageResponse, error)
+	GetImageUrl(ctx context.Context, in *GetImageUrlRequest, opts ...grpc.CallOption) (*GetImageUrlResponse, error)
 	// 上传文件(消息)
 	UploadFile(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error)
 	GetFileUrl(ctx context.Context, in *GetFileUrlRequest, opts ...grpc.CallOption) (*GetFileUrlResponse, error)
@@ -57,9 +57,9 @@ func NewFileServiceClient(cc grpc.ClientConnInterface) FileServiceClient {
 	return &fileServiceClient{cc}
 }
 
-func (c *fileServiceClient) UploadUserAvatar(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error) {
+func (c *fileServiceClient) UploadUserAvatar(ctx context.Context, in *UploadAvatarOrIconRequest, opts ...grpc.CallOption) (*UploadAvatarOrIconResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadFileResponse)
+	out := new(UploadAvatarOrIconResponse)
 	err := c.cc.Invoke(ctx, FileService_UploadUserAvatar_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -67,9 +67,9 @@ func (c *fileServiceClient) UploadUserAvatar(ctx context.Context, in *UploadFile
 	return out, nil
 }
 
-func (c *fileServiceClient) GetUserAvatarUrl(ctx context.Context, in *GetFileUrlRequest, opts ...grpc.CallOption) (*GetFileUrlResponse, error) {
+func (c *fileServiceClient) GetUserAvatarUrl(ctx context.Context, in *GetAvatarOrIconUrlRequest, opts ...grpc.CallOption) (*GetAvatarOrIconUrlResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetFileUrlResponse)
+	out := new(GetAvatarOrIconUrlResponse)
 	err := c.cc.Invoke(ctx, FileService_GetUserAvatarUrl_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -77,9 +77,9 @@ func (c *fileServiceClient) GetUserAvatarUrl(ctx context.Context, in *GetFileUrl
 	return out, nil
 }
 
-func (c *fileServiceClient) UploadActivityIcon(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error) {
+func (c *fileServiceClient) UploadActivityIcon(ctx context.Context, in *UploadAvatarOrIconRequest, opts ...grpc.CallOption) (*UploadAvatarOrIconResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadFileResponse)
+	out := new(UploadAvatarOrIconResponse)
 	err := c.cc.Invoke(ctx, FileService_UploadActivityIcon_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -87,9 +87,9 @@ func (c *fileServiceClient) UploadActivityIcon(ctx context.Context, in *UploadFi
 	return out, nil
 }
 
-func (c *fileServiceClient) GetActivityIconUrl(ctx context.Context, in *GetFileUrlRequest, opts ...grpc.CallOption) (*GetFileUrlResponse, error) {
+func (c *fileServiceClient) GetActivityIconUrl(ctx context.Context, in *GetAvatarOrIconUrlRequest, opts ...grpc.CallOption) (*GetAvatarOrIconUrlResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetFileUrlResponse)
+	out := new(GetAvatarOrIconUrlResponse)
 	err := c.cc.Invoke(ctx, FileService_GetActivityIconUrl_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -97,9 +97,9 @@ func (c *fileServiceClient) GetActivityIconUrl(ctx context.Context, in *GetFileU
 	return out, nil
 }
 
-func (c *fileServiceClient) UploadImage(ctx context.Context, in *UploadFileRequest, opts ...grpc.CallOption) (*UploadFileResponse, error) {
+func (c *fileServiceClient) UploadImage(ctx context.Context, in *UploadImageRequest, opts ...grpc.CallOption) (*UploadImageResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadFileResponse)
+	out := new(UploadImageResponse)
 	err := c.cc.Invoke(ctx, FileService_UploadImage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -107,9 +107,9 @@ func (c *fileServiceClient) UploadImage(ctx context.Context, in *UploadFileReque
 	return out, nil
 }
 
-func (c *fileServiceClient) GetImageUrl(ctx context.Context, in *GetFileUrlRequest, opts ...grpc.CallOption) (*GetFileUrlResponse, error) {
+func (c *fileServiceClient) GetImageUrl(ctx context.Context, in *GetImageUrlRequest, opts ...grpc.CallOption) (*GetImageUrlResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetFileUrlResponse)
+	out := new(GetImageUrlResponse)
 	err := c.cc.Invoke(ctx, FileService_GetImageUrl_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -144,14 +144,14 @@ func (c *fileServiceClient) GetFileUrl(ctx context.Context, in *GetFileUrlReques
 // 定义文件存储服务
 type FileServiceServer interface {
 	// 上传用户头像
-	UploadUserAvatar(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
-	GetUserAvatarUrl(context.Context, *GetFileUrlRequest) (*GetFileUrlResponse, error)
+	UploadUserAvatar(context.Context, *UploadAvatarOrIconRequest) (*UploadAvatarOrIconResponse, error)
+	GetUserAvatarUrl(context.Context, *GetAvatarOrIconUrlRequest) (*GetAvatarOrIconUrlResponse, error)
 	// 上传活动图标
-	UploadActivityIcon(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
-	GetActivityIconUrl(context.Context, *GetFileUrlRequest) (*GetFileUrlResponse, error)
+	UploadActivityIcon(context.Context, *UploadAvatarOrIconRequest) (*UploadAvatarOrIconResponse, error)
+	GetActivityIconUrl(context.Context, *GetAvatarOrIconUrlRequest) (*GetAvatarOrIconUrlResponse, error)
 	// 上传图片(消息)
-	UploadImage(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
-	GetImageUrl(context.Context, *GetFileUrlRequest) (*GetFileUrlResponse, error)
+	UploadImage(context.Context, *UploadImageRequest) (*UploadImageResponse, error)
+	GetImageUrl(context.Context, *GetImageUrlRequest) (*GetImageUrlResponse, error)
 	// 上传文件(消息)
 	UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error)
 	GetFileUrl(context.Context, *GetFileUrlRequest) (*GetFileUrlResponse, error)
@@ -165,22 +165,22 @@ type FileServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFileServiceServer struct{}
 
-func (UnimplementedFileServiceServer) UploadUserAvatar(context.Context, *UploadFileRequest) (*UploadFileResponse, error) {
+func (UnimplementedFileServiceServer) UploadUserAvatar(context.Context, *UploadAvatarOrIconRequest) (*UploadAvatarOrIconResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadUserAvatar not implemented")
 }
-func (UnimplementedFileServiceServer) GetUserAvatarUrl(context.Context, *GetFileUrlRequest) (*GetFileUrlResponse, error) {
+func (UnimplementedFileServiceServer) GetUserAvatarUrl(context.Context, *GetAvatarOrIconUrlRequest) (*GetAvatarOrIconUrlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserAvatarUrl not implemented")
 }
-func (UnimplementedFileServiceServer) UploadActivityIcon(context.Context, *UploadFileRequest) (*UploadFileResponse, error) {
+func (UnimplementedFileServiceServer) UploadActivityIcon(context.Context, *UploadAvatarOrIconRequest) (*UploadAvatarOrIconResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadActivityIcon not implemented")
 }
-func (UnimplementedFileServiceServer) GetActivityIconUrl(context.Context, *GetFileUrlRequest) (*GetFileUrlResponse, error) {
+func (UnimplementedFileServiceServer) GetActivityIconUrl(context.Context, *GetAvatarOrIconUrlRequest) (*GetAvatarOrIconUrlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetActivityIconUrl not implemented")
 }
-func (UnimplementedFileServiceServer) UploadImage(context.Context, *UploadFileRequest) (*UploadFileResponse, error) {
+func (UnimplementedFileServiceServer) UploadImage(context.Context, *UploadImageRequest) (*UploadImageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadImage not implemented")
 }
-func (UnimplementedFileServiceServer) GetImageUrl(context.Context, *GetFileUrlRequest) (*GetFileUrlResponse, error) {
+func (UnimplementedFileServiceServer) GetImageUrl(context.Context, *GetImageUrlRequest) (*GetImageUrlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetImageUrl not implemented")
 }
 func (UnimplementedFileServiceServer) UploadFile(context.Context, *UploadFileRequest) (*UploadFileResponse, error) {
@@ -211,7 +211,7 @@ func RegisterFileServiceServer(s grpc.ServiceRegistrar, srv FileServiceServer) {
 }
 
 func _FileService_UploadUserAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadFileRequest)
+	in := new(UploadAvatarOrIconRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -223,13 +223,13 @@ func _FileService_UploadUserAvatar_Handler(srv interface{}, ctx context.Context,
 		FullMethod: FileService_UploadUserAvatar_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).UploadUserAvatar(ctx, req.(*UploadFileRequest))
+		return srv.(FileServiceServer).UploadUserAvatar(ctx, req.(*UploadAvatarOrIconRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _FileService_GetUserAvatarUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFileUrlRequest)
+	in := new(GetAvatarOrIconUrlRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -241,13 +241,13 @@ func _FileService_GetUserAvatarUrl_Handler(srv interface{}, ctx context.Context,
 		FullMethod: FileService_GetUserAvatarUrl_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).GetUserAvatarUrl(ctx, req.(*GetFileUrlRequest))
+		return srv.(FileServiceServer).GetUserAvatarUrl(ctx, req.(*GetAvatarOrIconUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _FileService_UploadActivityIcon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadFileRequest)
+	in := new(UploadAvatarOrIconRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -259,13 +259,13 @@ func _FileService_UploadActivityIcon_Handler(srv interface{}, ctx context.Contex
 		FullMethod: FileService_UploadActivityIcon_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).UploadActivityIcon(ctx, req.(*UploadFileRequest))
+		return srv.(FileServiceServer).UploadActivityIcon(ctx, req.(*UploadAvatarOrIconRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _FileService_GetActivityIconUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFileUrlRequest)
+	in := new(GetAvatarOrIconUrlRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -277,13 +277,13 @@ func _FileService_GetActivityIconUrl_Handler(srv interface{}, ctx context.Contex
 		FullMethod: FileService_GetActivityIconUrl_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).GetActivityIconUrl(ctx, req.(*GetFileUrlRequest))
+		return srv.(FileServiceServer).GetActivityIconUrl(ctx, req.(*GetAvatarOrIconUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _FileService_UploadImage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadFileRequest)
+	in := new(UploadImageRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -295,13 +295,13 @@ func _FileService_UploadImage_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: FileService_UploadImage_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).UploadImage(ctx, req.(*UploadFileRequest))
+		return srv.(FileServiceServer).UploadImage(ctx, req.(*UploadImageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _FileService_GetImageUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFileUrlRequest)
+	in := new(GetImageUrlRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func _FileService_GetImageUrl_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: FileService_GetImageUrl_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServiceServer).GetImageUrl(ctx, req.(*GetFileUrlRequest))
+		return srv.(FileServiceServer).GetImageUrl(ctx, req.(*GetImageUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -28,7 +28,7 @@ func NewUploadUserAvatarLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 // UploadUserAvatar 上传文件的RPC方法
-func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
+func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadAvatarOrIconRequest) (*file_server.UploadAvatarOrIconResponse, error) {
 	// 计算hash
 	hash := encrypt.CalculateFileHash(in.FileContent)
 	// 检查是否已存在相同哈希值的文件
@@ -50,7 +50,7 @@ func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadFileReque
 		}
 
 		// 返回已有的 URL
-		return &file_server.UploadFileResponse{
+		return &file_server.UploadAvatarOrIconResponse{
 			FileUrl: existingIcon.FileURL,
 		}, nil
 	}
@@ -82,7 +82,7 @@ func (l *UploadUserAvatarLogic) UploadUserAvatar(in *file_server.UploadFileReque
 		return nil, fmt.Errorf("插入文件信息到数据库失败: %v", err)
 	}
 
-	return &file_server.UploadFileResponse{
+	return &file_server.UploadAvatarOrIconResponse{
 		FileUrl: url,
 	}, nil
 }

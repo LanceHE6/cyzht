@@ -27,7 +27,7 @@ func NewUploadActivityIconLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 }
 
 // UploadActivityIcon 上传活动图标
-func (l *UploadActivityIconLogic) UploadActivityIcon(in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
+func (l *UploadActivityIconLogic) UploadActivityIcon(in *file_server.UploadAvatarOrIconRequest) (*file_server.UploadAvatarOrIconResponse, error) {
 	// 计算hash
 	hash := encrypt.CalculateFileHash(in.FileContent)
 	// 检查是否已存在相同哈希值的文件
@@ -49,7 +49,7 @@ func (l *UploadActivityIconLogic) UploadActivityIcon(in *file_server.UploadFileR
 		}
 
 		// 返回已有的 URL
-		return &file_server.UploadFileResponse{
+		return &file_server.UploadAvatarOrIconResponse{
 			FileUrl: existingIcon.FileURL,
 		}, nil
 	}
@@ -81,7 +81,7 @@ func (l *UploadActivityIconLogic) UploadActivityIcon(in *file_server.UploadFileR
 		return nil, fmt.Errorf("插入文件信息到数据库失败: %v", err)
 	}
 
-	return &file_server.UploadFileResponse{
+	return &file_server.UploadAvatarOrIconResponse{
 		FileUrl: url,
 	}, nil
 }

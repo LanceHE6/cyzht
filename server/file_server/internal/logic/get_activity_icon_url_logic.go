@@ -23,13 +23,13 @@ func NewGetActivityIconUrlLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	}
 }
 
-func (l *GetActivityIconUrlLogic) GetActivityIconUrl(in *file_server.GetFileUrlRequest) (*file_server.GetFileUrlResponse, error) {
+func (l *GetActivityIconUrlLogic) GetActivityIconUrl(in *file_server.GetAvatarOrIconUrlRequest) (*file_server.GetAvatarOrIconUrlResponse, error) {
 	icon, err := l.svcCtx.Repo.ActivityIconRepo.FindByID(in.Id)
 	if icon == nil {
-		return &file_server.GetFileUrlResponse{}, err
+		return &file_server.GetAvatarOrIconUrlResponse{}, err
 	}
 
-	return &file_server.GetFileUrlResponse{
+	return &file_server.GetAvatarOrIconUrlResponse{
 		FileUrl: icon.FileURL,
 	}, nil
 }

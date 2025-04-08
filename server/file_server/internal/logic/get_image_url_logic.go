@@ -23,8 +23,13 @@ func NewGetImageUrlLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetIm
 	}
 }
 
-func (l *GetImageUrlLogic) GetImageUrl(in *file_server.GetFileUrlRequest) (*file_server.GetFileUrlResponse, error) {
-	// todo: add your logic here and delete this line
+func (l *GetImageUrlLogic) GetImageUrl(in *file_server.GetImageUrlRequest) (*file_server.GetImageUrlResponse, error) {
+	icon, err := l.svcCtx.Repo.ImageRepo.FindByID(in.Id)
+	if icon == nil {
+		return &file_server.GetImageUrlResponse{}, err
+	}
 
-	return &file_server.GetFileUrlResponse{}, nil
+	return &file_server.GetImageUrlResponse{
+		FileUrl: icon.FileURL,
+	}, nil
 }
