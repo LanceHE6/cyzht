@@ -6,36 +6,70 @@ option go_package="./file_server";
 // 定义文件存储服务
 service FileService {
   // 上传用户头像
-  rpc UploadUserAvatar(UploadFileRequest) returns (UploadFileResponse) {}
-  rpc GetUserAvatarUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
+  rpc UploadUserAvatar(UploadAvatarOrIconRequest) returns (UploadAvatarOrIconResponse) {}
+  rpc GetUserAvatarUrl(GetAvatarOrIconUrlRequest) returns (GetAvatarOrIconUrlResponse) {}
   // 上传活动图标
-  rpc UploadActivityIcon(UploadFileRequest) returns (UploadFileResponse) {}
-  rpc GetActivityIconUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
+  rpc UploadActivityIcon(UploadAvatarOrIconRequest) returns (UploadAvatarOrIconResponse) {}
+  rpc GetActivityIconUrl(GetAvatarOrIconUrlRequest) returns (GetAvatarOrIconUrlResponse) {}
   // 上传图片(消息)
-  rpc UploadImage(UploadFileRequest) returns (UploadFileResponse) {}
-  rpc GetImageUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
+  rpc UploadImage(UploadImageRequest) returns (UploadImageResponse) {}
+  rpc GetImageUrl(GetImageUrlRequest) returns (GetImageUrlResponse) {}
   // 上传文件(消息)
   rpc UploadFile(UploadFileRequest) returns (UploadFileResponse) {}
   rpc GetFileUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
 }
 
-// 文件上传请求消息结构体
-message UploadFileRequest {
+// 头像图标上传请求消息结构体
+message UploadAvatarOrIconRequest {
   int64 id = 1;
   bytes file_content = 2;
   string file_name = 3;
   string file_type = 4;
 }
 
-// 文件上传响应消息结构体，包含返回的文件ID
-message UploadFileResponse {
+// 头像图标上传响应消息结构体
+message UploadAvatarOrIconResponse {
   string file_url = 1;
 }
 
-message GetFileUrlRequest {
+message GetAvatarOrIconUrlRequest {
   int64 id = 1;
 }
 
+message GetAvatarOrIconUrlResponse {
+  string file_url = 1;
+}
+
+// 图片上传请求消息结构体
+message UploadImageRequest {
+  bytes file_content = 2;
+  string file_name = 3;
+  string file_type = 4;
+}
+message UploadImageResponse {
+  int64 id = 1;
+  string file_url = 2;
+}
+message GetImageUrlRequest {
+  int64 id = 1;
+}
+message GetImageUrlResponse {
+  string file_url = 1;
+}
+
+// 文件上传请求消息结构体
+message UploadFileRequest {
+  bytes file_content = 2;
+  string file_name = 3;
+  string file_type = 4;
+}
+message UploadFileResponse {
+  int64 id = 1;
+  string file_url = 2;
+}
+message GetFileUrlRequest {
+  int64 id = 1;
+}
 message GetFileUrlResponse {
   string file_url = 1;
 }
