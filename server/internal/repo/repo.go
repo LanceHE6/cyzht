@@ -14,6 +14,8 @@ import (
 )
 
 type Repo struct {
+	FileRpcServer file_server.FileServiceClient
+
 	UserRepo         user.RepoInterface
 	VerifyCodeRepo   verifycode.RepoInterface
 	ActivityRepo     activity.RepoInterface
@@ -32,6 +34,7 @@ func InitRepo(c *config.Config, conn *db.DBConn, fileRpcServer file_server.FileS
 		once.Do(func() {
 
 			repo = &Repo{
+				FileRpcServer:    fileRpcServer,
 				UserRepo:         user.NewUserRepo(c, conn, fileRpcServer),
 				VerifyCodeRepo:   verifycode.NewVerifyCodeRepo(conn),
 				ActivityRepo:     activity.NewActivityRepo(c, conn, fileRpcServer),

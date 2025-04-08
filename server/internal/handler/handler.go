@@ -4,6 +4,7 @@ import (
 	"server/internal/config"
 	"server/internal/handler/activity"
 	"server/internal/handler/chat"
+	"server/internal/handler/upload"
 	"server/internal/handler/user"
 	"server/internal/handler/version"
 	"server/internal/repo"
@@ -16,6 +17,8 @@ type Handler struct {
 
 	ActivityHandler activity.HandlerInterface
 	ChatHandler     chat.HandlerInterface
+
+	UploadHandler upload.HandlerInterface
 }
 
 // handler 全局单例
@@ -36,6 +39,7 @@ func InitHandler(c *config.Config, repo *repo.Repo) *Handler {
 				),
 				ActivityHandler: activity.NewActivityHandler(repo.ActivityRepo, repo.ActivityUserRepo),
 				ChatHandler:     chat.NewChatHandler(repo.MsgRepo),
+				UploadHandler:   upload.NewUploadHandler(c, repo.FileRpcServer),
 			}
 		})
 	}
