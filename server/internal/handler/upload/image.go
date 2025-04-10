@@ -36,16 +36,12 @@ func (u uploadHandler) UploadImage(ctx *gin.Context) {
 		rep, err := u.FileRpcServer.UploadImage(context.Background(), &file_server.UploadImageRequest{
 			FileName:    filename,
 			FileContent: data,
-			FileType:    extString,
 		})
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, err.Error()))
 			return
 		}
-		ctx.JSON(http.StatusOK, response.SuccessResponse(map[string]any{
-			"url": rep.FileUrl,
-			"id":  rep.Id,
-		}))
+		ctx.JSON(http.StatusOK, response.SuccessResponse(rep))
 	} else {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-1, "获取图片文件失败", err))
 		return
@@ -59,8 +55,8 @@ func (u uploadHandler) GetImageUrl(ctx *gin.Context) {
 		return
 	}
 
-	rep, err := u.FileRpcServer.GetImageUrl(context.Background(), &file_server.GetImageUrlRequest{
-		Id: id,
+	rep, err := u.FileRpcServer.GetFileInfo(context.Background(), &file_server.GetFileInfoRequest{
+		FileId: id,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-1, "获取图片url失败", err))

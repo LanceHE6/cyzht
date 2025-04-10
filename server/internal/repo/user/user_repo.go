@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
-	"path"
 	"server/internal/config"
 	"server/internal/db"
 	"server/internal/model"
@@ -200,12 +199,10 @@ func (u *userRepo) UpdateOnlineStatus(id int64, onlineStatus int) error {
 //	@return error 错误信息
 func (u *userRepo) UploadAvatar(id int64, filename string, data []byte) error {
 	// 获取文件后缀
-	extString := path.Ext(filename)
 	rep, err := u.FileRpcServer.UploadUserAvatar(context.Background(), &file_server.UploadAvatarOrIconRequest{
 		Id:          id,
 		FileContent: data,
 		FileName:    filename,
-		FileType:    extString,
 	})
 	if err != nil || rep.FileUrl == "" {
 		if err != nil {

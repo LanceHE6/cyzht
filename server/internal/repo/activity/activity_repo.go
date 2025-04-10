@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/jinzhu/gorm"
-	"path"
 	"server/internal/config"
 	"server/internal/db"
 	"server/internal/model"
@@ -207,12 +206,10 @@ func (a *activityRepo) update(activity *model.ActivityModel) error {
 //	@return error 错误信息
 func (a *activityRepo) UploadAvatar(id int64, filename string, data []byte) error {
 	// 获取文件后缀
-	extString := path.Ext(filename)
 	rep, err := a.FileRpcServer.UploadActivityIcon(context.Background(), &file_server.UploadAvatarOrIconRequest{
 		Id:          id,
 		FileContent: data,
 		FileName:    filename,
-		FileType:    extString,
 	})
 	if err != nil || rep.FileUrl == "" {
 		if err != nil {
