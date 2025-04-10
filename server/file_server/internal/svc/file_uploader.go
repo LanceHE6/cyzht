@@ -1,11 +1,13 @@
-package logic
+package svc
 
 import (
 	"context"
 	"file_server/api/v1/file_server"
+	"file_server/internal/config"
 	"file_server/internal/data/models"
-	"file_server/internal/svc"
+	"file_server/internal/data/repo"
 	"file_server/pkg/encrypt"
+	"file_server/pkg/snowflake"
 	"fmt"
 	"image"
 	"mime"
@@ -13,25 +15,27 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type UploadFileLogic struct {
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
-	logx.Logger
+type FileUploader interface {
+	UploadFile(ctx context.Context, in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error)
 }
 
-func NewUploadFileLogic(ctx context.Context, svcCtx *svc.ServiceContext) *UploadFileLogic {
-	return &UploadFileLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
+type fileUploader struct {
+	repo   *repo.Repo
+	config config.RpcServerConfig
+	worker *snowflake.Worker
+}
+
+func NewFileUploader(repo *repo.Repo, cfg config.RpcServerConfig, worker *snowflake.Worker) FileUploader {
+	return &fileUploader{
+		repo:   repo,
+		config: cfg,
+		worker: worker,
 	}
 }
 
-func (l *UploadFileLogic) UploadFile(in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
+func (u *fileUploader) UploadFile(ctx context.Context, in *file_server.UploadFileRequest) (*file_server.UploadFileResponse, error) {
 	// 1. 验证文件类型
 	mimeType := in.MimeType
 	if mimeType == "" {
@@ -42,7 +46,7 @@ func (l *UploadFileLogic) UploadFile(in *file_server.UploadFileRequest) (*file_s
 	hash := encrypt.CalculateFileHash(in.FileContent)
 
 	// 3. 检查文件是否已存在
-	existingFile, err := l.svcCtx.Repo.FileRepo.FindByHash(hash)
+	existingFile, err := u.repo.FileRepo.FindByHash(hash)
 	if err == nil && existingFile != nil {
 		return &file_server.UploadFileResponse{
 			FileId:   existingFile.ID,
@@ -64,20 +68,20 @@ func (l *UploadFileLogic) UploadFile(in *file_server.UploadFileRequest) (*file_s
 	}
 
 	filename := hash + fileExt
-	storagePath := l.svcCtx.Config.StoragePath
+	storagePath := u.config.StoragePath + "/" + in.OwnerType
 	filePath := filepath.Join(storagePath, filename)
-	fileUrl := "/files/" + filename
+	fileUrl := "/" + in.OwnerType + "/" + filename
 
 	// 5. 保存文件
-	if err := l.saveFile(filePath, in.FileContent); err != nil {
+	if err := u.saveFile(filePath, in.FileContent); err != nil {
 		return nil, fmt.Errorf("保存文件失败: %v", err)
 	}
 
 	// 6. 保存到数据库
-	fileType := l.determineFileType(mimeType)
+	fileType := u.determineFileType(mimeType)
 	fileModel := &models.FileModel{
 		BaseModel: models.BaseModel{
-			ID:   l.svcCtx.SnowflakeWorker.NextId(),
+			ID:   u.worker.NextId(),
 			Hash: hash,
 		},
 		FileName:  in.FileName,
@@ -97,7 +101,7 @@ func (l *UploadFileLogic) UploadFile(in *file_server.UploadFileRequest) (*file_s
 		}
 	}
 
-	if _, err := l.svcCtx.Repo.FileRepo.Upsert(fileModel); err != nil {
+	if _, err := u.repo.FileRepo.Upsert(fileModel); err != nil {
 		os.Remove(filePath)
 		return nil, fmt.Errorf("保存文件信息失败: %v", err)
 	}
@@ -110,14 +114,14 @@ func (l *UploadFileLogic) UploadFile(in *file_server.UploadFileRequest) (*file_s
 	}, nil
 }
 
-func (l *UploadFileLogic) saveFile(path string, content []byte) error {
+func (u *fileUploader) saveFile(path string, content []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return err
 	}
 	return os.WriteFile(path, content, 0644)
 }
 
-func (l *UploadFileLogic) determineFileType(mimeType string) models.FileType {
+func (u *fileUploader) determineFileType(mimeType string) models.FileType {
 	switch {
 	case strings.HasPrefix(mimeType, "image/"):
 		return models.FileTypeImage

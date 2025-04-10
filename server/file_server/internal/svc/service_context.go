@@ -11,6 +11,7 @@ type ServiceContext struct {
 	Config          config.RpcServerConfig
 	Repo            *repo.Repo
 	SnowflakeWorker *snowflake.Worker
+	FileUploader    FileUploader // 通用文件上传
 }
 
 func NewServiceContext(c config.RpcServerConfig) *ServiceContext {
@@ -21,9 +22,12 @@ func NewServiceContext(c config.RpcServerConfig) *ServiceContext {
 		panic(err)
 	}
 
+	r := repo.NewRepository(db)
+
 	return &ServiceContext{
 		Config:          c,
-		Repo:            repo.NewRepository(db),
+		Repo:            r,
 		SnowflakeWorker: worker,
+		FileUploader:    NewFileUploader(r, c, worker),
 	}
 }

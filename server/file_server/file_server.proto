@@ -5,75 +5,103 @@ option go_package="./file_server";
 
 // 定义文件存储服务
 service FileService {
-  // 上传用户头像
-  rpc UploadUserAvatar(UploadAvatarOrIconRequest) returns (UploadAvatarOrIconResponse) {}
-  rpc GetUserAvatarUrl(GetAvatarOrIconUrlRequest) returns (GetAvatarOrIconUrlResponse) {}
-  // 上传活动图标
-  rpc UploadActivityIcon(UploadAvatarOrIconRequest) returns (UploadAvatarOrIconResponse) {}
-  rpc GetActivityIconUrl(GetAvatarOrIconUrlRequest) returns (GetAvatarOrIconUrlResponse) {}
-  // 上传图片(消息)
-  rpc UploadImage(UploadImageRequest) returns (UploadImageResponse) {}
-  rpc GetImageUrl(GetImageUrlRequest) returns (GetImageUrlResponse) {}
-  // 上传文件(消息)
+  // 通用文件上传
   rpc UploadFile(UploadFileRequest) returns (UploadFileResponse) {}
-  rpc GetFileUrl(GetFileUrlRequest) returns (GetFileUrlResponse) {}
+  rpc GetFileInfo(GetFileInfoRequest) returns (GetFileInfoResponse) {}
+
+  // 图片专用接口(包含缩略图处理)
+  rpc UploadImage(UploadImageRequest) returns (UploadImageResponse) {}
+  rpc BatchGetImageUrls(BatchGetImageUrlsRequest) returns (BatchGetImageUrlsResponse) {}
+
+  // 头像图标上传(兼容旧接口)
+  rpc UploadUserAvatar(UploadAvatarOrIconRequest) returns (UploadAvatarOrIconResponse) {}
+  rpc UploadActivityIcon(UploadAvatarOrIconRequest) returns (UploadAvatarOrIconResponse) {}
 }
 
-// 头像图标上传请求消息结构体
+// 通用文件上传请求
+message UploadFileRequest {
+  bytes file_content = 1;
+  string file_name = 2;
+  string mime_type = 3;
+  int64 owner_id = 4;      // 文件所有者ID
+  string owner_type = 5;   // 所有者类型(user/activity/message等)
+}
+
+// 通用文件上传响应
+message UploadFileResponse {
+  int64 file_id = 1;
+  string file_url = 2;
+  int64 file_size = 3;
+  string mime_type = 4;
+}
+
+// 图片上传请求(专用)
+message UploadImageRequest {
+  bytes file_content = 1;
+  string file_name = 2;
+  int64 owner_id = 3;
+  string owner_type = 4;
+  bool need_thumb = 5;     // 是否需要生成缩略图
+  int32 thumb_width = 6;   // 缩略图宽度(可选)
+  int32 thumb_height = 7;  // 缩略图高度(可选)
+}
+
+// 图片上传响应
+message UploadImageResponse {
+  int64 file_id = 1;
+  string file_url = 2;
+  string thumb_url = 3;    // 缩略图URL
+  int32 width = 4;         // 原始图片宽度
+  int32 height = 5;        // 原始图片高度
+  int32 thumb_width = 6;   // 缩略图宽度
+  int32 thumb_height = 7;  // 缩略图高度
+}
+
+// 获取文件信息请求
+message GetFileInfoRequest {
+  int64 file_id = 1;
+}
+
+// 获取文件信息响应
+message GetFileInfoResponse {
+  int64 file_id = 1;
+  string file_url = 2;
+  string thumb_url = 3;
+  int64 file_size = 4;
+  string mime_type = 5;
+  int32 width = 6;
+  int32 height = 7;
+  int32 duration = 8;
+}
+
+// 批量获取图片URL请求
+message BatchGetImageUrlsRequest {
+  repeated int64 file_ids = 1;
+  bool need_thumb = 2;     // 是否需要缩略图
+}
+
+// 批量获取图片URL响应
+message BatchGetImageUrlsResponse {
+  message ImageInfo {
+    int64 file_id = 1;
+    string file_url = 2;
+    string thumb_url = 3;
+    int32 width = 4;
+    int32 height = 5;
+  }
+  repeated ImageInfo images = 1;
+}
+
+// 兼容旧接口的消息结构体
 message UploadAvatarOrIconRequest {
   int64 id = 1;
   bytes file_content = 2;
   string file_name = 3;
-  string file_type = 4;
 }
 
-// 头像图标上传响应消息结构体
 message UploadAvatarOrIconResponse {
   string file_url = 1;
 }
 
-message GetAvatarOrIconUrlRequest {
-  int64 id = 1;
-}
-
-message GetAvatarOrIconUrlResponse {
-  string file_url = 1;
-}
-
-// 图片上传请求消息结构体
-message UploadImageRequest {
-  bytes file_content = 2;
-  string file_name = 3;
-  string file_type = 4;
-}
-message UploadImageResponse {
-  int64 id = 1;
-  string file_url = 2;
-}
-message GetImageUrlRequest {
-  int64 id = 1;
-}
-message GetImageUrlResponse {
-  string file_url = 1;
-}
-
-// 文件上传请求消息结构体
-message UploadFileRequest {
-  bytes file_content = 2;
-  string file_name = 3;
-  string file_type = 4;
-}
-message UploadFileResponse {
-  int64 id = 1;
-  string file_url = 2;
-}
-message GetFileUrlRequest {
-  int64 id = 1;
-}
-message GetFileUrlResponse {
-  string file_url = 1;
-}
-// 服务端
 // goctl rpc protoc file_server.proto --go_out=./api/v1 --go-grpc_out=./api/v1 --zrpc_out=. --style=go_zero
-// 客户端
 // goctl rpc protoc file_server.proto --go_out=./api/v1 --go-grpc_out=./api/v1 --zrpc_out=. --client=true --style=go_zero
