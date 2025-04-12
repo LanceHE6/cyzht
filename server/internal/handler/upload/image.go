@@ -5,6 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"path"
+	"server/pkg/bindparams"
+	"server/pkg/jwt"
 	"server/pkg/response"
 	"server/pkg/rpc/file_server/api/v1/file_server"
 	"strconv"
@@ -19,7 +21,17 @@ var imageExt = map[string]bool{
 }
 
 func (u uploadHandler) UploadImage(ctx *gin.Context) {
+	type UploadImageRequest struct {
+		FileName  string `form:"file_name" binding:"required"`
+		OwnerType string `form:"owner_type" binding:"required"`
+		NeedThumb bool   `form:"need_thumb" binding:"required"`
+	}
+	data := bindparams.BindPostParams[UploadImageRequest](ctx)
+	if data == nil {
+		return
+	}
 	file, header, err := ctx.Request.FormFile("file")
+	claims, _ := jwt.GetClaimsByContext(ctx)
 	if err == nil {
 		filename := header.Filename
 		// 获取文件后缀
@@ -30,12 +42,15 @@ func (u uploadHandler) UploadImage(ctx *gin.Context) {
 			return
 		}
 
-		var data = make([]byte, header.Size)
-		_, _ = file.Read(data)
+		var fileData = make([]byte, header.Size)
+		_, _ = file.Read(fileData)
 
 		rep, err := u.FileRpcServer.UploadImage(context.Background(), &file_server.UploadImageRequest{
-			FileName:    filename,
-			FileContent: data,
+			FileName:    data.FileName,
+			FileContent: fileData,
+			OwnerType:   data.OwnerType,
+			NeedThumb:   data.NeedThumb,
+			OwnerId:     claims.ID,
 		})
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, err.Error()))
@@ -62,9 +77,7 @@ func (u uploadHandler) GetImageUrl(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-1, "获取图片url失败", err))
 		return
 	}
-	ctx.JSON(http.StatusOK, response.SuccessResponse(map[string]any{
-		"id":  id,
-		"url": u.C.Server.FileServer.StaticURL + rep.FileUrl,
-	}))
+	rep.FileUrl = u.C.Server.FileServer.StaticURL + rep.FileUrl
+	ctx.JSON(http.StatusOK, response.SuccessResponse(rep))
 
 }

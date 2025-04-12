@@ -91,7 +91,8 @@ func (e *msgRepo) modelDB() *gorm.DB {
 		Preload("FromUser").
 		Preload("ToUser").
 		Preload("Exhibitor").
-		Preload("Activity")
+		Preload("Activity").
+		Preload("Attachments")
 }
 
 func (e *msgRepo) Insert(msg *model.MsgModel) (*model.MsgModel, error) {
