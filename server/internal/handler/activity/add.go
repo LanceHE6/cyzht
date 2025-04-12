@@ -77,7 +77,7 @@ func (a *activityHandler) AddActivity(ctx *gin.Context) {
 		var data = make([]byte, header.Size)
 		_, _ = file.Read(data)
 
-		err := a.ActivityRepo.UploadAvatar(aid, filename, data)
+		err := a.ActivityRepo.UploadIcon(aid, filename, data)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, err.Error()))
 			return

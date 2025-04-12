@@ -25,10 +25,10 @@ type RepoInterface interface {
 	Search(params ...PagingParams) (*[]model.ActivityModel, int, error)
 	// update 更新
 	update(activity *model.ActivityModel) error
-	// UpdateAvatar 更新展会头像地址
-	UpdateAvatar(id int64, avatarUrl string) error
-	// UploadAvatar 上传展会头像并更新头像地址
-	UploadAvatar(id int64, filename string, data []byte) error
+	// UpdateIcon 更新展会头像地址
+	UpdateIcon(id int64, avatarUrl string) error
+	// UploadIcon 上传展会头像并更新头像地址
+	UploadIcon(id int64, filename string, data []byte) error
 }
 
 type activityRepo struct {
@@ -196,15 +196,15 @@ func (a *activityRepo) update(activity *model.ActivityModel) error {
 	return a.modelDB().Save(&activity).Error
 }
 
-// UploadAvatar
+// UploadIcon
 //
-//	@Description: 上传用户头像至文件服务器
+//	@Description: 上传活动图标至文件服务器
 //	@receiver u userRepo
 //	@param id int64 用户id
 //	@param filename string 文件名
 //	@param data []byte 文件数据
 //	@return error 错误信息
-func (a *activityRepo) UploadAvatar(id int64, filename string, data []byte) error {
+func (a *activityRepo) UploadIcon(id int64, filename string, data []byte) error {
 	// 获取文件后缀
 	rep, err := a.FileRpcServer.UploadActivityIcon(context.Background(), &file_server.UploadAvatarOrIconRequest{
 		Id:          id,
@@ -217,18 +217,18 @@ func (a *activityRepo) UploadAvatar(id int64, filename string, data []byte) erro
 		}
 		return errors.New("文件上传服务器失败")
 	}
-	return a.UpdateAvatar(id, rep.FileUrl)
+	return a.UpdateIcon(id, rep.FileUrl)
 }
 
-// UpdateAvatar
+// UpdateIcon
 //
-//	@Description: 更新数据库用户头像地址
+//	@Description: 更新数据库图标地址
 //	@receiver u
 //	@param id
 //	@param fileURL
 //	@return error
-func (a *activityRepo) UpdateAvatar(id int64, avatarURL string) error {
-	return a.modelMyDB().Where("id = ?", id).Update("avatar", avatarURL).Error
+func (a *activityRepo) UpdateIcon(id int64, avatarURL string) error {
+	return a.modelMyDB().Where("id = ?", id).Update("icon", avatarURL).Error
 }
 
 func NewActivityRepo(c *config.Config, dbConn *db.DBConn, fileRpcServer file_server.FileServiceClient) RepoInterface {

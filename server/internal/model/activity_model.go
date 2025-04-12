@@ -13,7 +13,7 @@ type ActivityModel struct {
 	BaseModel
 	Name      string     `gorm:"column:name;type:varchar(255);not null;" json:"name"`           // 活动名
 	Introduce string     `gorm:"column:introduce;type:varchar(255);not null" json:"introduce"`  // 活动介绍
-	Avatar    string     `gorm:"column:avatar;type:varchar(255);" json:"avatar"`                // 活动头像
+	Icon      string     `gorm:"column:icon;type:varchar(255);" json:"icon"`                    // 活动头像
 	StartAt   time.Time  `gorm:"column:start_at;type:datetime;not null" json:"start_at"`        // 活动开始时间
 	EndAt     time.Time  `gorm:"column:end_at;type:datetime;not null" json:"end_at"`            // 活动结束时间
 	Location  string     `gorm:"column:location;type:varchar(255);not null" json:"location"`    // 活动地点
@@ -28,8 +28,8 @@ func (*ActivityModel) TableName() string {
 
 // AfterFind 钩子函数, 在查询到数据后, 拼接完整的头像url
 func (a *ActivityModel) AfterFind(*gorm.DB) (err error) {
-	if a.Avatar != "" {
-		a.Avatar = config.GetConfig().Server.FileServer.StaticURL + a.Avatar
+	if a.Icon != "" {
+		a.Icon = config.GetConfig().Server.FileServer.StaticURL + a.Icon
 	}
 	return nil
 }
