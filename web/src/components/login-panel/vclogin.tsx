@@ -149,20 +149,21 @@ export default function VCLoginPanel() {
             onSubmit={verifyCode}
           >
             <div className="text-default-500">验证码</div>
-            <InputOtp
-              isRequired
-              className={"px-3 w-10/12"}
-              errorMessage={({ validationDetails }) => {
-                if (validationDetails.valueMissing) {
-                  return "请输入验证码";
-                }
-              }}
-              length={6}
-              size="md"
-              type="number"
-              value={code}
-              onValueChange={setCode}
-            />
+            <div className="flex justify-center">
+              <InputOtp
+                isRequired
+                errorMessage={({ validationDetails }) => {
+                  if (validationDetails.valueMissing) {
+                    return "请输入验证码";
+                  }
+                }}
+                length={6}
+                size="md"
+                type="number"
+                value={code}
+                onValueChange={setCode}
+              />
+            </div>
             <Button
               className={"px-3 w-1/4"}
               color="secondary"
