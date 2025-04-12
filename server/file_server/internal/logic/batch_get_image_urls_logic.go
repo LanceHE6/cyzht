@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"file_server/api/v1/file_server"
 	"file_server/internal/svc"
@@ -34,7 +35,7 @@ func (l *BatchGetImageUrlsLogic) BatchGetImageUrls(in *file_server.BatchGetImage
 	resp := &file_server.BatchGetImageUrlsResponse{}
 	for _, file := range fileInfos {
 		imageInfo := &file_server.BatchGetImageUrlsResponse_ImageInfo{
-			FileId:  file.ID,
+			FileId:  strconv.FormatInt(file.ID, 10),
 			FileUrl: file.FileURL,
 			Width:   int32(file.Width),
 			Height:  int32(file.Height),

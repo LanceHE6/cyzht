@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"file_server/api/v1/file_server"
@@ -41,7 +42,7 @@ func (l *UploadImageLogic) UploadImage(in *file_server.UploadImageRequest) (*fil
 	}
 
 	resp := &file_server.UploadImageResponse{
-		FileId:  fileResp.FileId,
+		FileId:  strconv.FormatInt(fileResp.FileId, 10),
 		FileUrl: fileResp.FileUrl,
 	}
 

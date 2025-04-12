@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"file_server/api/v1/file_server"
 	"file_server/internal/svc"
@@ -32,7 +33,7 @@ func (l *GetFileInfoLogic) GetFileInfo(in *file_server.GetFileInfoRequest) (*fil
 	}
 
 	return &file_server.GetFileInfoResponse{
-		FileId:   fileInfo.ID,
+		FileId:   strconv.FormatInt(fileInfo.ID, 10),
 		FileUrl:  fileInfo.FileURL,
 		ThumbUrl: fileInfo.ThumbURL,
 		FileSize: fileInfo.FileSize,
