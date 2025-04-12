@@ -21,7 +21,6 @@ type FileModel struct {
 	Width     int      `gorm:"column:width;type:int"`
 	Height    int      `gorm:"column:height;type:int"`
 	Duration  int      `gorm:"column:duration;type:int"`
-	Hash      string   `gorm:"column:hash;type:varchar(64);not null;uniqueIndex"` // 添加唯一索引
 	OwnerID   int64    `gorm:"column:owner_id;type:bigint"`
 	OwnerType string   `gorm:"column:owner_type;type:varchar(50)"`
 }
