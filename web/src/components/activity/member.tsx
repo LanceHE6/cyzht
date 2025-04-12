@@ -20,12 +20,20 @@ import React, { useEffect, useState } from "react";
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
 import { Toast } from "@/utils/utils.ts";
 
+interface MemberData {
+  id: string;
+  user: any;
+  nickname: string;
+  avatar: string;
+  role: string;
+}
+
 export interface MemberProps {
   aid: string;
 }
 const Member: React.FC<MemberProps> = (props: MemberProps) => {
   let { aid } = props;
-  const [users, setUsers] = useState([]);
+  const [members, setMembers] = useState<MemberData[]>([]);
   // 获取成员列表数据
   const fetchMembers = async (aid: string) => {
     const response = await axiosInstanceWithAuth.get(
@@ -53,7 +61,7 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
     const fetchData = async () => {
       const data = await fetchMembers(aid);
 
-      setUsers(data);
+      setMembers(data);
     };
 
     fetchData();
@@ -74,21 +82,21 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
           <TableColumn>成员列表</TableColumn>
         </TableHeader>
         <TableBody className="flex-1">
-          {users.map((item) => (
-            <TableRow key={item.id}>
+          {members.map((member) => (
+            <TableRow key={member.id}>
               <TableCell>
                 <div className="flex gap-2 items-center">
-                  <UserInfoPopover user={item.user} />
+                  <UserInfoPopover user={member.user} />
                   <div className="flex flex-col">
-                    <span className="text-small">{item.nickname}</span>
+                    <span className="text-small">{member.nickname}</span>
                   </div>
                   <div className="justify-end">
                     <Chip
-                      color={item.role === "创建者" ? "danger" : "primary"}
+                      color={member.role === "创建者" ? "danger" : "primary"}
                       size="sm"
                       variant="flat"
                     >
-                      {item.role}
+                      {member.role}
                     </Chip>
                   </div>
                 </div>
