@@ -93,12 +93,12 @@ export default function HomePage() {
       const newTabs = response.data.data.rows.map((activityUser: any) => ({
         key: activityUser.id,
         title: activityUser.activity.name,
-        icon: activityUser.activity.avatar ? (
+        icon: activityUser.activity.icon ? (
           <Avatar
             isBordered
             className="cursor-pointer"
             size="sm"
-            src={activityUser.activity.avatar}
+            src={activityUser.activity.icon}
           />
         ) : (
           <DefaultActivityIcon />
