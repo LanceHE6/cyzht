@@ -1,5 +1,14 @@
-import { Avatar, Button, Card, Divider, ScrollShadow } from "@heroui/react";
-import React, { useState, useEffect, useRef } from "react";
+import {
+  Avatar,
+  Button,
+  Card,
+  Divider,
+  ScrollShadow,
+  Image,
+  Input,
+  Spinner,
+} from "@heroui/react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Textarea } from "@heroui/input";
 import { useNavigate } from "react-router-dom";
 
@@ -9,12 +18,15 @@ import {
 } from "@/utils/axios-instance.ts";
 import { LocalStorage, Toast, WebSocketClient } from "@/utils/utils.ts";
 import { formatDate } from "@/utils/datetime.ts";
+import { AddIcon, SearchIcon } from "@/components/icons.tsx";
+import { getErrorMessage } from "@/utils/error-helper.ts";
 
 interface user {
   id: string;
   nickname: string;
   avatar: string;
 }
+
 interface activity {
   id: string;
   name: string;
@@ -22,6 +34,16 @@ interface activity {
   start_at: string;
   end_at: string;
   location: string;
+}
+
+interface attachment {
+  file_id: string;
+  file_url: string;
+  thumb_url?: string;
+  file_size: number;
+  mime_type: string;
+  width?: number;
+  height?: number;
 }
 
 interface Message {
@@ -32,162 +54,290 @@ interface Message {
   exhibitor: {};
   from_user: user;
   to_user: user | null;
-  msg_type: number;
-  text_msg: string;
-  file_url: string;
-  file_size: number;
+  msg_type: number; // 1-文本 2-图片 3-复合
+  content: string;
+  status: number;
+  attachments: attachment[];
 }
 
 export interface ChatProps {
   aid: string;
 }
 
-// 聊天页面子组件
 const Chat: React.FC<ChatProps> = (props: ChatProps) => {
-  // 为请求设置导航回调
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setNavigateCallback(navigate);
-  }, [navigate]);
-  // 消息数组
   const [messages, setMessages] = useState<Message[]>([]);
-  // 聊天输入框数据
   const [inputValue, setInputValue] = useState<string>("");
-
   const [currentUser] = useState<any>(LocalStorage.getUser());
-
-  if (!currentUser) {
-    Toast.danger("请先登录", "请先登录");
-    navigate("/login");
-  }
-
-  let { aid } = props; // 组件传值
-
+  const [isUploading, setIsUploading] = useState(false);
+  const [localImages, setLocalImages] = useState<
+    { file: File; preview: string }[]
+  >([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const { aid } = props;
   const aidRef = useRef(aid);
 
   aidRef.current = aid;
 
-  const fetchMsg = async () => {
-    const response = await axiosInstanceWithAuth.get(
-      `/api/v1/activity/${aid}/msg`,
-      {
-        params: {
-          page: -1, // -1表示不分页
-          page_size: 10,
-        },
-      },
-    );
-
-    if (response.status !== 200) {
-      Toast.danger("获取消息失败", response.data.msg);
+  // 初始化
+  useEffect(() => {
+    setNavigateCallback(navigate);
+    if (!currentUser) {
+      Toast.danger("请先登录", "请先登录");
+      navigate("/login");
     }
-    // 解析和映射数据
-    const parsedMessages: Message[] = response.data.data.rows.map(
-      (msg: any) => ({
-        id: msg.id,
-        created_at: msg.created_at,
-        updated_at: msg.updated_at,
-        activity: msg.activity,
-        exhibitor: msg.exhibitor,
-        from_user: {
-          id: msg.from_user.id,
-          nickname: msg.from_user.nickname,
-          avatar: msg.from_user.avatar,
+    fetchMsg();
+  }, [aid, navigate, currentUser]);
+
+  // 获取历史消息
+  const fetchMsg = async () => {
+    try {
+      const response = await axiosInstanceWithAuth.get(
+        `/api/v1/activity/${aid}/msg`,
+        {
+          params: { page: -1, page_size: 10 },
         },
-        to_user:
-          msg.to_user === null
-            ? null
-            : {
+      );
+
+      const parsedMessages: Message[] = response.data.data.rows.map(
+        (msg: any) => ({
+          ...msg,
+          from_user: {
+            id: msg.from_user.id,
+            nickname: msg.from_user.nickname,
+            avatar: msg.from_user.avatar,
+          },
+          to_user: msg.to_user
+            ? {
                 id: msg.to_user.id,
                 nickname: msg.to_user.nickname,
                 avatar: msg.to_user.avatar,
-              },
-        msg_type: msg.msg_type,
-        text_msg: msg.text_msg,
-        file_url: msg.file_url,
-        file_size: msg.file_size,
-      }),
+              }
+            : null,
+        }),
+      );
+
+      setMessages(parsedMessages);
+    } catch (error) {
+      Toast.danger("获取消息失败", getErrorMessage(error));
+    }
+  };
+
+  // 滚动到底部
+  const scrollToBottom = useCallback(() => {
+    if (messageContainerRef.current?.lastElementChild) {
+      messageContainerRef.current.lastElementChild.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  }, []);
+
+  // 上传图片到文件服务
+  const uploadImage = async (file: File): Promise<attachment> => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+
+      formData.append("file", file);
+      formData.append("file_name", file.name);
+      formData.append("owner_type", "message");
+      formData.append("need_thumb", "true");
+
+      const response = await axiosInstanceWithAuth.post(
+        "/api/v1/upload/image",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
+
+      return {
+        file_id: response.data.data.file_id,
+        file_url: response.data.data.file_url,
+        thumb_url: response.data.data.thumb_url,
+        file_size: file.size,
+        mime_type: file.type,
+        width: response.data.data.width,
+        height: response.data.data.height,
+      };
+    } catch (error) {
+      Toast.danger("图片上传失败", getErrorMessage(error));
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // 处理图片选择
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+
+    if (!files || files.length === 0) return;
+
+    // 转换为数组并过滤非图片文件
+    const imageFiles = Array.from(files).filter((file) =>
+      file.type.startsWith("image/"),
     );
 
-    setMessages(parsedMessages);
-    console.log("parsed", parsedMessages);
+    // 生成预览并保存到本地状态
+    const newImages = imageFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setLocalImages((prev) => [...prev, ...newImages]);
+
+    // 清空input，允许重复选择同一文件
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  useEffect(() => {
-    console.log("aid:", aid);
-    // 获取消息数据
-    fetchMsg();
-  }, [aid]); // 添加aid作为依赖,aid变化时重新请求数据
+  // 移除本地图片
+  const removeLocalImage = (index: number) => {
+    setLocalImages((prev) => {
+      const newImages = [...prev];
 
-  const sendMessage = () => {
-    // 判断消息是否为空
-    if (inputValue.trim() === "") {
+      URL.revokeObjectURL(newImages[index].preview); // 释放内存
+      newImages.splice(index, 1);
+
+      return newImages;
+    });
+  };
+
+  // 发送消息（处理所有类型）
+  const sendMessage = async () => {
+    // 验证是否有内容可发送
+    if (inputValue.trim() === "" && localImages.length === 0) {
+      Toast.warning("发送失败", "消息内容不能为空");
+
       return;
     }
-    const newMessage = {
-      msg_type: 1,
-      text_msg: inputValue,
-    };
 
-    axiosInstanceWithAuth
-      .post(`/api/v1/activity/${aid}/send`, newMessage)
-      .then((response) => {
-        if (response.data.code !== 0) {
-          Toast.warning("发送消息失败", response.data.msg);
-        }
+    try {
+      setIsUploading(true);
+
+      // 1. 先上传所有图片
+      let attachments: attachment[] = [];
+
+      if (localImages.length > 0) {
+        const uploadPromises = localImages.map((img) => uploadImage(img.file));
+
+        attachments = await Promise.all(uploadPromises);
+      }
+
+      // 2. 确定消息类型
+      let msgType: number;
+
+      if (inputValue.trim() === "" && attachments.length > 0) {
+        msgType = 2; // 纯图片消息
+      } else if (inputValue.trim() !== "" && attachments.length === 0) {
+        msgType = 1; // 纯文本消息
+      } else {
+        msgType = 3; // 复合消息
+      }
+
+      // 3. 发送消息
+      await axiosInstanceWithAuth.post(`/api/v1/activity/${aid}/send`, {
+        msg_type: msgType,
+        content: inputValue,
+        attachments: attachments,
       });
 
-    setInputValue("");
+      // 4. 清空输入状态
+      setInputValue("");
+      setLocalImages([]);
+    } catch (error) {
+      Toast.warning("发送消息失败", getErrorMessage(error));
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  // 发送消息快捷键 监听 ctrl + Enter 键
+  // 快捷键发送
   const handleHotKeysPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.ctrlKey && event.key === "Enter") {
       sendMessage();
-      if (messageContainerRef.current) {
-        const lastMessage = messageContainerRef.current.lastElementChild;
-
-        if (lastMessage) {
-          lastMessage.scrollIntoView({ behavior: "smooth" });
-        }
-      }
+      scrollToBottom();
     }
   };
 
-  // 滚动到最新消息
-  const messageContainerRef = useRef<HTMLDivElement>(null);
-
-  // 监听 messages 变化，滚动到最新消息
-  useEffect(() => {
-    if (messageContainerRef.current) {
-      const lastMessage = messageContainerRef.current.lastElementChild;
-
-      if (lastMessage) {
-        lastMessage.scrollIntoView({ behavior: "smooth" });
+  // WebSocket消息处理
+  const handleWebSocketMessage = useCallback(
+    (message: Message) => {
+      if (
+        message.activity.id === aidRef.current &&
+        message.exhibitor === null
+      ) {
+        setMessages((prev) => [...prev, message]);
+        scrollToBottom();
       }
-    }
-  }, [messages]);
-
-  // WebSocket 消息处理回调
-  const handleWebSocketMessage = (message: Message) => {
-    console.log("WebSocket 消息处理回调:", message);
-    console.log("message activity id:", message.activity.id);
-    console.log("current aid:", aidRef.current);
-    if (message.activity.id === aidRef.current) {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    }
-  };
+    },
+    [scrollToBottom],
+  );
 
   useEffect(() => {
-    // 注册 WebSocket 消息处理回调
     WebSocketClient.onMessage(handleWebSocketMessage);
 
-    // 清理函数
     return () => {
       WebSocketClient.offMessage(handleWebSocketMessage);
+      // 清理预览URL内存
+      localImages.forEach((img) => URL.revokeObjectURL(img.preview));
     };
-  }, []);
+  }, [handleWebSocketMessage, localImages]);
+
+  // 渲染消息内容
+  const renderMessageContent = (message: Message) => {
+    switch (message.msg_type) {
+      case 1: // 文本
+        return <p className="whitespace-pre-wrap">{message.content}</p>;
+
+      case 2: // 图片
+        return (
+          <div className="space-y-2">
+            {message.attachments.map((att, idx) => (
+              <Image
+                key={idx}
+                alt="图片消息"
+                className="max-w-full rounded-lg"
+                src={att.thumb_url ? att.thumb_url : att.file_url}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "300px",
+                  cursor: "pointer",
+                }}
+                onClick={() => window.open(att.file_url, "_blank")}
+              />
+            ))}
+          </div>
+        );
+
+      case 3: // 复合消息
+        return (
+          <div className="space-y-2">
+            {message.attachments.map((att, idx) => (
+              <Image
+                key={idx}
+                alt="图片消息"
+                className="max-w-full rounded-lg"
+                src={att.thumb_url || att.file_url}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "300px",
+                  cursor: "pointer",
+                }}
+                onClick={() => window.open(att.file_url, "_blank")}
+              />
+            ))}
+            {message.content && (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            )}
+          </div>
+        );
+
+      default:
+        return <p className="text-gray-500">[不支持的消息类型]</p>;
+    }
+  };
 
   return (
     <Card
@@ -199,6 +349,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
         <div className="text-xl font-bold">展会大厅</div>
       </div>
       <Divider className="" />
+
       {/* 聊天消息区域 */}
       <Card className="flex flex-col flex-grow overflow-y-auto" radius="none">
         <ScrollShadow
@@ -220,12 +371,12 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                   src={message.from_user.avatar}
                 />
               )}
+
               <Card
-                className={`border-none w-fit ${message.from_user.id === currentUser.id ? "bg-blue-100" : ""} `}
+                className={`border-none w-fit ${message.from_user.id === currentUser.id ? "bg-blue-100" : ""}`}
                 style={{ maxWidth: "50%" }}
               >
                 <div className="message p-2 w-auto">
-                  {/*适配自己消息,使名字始终为靠近头像的一侧*/}
                   <div
                     className={`flex ${message.from_user.id === currentUser.id ? "justify-end" : "justify-start"} px-1 items-center`}
                   >
@@ -250,10 +401,11 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                     )}
                   </div>
                   <div className="w-fit max-w-full px-2 py-2">
-                    <p>{message.text_msg}</p>
+                    {renderMessageContent(message)}
                   </div>
                 </div>
               </Card>
+
               {message.from_user.id === currentUser.id && (
                 <Avatar
                   showFallback
@@ -268,28 +420,76 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
         </ScrollShadow>
       </Card>
 
-      {/* 输入框 */}
-      <div className="sticky bottom-0 z-10 w-full bg-white border-t border-gray-200 flex">
-        <Textarea
-          className=""
-          maxRows={4}
-          minRows={1}
-          placeholder="输入消息..."
-          size="lg"
-          type="text"
-          value={inputValue}
-          onKeyDown={handleHotKeysPress}
-          onValueChange={setInputValue}
-        />
-        <Button
-          className=""
-          color="primary"
-          isDisabled={inputValue.trim() === ""}
-          size="lg"
-          onPress={sendMessage}
-        >
-          发送
-        </Button>
+      {/* 输入区域 */}
+      <div className="sticky bottom-0 z-10 w-full bg-white border-t border-gray-200 flex flex-col">
+        {/* 图片预览区域 */}
+        {localImages.length > 0 && (
+          <div className="flex p-2 space-x-2 overflow-x-auto">
+            {localImages.map((img, index) => (
+              <div key={index} className="relative">
+                <Image
+                  alt="图片预览"
+                  className="w-20 h-20 object-cover rounded-lg"
+                  src={img.preview}
+                />
+                <Button
+                  isIconOnly
+                  className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2"
+                  size="sm"
+                  variant="flat"
+                  onPress={() => removeLocalImage(index)}
+                >
+                  <SearchIcon size={14} />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 文本输入区域 */}
+        <div className="flex">
+          <Textarea
+            className="flex-grow"
+            endContent={
+              <div className="flex p-2 space-x-2">
+                <Button
+                  isIconOnly
+                  isLoading={isUploading}
+                  size="md"
+                  onPress={() => fileInputRef.current?.click()}
+                >
+                  {isUploading ? <Spinner size="sm" /> : <AddIcon />}
+                </Button>
+                <Input
+                  ref={fileInputRef}
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  type="file"
+                  onChange={handleImageSelect}
+                />
+              </div>
+            }
+            maxRows={4}
+            minRows={1}
+            placeholder="输入消息..."
+            size="lg"
+            type="text"
+            value={inputValue}
+            onKeyDown={handleHotKeysPress}
+            onValueChange={setInputValue}
+          />
+          <Button
+            className="ml-2"
+            color="primary"
+            isDisabled={inputValue.trim() === "" && localImages.length === 0}
+            isLoading={isUploading}
+            size="lg"
+            onPress={sendMessage}
+          >
+            发送
+          </Button>
+        </div>
       </div>
     </Card>
   );
