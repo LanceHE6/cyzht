@@ -36,8 +36,8 @@ const ActivityCard = ({ activity }: ActivityCardProps) => {
         alt="Card background"
         className="object-cover rounded-xl h-full"
         src={
-          activity.avatar
-            ? activity.avatar
+          activity.icon
+            ? activity.icon
             : "https://heroui.com/images/hero-card.jpeg"
         }
       />
