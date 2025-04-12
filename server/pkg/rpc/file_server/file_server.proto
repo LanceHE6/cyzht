@@ -48,7 +48,7 @@ message UploadImageRequest {
 
 // 图片上传响应
 message UploadImageResponse {
-  int64 file_id = 1;
+  string file_id = 1;
   string file_url = 2;
   string thumb_url = 3;    // 缩略图URL
   int32 width = 4;         // 原始图片宽度
@@ -64,7 +64,7 @@ message GetFileInfoRequest {
 
 // 获取文件信息响应
 message GetFileInfoResponse {
-  int64 file_id = 1;
+  string file_id = 1;
   string file_url = 2;
   string thumb_url = 3;
   int64 file_size = 4;
@@ -83,7 +83,7 @@ message BatchGetImageUrlsRequest {
 // 批量获取图片URL响应
 message BatchGetImageUrlsResponse {
   message ImageInfo {
-    int64 file_id = 1;
+    string file_id = 1;
     string file_url = 2;
     string thumb_url = 3;
     int32 width = 4;

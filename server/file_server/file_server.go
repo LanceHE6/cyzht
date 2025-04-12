@@ -37,8 +37,8 @@ func main() {
 		if c1.Mode == service.DevMode || c1.Mode == service.TestMode {
 			reflection.Register(grpcServer)
 		}
-		grpc.MaxRecvMsgSize(50 * 1024 * 1024)
-		grpc.MaxSendMsgSize(50 * 1024 * 1024)
+		grpc.MaxRecvMsgSize(1024 * 1024 * 1024)
+		grpc.MaxSendMsgSize(1024 * 1024 * 1024)
 	})
 	defer s.Stop()
 
