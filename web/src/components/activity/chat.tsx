@@ -7,6 +7,9 @@ import {
   Image,
   Input,
   Spinner,
+  Badge,
+  Tooltip,
+  Chip,
 } from "@heroui/react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Textarea } from "@heroui/input";
@@ -18,9 +21,16 @@ import {
 } from "@/utils/axios-instance.ts";
 import { LocalStorage, Toast, WebSocketClient } from "@/utils/utils.ts";
 import { formatDate } from "@/utils/datetime.ts";
-import { AddIcon, SearchIcon } from "@/components/icons.tsx";
+import {
+  AttachmentIcon,
+  CloseIcon,
+  ImageIcon,
+  FileIcon,
+  ChevronDownIcon,
+} from "@/components/icons.tsx";
 import { getErrorMessage } from "@/utils/error-helper.ts";
 
+// message数据定义接口
 interface user {
   id: string;
   nickname: string;
@@ -40,6 +50,7 @@ interface attachment {
   file_id: string;
   file_url: string;
   thumb_url?: string;
+  file_name: string;
   file_size: number;
   mime_type: string;
   width?: number;
@@ -54,7 +65,7 @@ interface Message {
   exhibitor: {};
   from_user: user;
   to_user: user | null;
-  msg_type: number; // 1-文本 2-图片 3-复合
+  msg_type: number; // 1-文本 2-图片 3-复合 4-文件
   content: string;
   status: number;
   attachments: attachment[];
@@ -73,6 +84,9 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const [localImages, setLocalImages] = useState<
     { file: File; preview: string }[]
   >([]);
+  const [newMessagesCount, setNewMessagesCount] = useState(0);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const { aid } = props;
@@ -124,17 +138,43 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     }
   };
 
-  // 滚动到底部
-  const scrollToBottom = useCallback(() => {
-    if (messageContainerRef.current?.lastElementChild) {
-      messageContainerRef.current.lastElementChild.scrollIntoView({
-        behavior: "smooth",
-      });
+  // 检查是否在底部
+  const checkIfAtBottom = useCallback(() => {
+    if (!messageContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } =
+      messageContainerRef.current;
+    const threshold = 50; // 距离底部多少像素算作"底部"
+
+    const atBottom = scrollHeight - (scrollTop + clientHeight) < threshold;
+    setIsAtBottom(atBottom);
+
+    // 如果用户滚动到底部，清除新消息计数
+    if (atBottom) {
+      setNewMessagesCount(0);
     }
   }, []);
 
-  // 上传图片到文件服务
-  const uploadImage = async (file: File): Promise<attachment> => {
+  // 滚动到底部
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    if (messageContainerRef.current?.lastElementChild) {
+      messageContainerRef.current.lastElementChild.scrollIntoView({
+        behavior,
+      });
+      setIsAtBottom(true);
+      setNewMessagesCount(0);
+    }
+  }, []);
+
+  // 处理滚动事件
+  const handleScroll = useCallback(() => {
+    checkIfAtBottom();
+  }, [checkIfAtBottom]);
+
+  // 上传文件到服务端
+  const uploadFile = async (
+    file: File,
+    isImage: boolean,
+  ): Promise<attachment> => {
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -142,27 +182,29 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
       formData.append("file", file);
       formData.append("file_name", file.name);
       formData.append("owner_type", "message");
-      formData.append("need_thumb", "true");
 
-      const response = await axiosInstanceWithAuth.post(
-        "/api/v1/upload/image",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
-      );
+      // 只有图片需要生成缩略图
+      if (isImage) {
+        formData.append("need_thumb", "true");
+      }
+
+      const endpoint = isImage ? "/api/v1/upload/image" : "/api/v1/upload/file";
+      const response = await axiosInstanceWithAuth.post(endpoint, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       return {
         file_id: response.data.data.file_id,
         file_url: response.data.data.file_url,
         thumb_url: response.data.data.thumb_url,
+        file_name: file.name,
         file_size: file.size,
         mime_type: file.type,
         width: response.data.data.width,
         height: response.data.data.height,
       };
     } catch (error) {
-      Toast.danger("图片上传失败", getErrorMessage(error));
+      Toast.danger("文件上传失败", getErrorMessage(error));
       throw error;
     } finally {
       setIsUploading(false);
@@ -170,7 +212,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   };
 
   // 处理图片选择
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
 
     if (!files || files.length === 0) return;
@@ -189,10 +231,47 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     setLocalImages((prev) => [...prev, ...newImages]);
 
     // 清空input，允许重复选择同一文件
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (imageInputRef.current) imageInputRef.current.value = "";
   };
 
-  // 移除本地图片
+  // 处理文件选择（非图片）
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+
+    if (!files || files.length === 0) return;
+
+    try {
+      // 过滤掉图片文件（图片走单独的流程）
+      const nonImageFiles = Array.from(files).filter(
+        (file) => !file.type.startsWith("image/"),
+      );
+
+      if (nonImageFiles.length === 0) {
+        Toast.warning("请选择非图片文件", "图片请使用图片上传按钮");
+
+        return;
+      }
+
+      // 上传所有文件
+      const uploadPromises = nonImageFiles.map((file) =>
+        uploadFile(file, false),
+      );
+      const attachments = await Promise.all(uploadPromises);
+
+      // 发送纯文件消息
+      await sendMessage({
+        msg_type: 4, // 文件消息
+        content: "",
+        attachments: attachments,
+      });
+    } catch (error) {
+      console.error("文件上传失败:", error);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // 移除本地图片预览
   const removeLocalImage = (index: number) => {
     setLocalImages((prev) => {
       const newImages = [...prev];
@@ -205,47 +284,47 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   };
 
   // 发送消息（处理所有类型）
-  const sendMessage = async () => {
+  const sendMessage = async (messageData?: {
+    msg_type: number;
+    content: string;
+    attachments?: attachment[];
+  }) => {
     // 验证是否有内容可发送
-    if (inputValue.trim() === "" && localImages.length === 0) {
+    if (!messageData && inputValue.trim() === "" && localImages.length === 0) {
       Toast.warning("发送失败", "消息内容不能为空");
 
       return;
     }
 
+    const data = messageData || {
+      msg_type: localImages.length > 0 ? 3 : 1, // 复合消息或纯文本
+      content: inputValue,
+      attachments: [],
+    };
+
     try {
       setIsUploading(true);
 
-      // 1. 先上传所有图片
-      let attachments: attachment[] = [];
+      // 如果有本地图片需要上传
+      if (localImages.length > 0 && !messageData) {
+        const uploadPromises = localImages.map((img) =>
+          uploadFile(img.file, true),
+        );
 
-      if (localImages.length > 0) {
-        const uploadPromises = localImages.map((img) => uploadImage(img.file));
-
-        attachments = await Promise.all(uploadPromises);
+        data.attachments = await Promise.all(uploadPromises);
       }
 
-      // 2. 确定消息类型
-      let msgType: number;
+      // 发送消息
+      await axiosInstanceWithAuth.post(`/api/v1/activity/${aid}/send`, data);
 
-      if (inputValue.trim() === "" && attachments.length > 0) {
-        msgType = 2; // 纯图片消息
-      } else if (inputValue.trim() !== "" && attachments.length === 0) {
-        msgType = 1; // 纯文本消息
-      } else {
-        msgType = 3; // 复合消息
+      // 清空输入状态（如果不是外部调用的消息）
+      if (!messageData) {
+        setInputValue("");
+        setLocalImages([]);
       }
 
-      // 3. 发送消息
-      await axiosInstanceWithAuth.post(`/api/v1/activity/${aid}/send`, {
-        msg_type: msgType,
-        content: inputValue,
-        attachments: attachments,
-      });
-
-      // 4. 清空输入状态
-      setInputValue("");
-      setLocalImages([]);
+      // 发送消息后总是滚动到底部
+      setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
       Toast.warning("发送消息失败", getErrorMessage(error));
     } finally {
@@ -257,7 +336,6 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const handleHotKeysPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.ctrlKey && event.key === "Enter") {
       sendMessage();
-      scrollToBottom();
     }
   };
 
@@ -269,10 +347,17 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
         message.exhibitor === null
       ) {
         setMessages((prev) => [...prev, message]);
-        scrollToBottom();
+
+        // 如果用户在底部，自动滚动到底部
+        if (isAtBottom) {
+          setTimeout(() => scrollToBottom(), 100);
+        } else {
+          // 否则增加新消息计数
+          setNewMessagesCount((prev) => prev + 1);
+        }
       }
     },
-    [scrollToBottom],
+    [isAtBottom, scrollToBottom],
   );
 
   useEffect(() => {
@@ -299,7 +384,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                 key={idx}
                 alt="图片消息"
                 className="max-w-full rounded-lg"
-                src={att.thumb_url ? att.thumb_url : att.file_url}
+                src={att.thumb_url || att.file_url}
                 style={{
                   maxWidth: "100%",
                   maxHeight: "300px",
@@ -314,6 +399,9 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
       case 3: // 复合消息
         return (
           <div className="space-y-2">
+            {message.content && (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            )}
             {message.attachments.map((att, idx) => (
               <Image
                 key={idx}
@@ -328,10 +416,34 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                 onClick={() => window.open(att.file_url, "_blank")}
               />
             ))}
-            {message.content && (
-              <p className="whitespace-pre-wrap">{message.content}</p>
-            )}
           </div>
+        );
+
+      case 4: // 文件消息
+        return (
+          <Card isBlurred className="space-y-2">
+            {message.attachments.map((att, idx) => (
+              <div
+                key={idx}
+                className="flex items-center p-2 border rounded-lg"
+              >
+                <FileIcon className="" size={32} />
+                <div className="flex-1 min-w-0 px-2">
+                  <p className="truncate font-medium">{att.file_name}</p>
+                  <p className="text-xs text-gray-500">
+                    {(att.file_size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="solid"
+                  onPress={() => window.open(att.file_url, "_blank")}
+                >
+                  下载
+                </Button>
+              </div>
+            ))}
+          </Card>
         );
 
       default:
@@ -356,6 +468,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
           ref={messageContainerRef}
           hideScrollBar
           className="space-y-6 p-4 px-10"
+          onScroll={handleScroll}
         >
           {messages.map((message) => (
             <div
@@ -421,52 +534,101 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
       </Card>
 
       {/* 输入区域 */}
-      <div className="sticky bottom-0 z-10 w-full bg-white border-t border-gray-200 flex flex-col">
+      <div className="sticky bottom-0 z-10 w-full bg-white flex flex-col">
         {/* 图片预览区域 */}
         {localImages.length > 0 && (
           <div className="flex p-2 space-x-2 overflow-x-auto">
             {localImages.map((img, index) => (
               <div key={index} className="relative">
-                <Image
-                  alt="图片预览"
-                  className="w-20 h-20 object-cover rounded-lg"
-                  src={img.preview}
-                />
-                <Button
-                  isIconOnly
-                  className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2"
-                  size="sm"
-                  variant="flat"
-                  onPress={() => removeLocalImage(index)}
+                <Badge
+                  color="default"
+                  content={
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => removeLocalImage(index)}
+                    >
+                      <CloseIcon size={14} />
+                    </Button>
+                  }
                 >
-                  <SearchIcon size={14} />
-                </Button>
+                  <Image
+                    alt="图片预览"
+                    className="w-20 h-20 object-cover rounded-lg"
+                    src={img.preview}
+                  />
+                </Badge>
               </div>
             ))}
           </div>
         )}
 
         {/* 文本输入区域 */}
-        <div className="flex">
+        <div className="flex relative">
+          {/* 新消息提示标签 - 现在放在输入框的右上方 */}
+          {newMessagesCount > 0 && !isAtBottom && (
+            <div className="absolute -top-8 right-24 z-20">
+              <Chip
+                color="primary"
+                endContent={<ChevronDownIcon size={14} />}
+                size="sm"
+                onClick={() => scrollToBottom()}
+              >
+                {newMessagesCount}条新消息
+              </Chip>
+            </div>
+          )}
           <Textarea
             className="flex-grow"
             endContent={
-              <div className="flex p-2 space-x-2">
-                <Button
-                  isIconOnly
-                  isLoading={isUploading}
-                  size="md"
-                  onPress={() => fileInputRef.current?.click()}
-                >
-                  {isUploading ? <Spinner size="sm" /> : <AddIcon />}
-                </Button>
+              <div className="flex items-center space-x-1">
+                <Tooltip content="上传图片" showArrow={true}>
+                  <Button
+                    isIconOnly
+                    isLoading={isUploading}
+                    size="sm"
+                    variant="light"
+                    onPress={() => imageInputRef.current?.click()}
+                  >
+                    {isUploading ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <ImageIcon size={20} />
+                    )}
+                  </Button>
+                </Tooltip>
                 <Input
-                  ref={fileInputRef}
+                  ref={imageInputRef}
                   multiple
                   accept="image/*"
                   className="hidden"
                   type="file"
                   onChange={handleImageSelect}
+                />
+
+                <Tooltip content="发送文件" showArrow={true}>
+                  <Button
+                    isIconOnly
+                    isLoading={isUploading}
+                    size="sm"
+                    variant="light"
+                    onPress={() => fileInputRef.current?.click()}
+                  >
+                    {isUploading ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <AttachmentIcon size={20} />
+                    )}
+                  </Button>
+                </Tooltip>
+                <Input
+                  ref={fileInputRef}
+                  multiple
+                  accept=".pdf,.zip,.rar,.7z,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                  className="hidden"
+                  type="file"
+                  onChange={handleFileSelect}
                 />
               </div>
             }
@@ -485,7 +647,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
             isDisabled={inputValue.trim() === "" && localImages.length === 0}
             isLoading={isUploading}
             size="lg"
-            onPress={sendMessage}
+            onPress={() => sendMessage}
           >
             发送
           </Button>
