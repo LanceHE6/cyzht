@@ -1,0 +1,62 @@
+package upload
+
+import (
+	"context"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"server/pkg/bindparams"
+	"server/pkg/jwt"
+	"server/pkg/response"
+	"server/pkg/rpc/file_server/api/v1/file_server"
+	"strconv"
+)
+
+func (u uploadHandler) UploadFile(ctx *gin.Context) {
+	type UploadImageRequest struct {
+		FileName  string `form:"file_name" binding:"required"`
+		OwnerType string `form:"owner_type" binding:"required"`
+	}
+	data := bindparams.BindPostParams[UploadImageRequest](ctx)
+	if data == nil {
+		return
+	}
+	file, header, err := ctx.Request.FormFile("file")
+	claims, _ := jwt.GetClaimsByContext(ctx)
+	if err == nil {
+		var fileData = make([]byte, header.Size)
+		_, _ = file.Read(fileData)
+
+		rep, err := u.FileRpcServer.UploadImage(context.Background(), &file_server.UploadImageRequest{
+			FileName:    data.FileName,
+			FileContent: fileData,
+			OwnerType:   data.OwnerType,
+			OwnerId:     claims.ID,
+		})
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, response.FailedResponse(http.StatusInternalServerError, err.Error()))
+			return
+		}
+		ctx.JSON(http.StatusOK, response.SuccessResponse(rep))
+	} else {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-1, "获取文件失败", err))
+		return
+	}
+}
+
+func (u uploadHandler) GetFileUrl(ctx *gin.Context) {
+	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))
+		return
+	}
+
+	rep, err := u.FileRpcServer.GetFileInfo(context.Background(), &file_server.GetFileInfoRequest{
+		FileId: id,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-1, "获取文件url失败", err))
+		return
+	}
+	rep.FileUrl = u.C.Server.FileServer.StaticURL + rep.FileUrl
+	ctx.JSON(http.StatusOK, response.SuccessResponse(rep))
+}

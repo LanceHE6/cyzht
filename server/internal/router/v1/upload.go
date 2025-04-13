@@ -16,4 +16,6 @@ func RegisterUploadRouter(group *gin.RouterGroup,
 	routerGroup := group.Group("/upload")
 	routerGroup.POST("/image", middleware.Auth(), uploadHandler.UploadImage)
 	routerGroup.GET("/image/:id", middleware.Auth(), uploadHandler.GetImageUrl)
+	routerGroup.POST("/file", middleware.Auth(), uploadHandler.UploadFile)
+	routerGroup.GET("/file/:id", middleware.Auth(), uploadHandler.GetFileUrl)
 }
