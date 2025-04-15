@@ -11,6 +11,8 @@ type RepoInterface interface {
 	Insert(exhibitor *model.ExhibitorModel) error
 	// SelectByID 依id查询
 	SelectByID(id int64) (*model.ExhibitorModel, error)
+	// SelectByAID 根据展会id查询
+	SelectByAID(aid int64) (*[]model.ExhibitorModel, error)
 	// DeleteByID 删除
 	DeleteByID(id int64) error
 	// update 更新
@@ -19,6 +21,12 @@ type RepoInterface interface {
 
 type exhibitorRepo struct {
 	MyDB *gorm.DB
+}
+
+func (e *exhibitorRepo) SelectByAID(aid int64) (*[]model.ExhibitorModel, error) {
+	var exhibitor []model.ExhibitorModel
+	err := e.modelDB().Preload("Activity").Preload("Creator").Where("activity_id = ?", aid).Find(&exhibitor).Error
+	return &exhibitor, err
 }
 
 func (e *exhibitorRepo) DeleteByID(id int64) error {

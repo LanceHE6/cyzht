@@ -6,6 +6,7 @@ import (
 	"server/internal/repo/activity"
 	"server/internal/repo/activityuser"
 	"server/internal/repo/exhibitor"
+	"server/internal/repo/exhibitoruser"
 	"server/internal/repo/msg"
 	"server/internal/repo/user"
 	"server/internal/repo/verifycode"
@@ -16,12 +17,13 @@ import (
 type Repo struct {
 	FileRpcServer file_server.FileServiceClient
 
-	UserRepo         user.RepoInterface
-	VerifyCodeRepo   verifycode.RepoInterface
-	ActivityRepo     activity.RepoInterface
-	ExhibitorRepo    exhibitor.RepoInterface
-	MsgRepo          msg.RepoInterface
-	ActivityUserRepo activityuser.RepoInterface
+	UserRepo          user.RepoInterface
+	VerifyCodeRepo    verifycode.RepoInterface
+	ActivityRepo      activity.RepoInterface
+	ExhibitorRepo     exhibitor.RepoInterface
+	MsgRepo           msg.RepoInterface
+	ActivityUserRepo  activityuser.RepoInterface
+	ExhibitorUserRepo exhibitoruser.RepoInterface
 }
 
 // repo 全局repo单例
@@ -34,13 +36,14 @@ func InitRepo(c *config.Config, conn *db.DBConn, fileRpcServer file_server.FileS
 		once.Do(func() {
 
 			repo = &Repo{
-				FileRpcServer:    fileRpcServer,
-				UserRepo:         user.NewUserRepo(c, conn, fileRpcServer),
-				VerifyCodeRepo:   verifycode.NewVerifyCodeRepo(conn),
-				ActivityRepo:     activity.NewActivityRepo(c, conn, fileRpcServer),
-				ExhibitorRepo:    exhibitor.NewExhibitorRepo(conn),
-				MsgRepo:          msg.NewMsgRepo(conn),
-				ActivityUserRepo: activityuser.NewActivityUserRepo(c, conn, fileRpcServer),
+				FileRpcServer:     fileRpcServer,
+				UserRepo:          user.NewUserRepo(c, conn, fileRpcServer),
+				VerifyCodeRepo:    verifycode.NewVerifyCodeRepo(conn),
+				ActivityRepo:      activity.NewActivityRepo(c, conn, fileRpcServer),
+				ExhibitorRepo:     exhibitor.NewExhibitorRepo(conn),
+				MsgRepo:           msg.NewMsgRepo(conn),
+				ActivityUserRepo:  activityuser.NewActivityUserRepo(c, conn, fileRpcServer),
+				ExhibitorUserRepo: exhibitoruser.NewExhibitorUserRepo(conn),
 			}
 		})
 	}
