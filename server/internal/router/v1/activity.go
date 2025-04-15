@@ -22,7 +22,7 @@ func RegisterActivityRouter(group *gin.RouterGroup,
 	routerGroup.POST("/:aid/send", middleware.Auth(), chatHandler.SendToActivity)
 	routerGroup.GET("/:aid/msg", middleware.Auth(), chatHandler.GetActivityMsg)
 	routerGroup.POST("/:aid/join", middleware.Auth(), activityHandler.JoinActivity)
-	routerGroup.POST("/:aid/exit", middleware.Auth(), activityHandler.ExitActivity)
+	routerGroup.POST("/:aid/withdraw", middleware.Auth(), activityHandler.WithdrawActivity)
 	routerGroup.GET("/joined", middleware.Auth(), activityHandler.GetJoinedActivity)
 	routerGroup.GET("/:aid/joined", middleware.Auth(), activityHandler.GetJoinedUser)
 }

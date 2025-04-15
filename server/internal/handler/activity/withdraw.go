@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (a *activityHandler) ExitActivity(ctx *gin.Context) {
+func (a *activityHandler) WithdrawActivity(ctx *gin.Context) {
 	aid, err := strconv.ParseInt(ctx.Param("aid"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))

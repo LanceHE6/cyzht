@@ -11,7 +11,7 @@ type HandlerInterface interface {
 	DeleteActivity(ctx *gin.Context)
 	SearchActivity(ctx *gin.Context)
 	JoinActivity(ctx *gin.Context)
-	ExitActivity(ctx *gin.Context)
+	WithdrawActivity(ctx *gin.Context)
 	GetJoinedActivity(ctx *gin.Context)
 	GetJoinedUser(ctx *gin.Context)
 }
