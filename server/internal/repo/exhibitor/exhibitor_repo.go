@@ -6,7 +6,7 @@ import (
 	"server/internal/model"
 )
 
-type ExhibitorRepoInterface interface {
+type RepoInterface interface {
 	// Insert 插入
 	Insert(exhibitor *model.ExhibitorModel) error
 	// SelectByID 依id查询
@@ -46,7 +46,7 @@ func (e *exhibitorRepo) update(exhibitor *model.ExhibitorModel) error {
 	return e.modelDB().Save(&exhibitor).Error
 }
 
-func NewExhibitorRepo(dbConn *db.DBConn) ExhibitorRepoInterface {
+func NewExhibitorRepo(dbConn *db.DBConn) RepoInterface {
 	return &exhibitorRepo{
 		MyDB: dbConn.MySQLConn,
 	}

@@ -19,7 +19,7 @@ type Repo struct {
 	UserRepo         user.RepoInterface
 	VerifyCodeRepo   verifycode.RepoInterface
 	ActivityRepo     activity.RepoInterface
-	ExhibitorRepo    exhibitor.ExhibitorRepoInterface
+	ExhibitorRepo    exhibitor.RepoInterface
 	MsgRepo          msg.RepoInterface
 	ActivityUserRepo activityuser.RepoInterface
 }
