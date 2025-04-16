@@ -214,7 +214,7 @@ export default function HomePage() {
               </Dropdown>
             </div>
           </Card>
-          <Card className="col-span-23 items-center min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]">
+          <Card className="col-span-23 items-center min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]" radius="none">
             {renderSelectedComponent()}
             <AddActivity
               isOpen={isAddActivityModalOpen}

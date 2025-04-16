@@ -73,6 +73,7 @@ interface Message {
 
 export interface ChatProps {
   aid: string;
+  eid: string | null;
 }
 
 const Chat: React.FC<ChatProps> = (props: ChatProps) => {
@@ -89,10 +90,13 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
-  const { aid } = props;
+  const aid = props.aid;
+  const eid = props.eid;
   const aidRef = useRef(aid);
+  const eidRef = useRef(eid);
 
   aidRef.current = aid;
+  eidRef.current = eid === "0" ? null : eid;
 
   // 初始化
   useEffect(() => {
@@ -102,13 +106,13 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
       navigate("/login");
     }
     fetchMsg();
-  }, [aid, navigate, currentUser]);
+  }, [aid, eid, navigate, currentUser]);
 
   // 获取历史消息
   const fetchMsg = async () => {
     try {
       const response = await axiosInstanceWithAuth.get(
-        `/api/v1/activity/${aid}/msg`,
+        `/api/v1/chat/${aid}/${eid}/msg`,
         {
           params: { page: -1, page_size: 10 },
         },
@@ -146,6 +150,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     const threshold = 50; // 距离底部多少像素算作"底部"
 
     const atBottom = scrollHeight - (scrollTop + clientHeight) < threshold;
+
     setIsAtBottom(atBottom);
 
     // 如果用户滚动到底部，清除新消息计数
@@ -315,7 +320,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
       }
 
       // 发送消息
-      await axiosInstanceWithAuth.post(`/api/v1/activity/${aid}/send`, data);
+      await axiosInstanceWithAuth.post(`/api/v1/chat/${aid}/${eid}/send`, data);
 
       // 清空输入状态（如果不是外部调用的消息）
       if (!messageData) {
@@ -344,7 +349,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     (message: Message) => {
       if (
         message.activity.id === aidRef.current &&
-        message.exhibitor === null
+        message.exhibitor === eidRef.current
       ) {
         setMessages((prev) => [...prev, message]);
 
@@ -452,10 +457,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   };
 
   return (
-    <Card
-      className="col-span-9 h-full bg-[#FFF6FF] flex flex-col"
-      radius="none"
-    >
+    <>
       {/* 聊天室标题 */}
       <div className="sticky top-0 z-10 flex justify-between items-center p-4 px-10 bg-white border-b border-gray-200">
         <div className="text-xl font-bold">展会大厅</div>
@@ -653,7 +655,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
           </Button>
         </div>
       </div>
-    </Card>
+    </>
   );
 };
 

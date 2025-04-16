@@ -68,10 +68,7 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
   }, [aid]);
 
   return (
-    <Card
-      className="col-span-2 items-center border-b-blue-500 border-0 bg-[#FFF8FF]"
-      radius="none"
-    >
+    <>
       <Table
         isHeaderSticky
         removeWrapper
@@ -105,7 +102,7 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
           ))}
         </TableBody>
       </Table>
-    </Card>
+    </>
   );
 };
 
