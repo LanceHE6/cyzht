@@ -6,7 +6,7 @@ import (
 )
 
 type HandlerInterface interface {
-	SendToActivity(ctx *gin.Context)
+	SendMsg(ctx *gin.Context)
 	GetActivityMsg(ctx *gin.Context)
 }
 

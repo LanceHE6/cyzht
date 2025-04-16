@@ -15,6 +15,11 @@ func (c *chatHandler) GetActivityMsg(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))
 		return
 	}
+	eid, err := strconv.ParseInt(ctx.Param("eid"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))
+		return
+	}
 
 	type searchParams struct {
 		// form tag绑定url参数
@@ -31,7 +36,8 @@ func (c *chatHandler) GetActivityMsg(ctx *gin.Context) {
 		*data.Limit = 10
 	}
 
-	result, total, err := c.MsgRepo.GetActivityMsg(aid,
+	result, total, err := c.MsgRepo.GetMsg(aid,
+		eid,
 		msg.WithPage(data.Page, data.Limit),
 	)
 	if err != nil {

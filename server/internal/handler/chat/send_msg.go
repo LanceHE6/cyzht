@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"server/internal/model"
@@ -12,8 +11,13 @@ import (
 	"strconv"
 )
 
-func (c *chatHandler) SendToActivity(ctx *gin.Context) {
+func (c *chatHandler) SendMsg(ctx *gin.Context) {
 	aid, err := strconv.ParseInt(ctx.Param("aid"), 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))
+		return
+	}
+	eid, err := strconv.ParseInt(ctx.Param("eid"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))
 		return
@@ -40,14 +44,13 @@ func (c *chatHandler) SendToActivity(ctx *gin.Context) {
 	if data == nil {
 		return
 	}
-	fmt.Printf("%v\n", data)
 
 	userClaims, _ := jwt.GetClaimsByContext(ctx)
 
 	// 创建消息对象
 	msg := model.MsgModel{
 		ActivityID:  aid,
-		ExhibitorID: 0, // 0 表示大厅聊天
+		ExhibitorID: eid, // 0 表示大厅聊天
 		MetaMsg: model.MetaMsg{
 			FromUID: userClaims.ID,
 			ToUID:   0, // 0 表示发送给所有人

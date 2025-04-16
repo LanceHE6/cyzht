@@ -16,21 +16,21 @@ type RepoInterface interface {
 	// update 更新
 	update(msg *model.MsgModel) error
 
-	// GetActivityMsg 获取历史消息
+	// GetMsg 获取历史消息
 	// 使用option模式
 	// 使用示例: GetMsg(WithPage(&page,&limit))
-	GetActivityMsg(activityID int64, params ...PagingParams) (*[]model.MsgModel, int, error)
+	GetMsg(activityID, exhibitorID int64, params ...PagingParams) (*[]model.MsgModel, int, error)
 }
 
 type msgRepo struct {
 	MyDB *gorm.DB
 }
 
-// GetActivityMsg 获取历史消息
+// GetMsg 获取历史消息
 // 使用option模式
-// 使用示例: GetActivityMsg(WithPage(&page,&limit))
-func (e *msgRepo) GetActivityMsg(activityID int64, params ...PagingParams) (*[]model.MsgModel, int, error) {
-	db := e.modelDB().Where("activity_id = ?", activityID)
+// 使用示例: GetMsg(WithPage(&page,&limit))
+func (e *msgRepo) GetMsg(activityID, exhibitorID int64, params ...PagingParams) (*[]model.MsgModel, int, error) {
+	db := e.modelDB().Where("activity_id = ? AND exhibitor_id = ?", activityID, exhibitorID)
 	for _, param := range params {
 		db = param(db)
 	}
