@@ -25,7 +25,7 @@ type exhibitorRepo struct {
 
 func (e *exhibitorRepo) SelectByAID(aid int64) (*[]model.ExhibitorModel, error) {
 	var exhibitor []model.ExhibitorModel
-	err := e.modelDB().Preload("Activity").Preload("Creator").Where("activity_id = ?", aid).Find(&exhibitor).Error
+	err := e.modelDB().Preload("Creator").Where("activity_id = ?", aid).Find(&exhibitor).Error
 	return &exhibitor, err
 }
 

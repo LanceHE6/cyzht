@@ -8,7 +8,7 @@ import (
 
 type RepoInterface interface {
 	Insert(uid, eid int64) error
-	SelectByUID(uid int64) (*[]model.ExhibitorUserModel, error)
+	SelectByUIDAndAID(uid, aid int64) (*[]model.ExhibitorUserModel, error)
 	SelectByAID(aid int64) (*[]model.ExhibitorUserModel, error)
 	DeleteByAID(aid int64) error
 	Delete(uid, aid int64) error
@@ -20,7 +20,7 @@ type exhibitorUserRepo struct {
 }
 
 func (e exhibitorUserRepo) modelDB() *gorm.DB {
-	return e.MyDB.Model(&model.ExhibitorUserModel{}).Preload("Exhibitor.Activity")
+	return e.MyDB.Model(&model.ExhibitorUserModel{}).Preload("Exhibitor").Preload("Exhibitor.Activity")
 }
 
 func (e exhibitorUserRepo) Insert(uid, eid int64) error {
@@ -35,9 +35,10 @@ func (e exhibitorUserRepo) Insert(uid, eid int64) error {
 	return e.modelDB().Create(&eu).Error
 }
 
-func (e exhibitorUserRepo) SelectByUID(uid int64) (*[]model.ExhibitorUserModel, error) {
-	var exhibitorUser []model.ExhibitorUserModel
-	return &exhibitorUser, e.modelDB().Where("user_id = ?", uid).Find(&exhibitorUser).Error
+func (e exhibitorUserRepo) SelectByUIDAndAID(uid, aid int64) (*[]model.ExhibitorUserModel, error) {
+	var eu []model.ExhibitorUserModel
+	return &eu, e.modelDB().Joins("JOIN exhibitor ON exhibitor_user.exhibitor_id = exhibitor.id").
+		Where("exhibitor_user.user_id = ? AND exhibitor.activity_id = ?", uid, aid).Find(&eu).Error
 }
 
 func (e exhibitorUserRepo) SelectByAID(aid int64) (*[]model.ExhibitorUserModel, error) {
@@ -51,8 +52,7 @@ func (e exhibitorUserRepo) DeleteByAID(aid int64) error {
 }
 
 func (e exhibitorUserRepo) Delete(uid, aid int64) error {
-	//TODO implement me
-	panic("implement me")
+	return e.modelDB().Where("user_id = ? and exhibitor_id = ?", uid, aid).Delete(&model.ExhibitorUserModel{}).Error
 }
 
 func (e exhibitorUserRepo) update(exhibitorUser *model.ExhibitorUserModel) error {
