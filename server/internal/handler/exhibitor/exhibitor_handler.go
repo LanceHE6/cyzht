@@ -9,8 +9,9 @@ import (
 type HandlerInterface interface {
 	AddExhibitor(ctx *gin.Context)
 	DeleteExhibitor(ctx *gin.Context)
-	ListExhibitor(ctx *gin.Context)
+	ListExhibitors(ctx *gin.Context)
 	JoinExhibitor(ctx *gin.Context)
+	GetJoinedExhibitors(ctx *gin.Context)
 	WithdrawExhibitor(ctx *gin.Context)
 }
 
