@@ -13,7 +13,7 @@ func (e *exhibitorHandler) AddExhibitor(ctx *gin.Context) {
 	type addExhibitorRequest struct {
 		Name       string `json:"name" binding:"required"`
 		Introduce  string `json:"introduce"`
-		ActivityID int64  `json:"aid" binding:"required"`
+		ActivityID int64  `json:"aid,string" binding:"required"`
 	}
 	data := bindparams.BindPostParams[addExhibitorRequest](ctx)
 	if data == nil {
