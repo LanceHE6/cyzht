@@ -14,12 +14,12 @@ func (a *activityHandler) SearchActivity(ctx *gin.Context) {
 		Page  *int `form:"page"`      // 页码
 		Limit *int `form:"page_size"` // 每页条数
 
-		ID           *int64  `form:"id,string"`
-		Name         *string `form:"name"`
-		Creator      *string `form:"creator"`
-		Location     *string `form:"location"`
-		IsInProgress *bool   `form:"is_in_progress"`
-		Keyword      *string `form:"keyword"`
+		ID       *int64  `form:"id,string"`
+		Name     *string `form:"name"`
+		Creator  *string `form:"creator"`
+		Location *string `form:"location"`
+		Status   *uint8  `form:"status"` // 状态: 0 未开始, 1进行中, 2已结束
+		Keyword  *string `form:"keyword"`
 	}
 	var data = bindparams.BindQueryParams[searchParams](ctx)
 	if data.Page == nil {
@@ -35,7 +35,7 @@ func (a *activityHandler) SearchActivity(ctx *gin.Context) {
 		activityRepo.WithName(data.Name),
 		activityRepo.WithCreator(data.Creator),
 		activityRepo.WithLocation(data.Location),
-		activityRepo.WithIsInProgress(data.IsInProgress),
+		activityRepo.WithStatus((*activityRepo.Status)(data.Status)),
 		activityRepo.WithKeyword(data.Keyword),
 		activityRepo.WithPage(data.Page, data.Limit),
 	)
