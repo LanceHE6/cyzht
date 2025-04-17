@@ -30,15 +30,24 @@ interface MemberData {
 
 export interface MemberProps {
   aid: string;
+  eid: string | null;
 }
 const Member: React.FC<MemberProps> = (props: MemberProps) => {
-  let { aid } = props;
+  let { aid, eid } = props;
   const [members, setMembers] = useState<MemberData[]>([]);
   // 获取成员列表数据
-  const fetchMembers = async (aid: string) => {
-    const response = await axiosInstanceWithAuth.get(
-      `/api/v1/activity/${aid}/joined`,
-    );
+  const fetchMembers = async (aid: string, eid: string | null) => {
+    let response;
+
+    if (eid) {
+      response = await axiosInstanceWithAuth.get(
+        `/api/v1/exhibitor/joined/users/${eid}`,
+      );
+    } else {
+      response = await axiosInstanceWithAuth.get(
+        `/api/v1/activity/${aid}/joined`,
+      );
+    }
 
     if (response.data.code === 0) {
       console.log("fetchMembers", response.data.data.rows);
@@ -48,7 +57,7 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
         user: row.user,
         nickname: row.user.nickname,
         avatar: row.user.avatar,
-        role: row.activity.creator.id === row.user.id ? "创建者" : "成员",
+        role: row.role === 3 ? "创建者" : "成员",
       }));
     } else {
       Toast.danger("获取成员列表失败", response.data.msg);
@@ -59,13 +68,13 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetchMembers(aid);
+      const data = await fetchMembers(aid, eid);
 
       setMembers(data);
     };
 
     fetchData();
-  }, [aid]);
+  }, [aid, eid]);
 
   return (
     <>

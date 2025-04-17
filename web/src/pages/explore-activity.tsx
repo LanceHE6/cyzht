@@ -68,7 +68,8 @@ const ActivityCard = ({ activity }: ActivityCardProps) => {
 
 export const ExploreActivity = () => {
   // 展会数据
-  const [activities, setActivities] = useState<any[]>([]);
+  const [notStartedActivities, setNotStartedActivities] = useState<any[]>([]);
+  const [inProgressActivities, setInProgressActivities] = useState<any[]>([]);
   const [completedActivities, setCompletedActivities] = useState<any[]>([]);
   const [keyword, setKeyword] = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
@@ -83,31 +84,34 @@ export const ExploreActivity = () => {
 
   useEffect(() => {
     if (debouncedKeyword !== "") {
-      searchActivity(true, debouncedKeyword).then((data) => {
-        setActivities(data);
+      searchActivity(0, debouncedKeyword).then((data) => {
+        setNotStartedActivities(data);
       });
-      searchActivity(false, debouncedKeyword).then((data) => {
+      searchActivity(1, debouncedKeyword).then((data) => {
+        setInProgressActivities(data);
+      });
+      searchActivity(2, debouncedKeyword).then((data) => {
         setCompletedActivities(data);
       });
     } else {
-      searchActivity(true).then((data) => {
-        setActivities(data);
+      searchActivity(0).then((data) => {
+        setNotStartedActivities(data);
       });
-      searchActivity(false).then((data) => {
+      searchActivity(1).then((data) => {
+        setInProgressActivities(data);
+      });
+      searchActivity(2).then((data) => {
         setCompletedActivities(data);
       });
     }
   }, [debouncedKeyword]);
 
-  const searchActivity = async (
-    isInProgress: boolean = true,
-    keyword: string = "",
-  ) => {
+  const searchActivity = async (status: number = 1, keyword: string = "") => {
     const response = await axiosInstance.get("/api/v1/activity/search", {
       params: {
         page: -1,
         page_size: 10,
-        is_in_progress: isInProgress,
+        status: status,
         keyword: keyword,
       },
     });
@@ -145,26 +149,65 @@ export const ExploreActivity = () => {
             }}
           />
         </div>
-        <Spacer y={20} />
-        <div className="w-full px-10">
-          <h2 className="font-bold text-[32px] text-left">进行中</h2>
-        </div>
-        <Spacer y={10} />
-        <div className="w-full grid grid-cols-6 gap-4 px-10">
-          {activities.map((activity, index) => (
-            <ActivityCard key={index} activity={activity} />
-          ))}
-        </div>
-        <Spacer y={36} />
-        <div className="w-full px-10">
-          <h2 className="font-bold text-[32px] text-left">已结束</h2>
-        </div>
-        <Spacer y={10} />
-        <div className="w-full grid grid-cols-4 gap-4 px-10">
-          {completedActivities.map((activity, index) => (
-            <ActivityCard key={index} activity={activity} />
-          ))}
-        </div>
+
+        {/* 未开始活动 */}
+        {notStartedActivities.length > 0 && (
+          <>
+            <Spacer y={20} />
+            <div className="w-full px-10">
+              <h2 className="font-bold text-[32px] text-left">未开始</h2>
+            </div>
+            <Spacer y={10} />
+            <div className="w-full grid grid-cols-6 gap-4 px-10">
+              {notStartedActivities.map((activity, index) => (
+                <ActivityCard key={index} activity={activity} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* 进行中活动 */}
+        {inProgressActivities.length > 0 && (
+          <>
+            <Spacer y={20} />
+            <div className="w-full px-10">
+              <h2 className="font-bold text-[32px] text-left">进行中</h2>
+            </div>
+            <Spacer y={10} />
+            <div className="w-full grid grid-cols-6 gap-4 px-10">
+              {inProgressActivities.map((activity, index) => (
+                <ActivityCard key={index} activity={activity} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* 已结束活动 */}
+        {completedActivities.length > 0 && (
+          <>
+            <Spacer y={20} />
+            <div className="w-full px-10">
+              <h2 className="font-bold text-[32px] text-left">已结束</h2>
+            </div>
+            <Spacer y={10} />
+            <div className="w-full grid grid-cols-6 gap-4 px-10">
+              {completedActivities.map((activity, index) => (
+                <ActivityCard key={index} activity={activity} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* 当三种状态都没有数据时显示“暂无数据” */}
+        {!notStartedActivities.length &&
+          !inProgressActivities.length &&
+          !completedActivities.length && (
+            <div className="flex flex-col items-center justify-center w-full h-full">
+              <Spacer y={20} />
+              <p className="text-gray-500 text-[32px] font-bold">暂无数据</p>
+              <Spacer y={20} />
+            </div>
+          )}
       </div>
     </ScrollShadow>
   );

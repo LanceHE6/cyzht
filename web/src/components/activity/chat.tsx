@@ -46,6 +46,12 @@ interface activity {
   location: string;
 }
 
+interface exhibitor {
+  id: string;
+  name: string;
+  introduce: string;
+}
+
 interface attachment {
   file_id: string;
   file_url: string;
@@ -62,7 +68,7 @@ interface Message {
   created_at: string;
   updated_at: string;
   activity: activity;
-  exhibitor: {};
+  exhibitor: exhibitor;
   from_user: user;
   to_user: user | null;
   msg_type: number; // 1-文本 2-图片 3-复合 4-文件
@@ -90,13 +96,14 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
-  const aid = props.aid;
-  const eid = props.eid;
+  let { aid, eid } = props;
   const aidRef = useRef(aid);
   const eidRef = useRef(eid);
+  const [exhibitorName, setExhibitorName] = useState<string | null>(null);
 
+  eid = eid === null ? "0" : eid;
   aidRef.current = aid;
-  eidRef.current = eid === "0" ? null : eid;
+  eidRef.current = eid;
 
   // 初始化
   useEffect(() => {
@@ -107,6 +114,30 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     }
     fetchMsg();
   }, [aid, eid, navigate, currentUser]);
+
+  useEffect(() => {
+    const fetchExhibitorInfo = async () => {
+      try {
+        if (eid && eid !== "0") {
+          const response = await axiosInstanceWithAuth.get(
+            `/api/v1/exhibitor/info/${eid}`,
+          );
+
+          if (response.data.code === 0) {
+            const exhibitorInfo = response.data.data;
+
+            setExhibitorName(exhibitorInfo.name);
+          }
+        } else {
+          setExhibitorName(null);
+        }
+      } catch (error) {
+        console.error("获取参展商信息失败", error);
+      }
+    };
+
+    fetchExhibitorInfo();
+  }, [eid]);
 
   // 获取历史消息
   const fetchMsg = async () => {
@@ -349,7 +380,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     (message: Message) => {
       if (
         message.activity.id === aidRef.current &&
-        message.exhibitor === eidRef.current
+        message.exhibitor.id === eidRef.current
       ) {
         setMessages((prev) => [...prev, message]);
 
@@ -460,7 +491,9 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     <>
       {/* 聊天室标题 */}
       <div className="sticky top-0 z-10 flex justify-between items-center p-4 px-10 bg-white border-b border-gray-200">
-        <div className="text-xl font-bold">展会大厅</div>
+        <div className="text-xl font-bold">
+          {exhibitorName ? exhibitorName : "展会大厅"}
+        </div>
       </div>
       <Divider className="" />
 
@@ -649,7 +682,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
             isDisabled={inputValue.trim() === "" && localImages.length === 0}
             isLoading={isUploading}
             size="lg"
-            onPress={() => sendMessage}
+            onPress={() => sendMessage()}
           >
             发送
           </Button>

@@ -23,6 +23,7 @@ import { Toast } from "@/utils/utils.ts";
 
 interface ExhibitorProps {
   aid: string;
+  onExhibitorSelect?: (exhibitorId: string | null) => void; // 添加回调函数类型
 }
 
 interface Exhibitor {
@@ -41,7 +42,7 @@ interface JoinedExhibitor {
   role: number;
 }
 
-const Exhibitor: React.FC<ExhibitorProps> = ({ aid }) => {
+const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
   const [activity, setActivity] = useState<{
     name?: string;
     icon?: string;
@@ -162,6 +163,12 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid }) => {
     }
   };
 
+  const handleExhibitorClick = (exhibitorId: string | null) => {
+    if (onExhibitorSelect) {
+      onExhibitorSelect(exhibitorId);
+    }
+  };
+
   return (
     <>
       <Card isFooterBlurred className="w-full h-1/4" radius="none">
@@ -205,6 +212,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid }) => {
         <ListboxItem
           className="flex items-center justify-between"
           textValue="展会大厅"
+          onPress={() => handleExhibitorClick(null)}
         >
           <div className="flex items-center w-full">
             <p className="font-medium text-medium truncate">展会大厅</p>
@@ -231,6 +239,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid }) => {
                       key={item.id}
                       className="flex items-center justify-between"
                       textValue={item.name}
+                      onPress={() => handleExhibitorClick(item.id)}
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className="flex-1 min-w-0 max-w-[75%]">
@@ -271,7 +280,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid }) => {
                     </ListboxItem>
                   ))
                 ) : (
-                  <ListboxItem>
+                  <ListboxItem isDisabled variant="light">
                     <p className="text-center text-gray-500">暂未加入参展商</p>
                   </ListboxItem>
                 )}
