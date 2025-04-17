@@ -142,15 +142,25 @@ func WithKeyword(keyword *string) PagingParams {
 	}
 }
 
-// WithIsInProgress 根据活动是否进行中搜索
-func WithIsInProgress(isInProgress *bool) PagingParams {
+type Status uint8
+
+const (
+	StatusNotStarted Status = 0 // 未开始
+	StatusInProgress Status = 1 // 进行中
+	StatusEnded      Status = 2 // 已结束
+)
+
+// WithStatus 根据活动是否进行中搜索
+func WithStatus(status *Status) PagingParams {
 	return func(db *gorm.DB) *gorm.DB {
-		if isInProgress != nil {
-			// 根据当前时间判断活动是否正在进行中
-			if *isInProgress {
+		if status != nil {
+			// 根据当前时间判断活动的状态
+			if *status == StatusInProgress {
 				db = db.Where("start_at <= ? and end_at >= ?", time.Now(), time.Now())
-			} else {
-				db = db.Where("start_at > ? or end_at < ?", time.Now(), time.Now())
+			} else if *status == StatusEnded {
+				db = db.Where("end_at < ?", time.Now())
+			} else if *status == StatusNotStarted {
+				db = db.Where("start_at > ?", time.Now())
 			}
 		}
 		return db

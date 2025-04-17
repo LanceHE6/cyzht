@@ -9,7 +9,7 @@ import (
 )
 
 type RepoInterface interface {
-	Insert(uid, aid int64) error
+	Insert(uid, aid int64, role uint8) error
 	SelectByUID(uid int64) (*[]model.ActivityUserModel, error)
 	SelectByAID(aid int64) (*[]model.ActivityUserModel, error)
 	DeleteByAID(aid int64) error
@@ -26,7 +26,7 @@ type activityUserRepo struct {
 func (a *activityUserRepo) modelDB() *gorm.DB {
 	return a.MyDB.Model(&model.ActivityUserModel{})
 }
-func (a *activityUserRepo) Insert(uid, aid int64) error {
+func (a *activityUserRepo) Insert(uid, aid int64, role uint8) error {
 	// 如果已加入则忽略
 	if a.modelDB().Where("user_id = ? and activity_id = ?", uid, aid).First(&model.ActivityUserModel{}).Error == nil {
 		return nil
@@ -34,6 +34,7 @@ func (a *activityUserRepo) Insert(uid, aid int64) error {
 	au := model.ActivityUserModel{
 		UserID:     uid,
 		ActivityID: aid,
+		Role:       role,
 	}
 	return a.modelDB().Create(&au).Error
 }
