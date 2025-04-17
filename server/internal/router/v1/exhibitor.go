@@ -18,6 +18,8 @@ func RegisterExhibitorRouter(group *gin.RouterGroup,
 	routerGroup.DELETE("/del", middleware.Auth(), exhibitorHandler.DeleteExhibitor)
 	routerGroup.POST("/:eid/join", middleware.Auth(), exhibitorHandler.JoinExhibitor)
 	routerGroup.POST("/:eid/withdraw", middleware.Auth(), exhibitorHandler.WithdrawExhibitor)
+	routerGroup.GET("/info/:eid", middleware.Auth(), exhibitorHandler.GetExhibitorInfo)
 	routerGroup.GET("/:aid/list", middleware.Auth(), exhibitorHandler.ListExhibitors)
 	routerGroup.GET("/:aid/joined", middleware.Auth(), exhibitorHandler.GetJoinedExhibitors)
+	routerGroup.GET("/joined/users/:eid", middleware.Auth(), exhibitorHandler.GetJoinedUsers)
 }

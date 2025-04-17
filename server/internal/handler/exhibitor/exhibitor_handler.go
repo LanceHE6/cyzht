@@ -12,6 +12,8 @@ type HandlerInterface interface {
 	ListExhibitors(ctx *gin.Context)
 	JoinExhibitor(ctx *gin.Context)
 	GetJoinedExhibitors(ctx *gin.Context)
+	GetJoinedUsers(ctx *gin.Context)
+	GetExhibitorInfo(ctx *gin.Context)
 	WithdrawExhibitor(ctx *gin.Context)
 }
 
