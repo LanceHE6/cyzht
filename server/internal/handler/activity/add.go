@@ -58,7 +58,7 @@ func (a *activityHandler) AddActivity(ctx *gin.Context) {
 		return
 	}
 	// 创建者自动加入活动
-	if err := a.ActivityUserRepo.Insert(claims.ID, aid); err != nil {
+	if err := a.ActivityUserRepo.Insert(claims.ID, aid, 3); err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(-1, "failed in insert activity user", err))
 		return
 	}

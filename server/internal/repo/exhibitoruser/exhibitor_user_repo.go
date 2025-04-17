@@ -7,9 +7,10 @@ import (
 )
 
 type RepoInterface interface {
-	Insert(uid, eid int64) error
+	Insert(uid, eid int64, role uint8) error
 	SelectByUIDAndAID(uid, aid int64) (*[]model.ExhibitorUserModel, error)
 	SelectByAID(aid int64) (*[]model.ExhibitorUserModel, error)
+	SelectByEID(eid int64) (*[]model.ExhibitorUserModel, error)
 	DeleteByAID(aid int64) error
 	Delete(uid, aid int64) error
 	update(exhibitorUser *model.ExhibitorUserModel) error
@@ -19,11 +20,16 @@ type exhibitorUserRepo struct {
 	MyDB *gorm.DB
 }
 
-func (e exhibitorUserRepo) modelDB() *gorm.DB {
-	return e.MyDB.Model(&model.ExhibitorUserModel{}).Preload("Exhibitor").Preload("Exhibitor.Activity")
+func (e exhibitorUserRepo) SelectByEID(eid int64) (*[]model.ExhibitorUserModel, error) {
+	var eu []model.ExhibitorUserModel
+	return &eu, e.modelDB().Where("exhibitor_id = ?", eid).Find(&eu).Error
 }
 
-func (e exhibitorUserRepo) Insert(uid, eid int64) error {
+func (e exhibitorUserRepo) modelDB() *gorm.DB {
+	return e.MyDB.Model(&model.ExhibitorUserModel{}).Preload("Exhibitor").Preload("Exhibitor.Activity").Preload("User")
+}
+
+func (e exhibitorUserRepo) Insert(uid, eid int64, role uint8) error {
 	// 如果已加入则忽略
 	if e.modelDB().Where("user_id = ? and exhibitor_id = ?", uid, eid).First(&model.ExhibitorUserModel{}).Error == nil {
 		return nil
@@ -31,6 +37,7 @@ func (e exhibitorUserRepo) Insert(uid, eid int64) error {
 	eu := model.ExhibitorUserModel{
 		UserID:      uid,
 		ExhibitorID: eid,
+		Role:        role,
 	}
 	return e.modelDB().Create(&eu).Error
 }

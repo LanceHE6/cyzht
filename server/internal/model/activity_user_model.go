@@ -7,6 +7,7 @@ type ActivityUserModel struct {
 	Activity   *ActivityModel `gorm:"foreignKey:ActivityID;references:ID" json:"activity"`
 	UserID     int64          `gorm:"column:user_id;type:bigint;not null" json:"-"`
 	User       *UserModel     `gorm:"foreignKey:UserID;references:ID" json:"user"`
+	Role       uint8          `gorm:"column:role;type:tinyint;default:1" json:"role"`
 }
 
 func (*ActivityUserModel) TableName() string {

@@ -30,5 +30,11 @@ func (e *exhibitorHandler) AddExhibitor(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-1, err.Error()))
 		return
 	}
+	// 创建者自动加入
+	err = e.ExhibitorUserRepo.Insert(claims.ID, data.ActivityID, 3)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-2, err.Error()))
+		return
+	}
 	ctx.JSON(http.StatusOK, response.SuccessResponse(nil))
 }
