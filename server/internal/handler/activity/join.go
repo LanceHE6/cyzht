@@ -21,7 +21,7 @@ func (a *activityHandler) JoinActivity(ctx *gin.Context) {
 		return
 	}
 	claims, _ := jwt.GetClaimsByContext(ctx)
-	err = a.ActivityUserRepo.Insert(claims.ID, aid)
+	err = a.ActivityUserRepo.Insert(claims.ID, aid, 1)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-1, err.Error()))
 		return

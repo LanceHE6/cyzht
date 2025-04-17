@@ -21,7 +21,7 @@ func (e *exhibitorHandler) JoinExhibitor(ctx *gin.Context) {
 		return
 	}
 	claims, _ := jwt.GetClaimsByContext(ctx)
-	err = e.ExhibitorUserRepo.Insert(claims.ID, eid)
+	err = e.ExhibitorUserRepo.Insert(claims.ID, eid, 1)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-1, err.Error()))
 		return
