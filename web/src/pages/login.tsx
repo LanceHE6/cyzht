@@ -1,6 +1,6 @@
 import { Card, CardBody, Image, Tab, Tabs } from "@heroui/react";
 
-import cover1 from "../assets/imgs/cover1.jpg";
+import cover1 from "../assets/imgs/login-cover.jpg";
 
 import DefaultLayout from "@/layouts/default.tsx";
 import VCLoginPanel from "@/components/login-panel/vclogin.tsx";
