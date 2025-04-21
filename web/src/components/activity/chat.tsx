@@ -380,7 +380,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     (message: Message) => {
       if (
         message.activity.id === aidRef.current &&
-        message.exhibitor.id === eidRef.current
+        (message.exhibitor?.id === eidRef.current || message.exhibitor === null)
       ) {
         setMessages((prev) => [...prev, message]);
 
