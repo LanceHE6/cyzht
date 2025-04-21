@@ -14,12 +14,20 @@ import {
   Listbox,
   ListboxItem,
   Divider,
+  useDisclosure,
 } from "@heroui/react";
 import { useEffect, useState } from "react";
+
+import {
+  AddExhibitorModal,
+  ActivityInfoModal,
+  ConfirmModal,
+} from "./exhibitor-modal.tsx"; // 引入抽离的模态框组件
 
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
 import { SelectionIcon } from "@/components/icons.tsx";
 import { Toast } from "@/utils/utils.ts";
+import { LocalStorage } from "@/utils/utils.ts"; // 假设 LocalStorage 从这里导入
 
 interface ExhibitorProps {
   aid: string;
@@ -46,6 +54,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
   const [activity, setActivity] = useState<{
     name?: string;
     icon?: string;
+    creator?: string | any; // 假设 creator 是用户的 ID
   }>({});
   const [allExhibitors, setAllExhibitors] = useState<Exhibitor[]>([]);
   const [joinedExhibitors, setJoinedExhibitors] = useState<JoinedExhibitor[]>(
@@ -56,10 +65,37 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
     exhibitors: true,
     joined: true,
   });
+  const [isCreator, setIsCreator] = useState(false); // 新增状态来判断是否为创建者
+  const [exhibitorCreators, setExhibitorCreators] = useState<{
+    [key: string]: boolean;
+  }>({}); // 判断是否为参展商创建者
+
+  // 模态框状态
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // 新增状态用于控制展会详情模态框
+
+  // 新增状态变量用于管理确认模态框
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: "delete" | "withdraw" | null;
+    exhibitorId: string | null;
+  }>({
+    isOpen: false,
+    type: null,
+    exhibitorId: null,
+  });
+
+  //状态变量用于管理结束展会和退出展会的确认模态框
+  const [endActivityModal, setEndActivityModal] = useState(false);
+  const [withdrawActivityModal, setWithdrawActivityModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // 获取当前用户信息
+        const currentUser = LocalStorage.getUser();
+        const currentUserId = currentUser?.id;
+
         // 获取展会信息
         const activityRes = await axiosInstanceWithAuth(
           `/api/v1/activity/search`,
@@ -68,15 +104,22 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
           },
         );
 
-        setActivity(activityRes.data.data.rows[0]);
+        const activityData = activityRes.data.data.rows[0];
+
+        setActivity(activityData);
         setLoading((prev) => ({ ...prev, activity: false }));
+
+        // 判断当前用户是否是活动创建者
+        setIsCreator(currentUserId === activityData.creator.id);
 
         // 获取所有参展商
         const exhibitorsRes = await axiosInstanceWithAuth(
           `/api/v1/exhibitor/${aid}/list`,
         );
 
-        setAllExhibitors(exhibitorsRes.data.data.rows);
+        const exhibitorsData = exhibitorsRes.data.data.rows;
+
+        setAllExhibitors(exhibitorsData);
         setLoading((prev) => ({ ...prev, exhibitors: false }));
 
         // 获取已加入的参展商
@@ -84,8 +127,19 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
           `/api/v1/exhibitor/${aid}/joined`,
         );
 
-        setJoinedExhibitors(joinedRes.data.data.rows);
+        const joinedData = joinedRes.data.data.rows;
+
+        setJoinedExhibitors(joinedData);
         setLoading((prev) => ({ ...prev, joined: false }));
+
+        // 判断当前用户是否是每个参展商的创建者
+        const creatorMap: { [key: string]: boolean } = {};
+
+        exhibitorsData.forEach((row: any) => {
+          creatorMap[row.id] = currentUserId === row.creator?.id;
+        });
+
+        setExhibitorCreators(creatorMap);
       } catch (err) {
         console.error("加载失败", err);
         setLoading({
@@ -96,7 +150,9 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
       }
     };
 
-    fetchData();
+    fetchData().then(() => {
+      console.log("数据加载完成");
+    });
   }, [aid]);
 
   // 判断是否为已加入的参展商
@@ -149,23 +205,126 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
     }
   };
 
-  const handleWithDrawExhibitor = async (exhibitorId: string) => {
-    try {
-      await axiosInstanceWithAuth.post(
-        `/api/v1/exhibitor/${exhibitorId}/withdraw`,
-      );
-      Toast.success("退出参展商成功", null);
-      setJoinedExhibitors((prev) =>
-        prev.filter((item) => item.exhibitor.id !== exhibitorId),
-      );
-    } catch (error) {
-      console.error("退出参展商失败", error);
-    }
+  // 退出参展商的 onPress 事件
+  const handleWithDrawExhibitor = (exhibitorId: string) => {
+    setConfirmModal({ isOpen: true, type: "withdraw", exhibitorId });
+  };
+
+  // 删除参展商的 onPress 事件
+  const handleDeleteExhibitor = (exhibitorId: string) => {
+    setConfirmModal({ isOpen: true, type: "delete", exhibitorId });
   };
 
   const handleExhibitorClick = (exhibitorId: string | null) => {
     if (onExhibitorSelect) {
       onExhibitorSelect(exhibitorId);
+    }
+  };
+
+  // 添加参展商请求
+  const handleSubmitExhibitor = async (name: string, introduce: string) => {
+    try {
+      const response = await axiosInstanceWithAuth.post(
+        `/api/v1/exhibitor/add`,
+        {
+          aid: aid,
+          name,
+          introduce,
+        },
+      );
+
+      if (response.data.code === 0) {
+        Toast.success("添加参展商成功", null);
+        onClose();
+      } else {
+        Toast.danger("添加参展商失败", response.data.msg);
+      }
+    } catch (error) {
+      console.error("添加参展商失败", error);
+      Toast.danger("添加参展商失败", "请稍后再试");
+    }
+  };
+
+  // 处理确认删除参展商
+  const handleConfirmDelete = async () => {
+    if (!confirmModal.exhibitorId) return;
+
+    try {
+      await axiosInstanceWithAuth.post(`/api/v1/exhibitor/del`, {
+        id: confirmModal.exhibitorId,
+      });
+      Toast.success("删除参展商成功", null);
+      setAllExhibitors((prev) =>
+        prev.filter((exhibitor) => exhibitor.id !== confirmModal.exhibitorId),
+      );
+      setJoinedExhibitors((prev) =>
+        prev.filter((item) => item.exhibitor.id !== confirmModal.exhibitorId),
+      );
+    } catch (error) {
+      console.error("删除参展商失败", error);
+      Toast.danger("删除参展商失败", "请稍后再试");
+    } finally {
+      setConfirmModal({ isOpen: false, type: null, exhibitorId: null });
+    }
+  };
+
+  // 处理确认退出参展商
+  const handleConfirmWithdraw = async () => {
+    if (!confirmModal.exhibitorId) return;
+
+    try {
+      await axiosInstanceWithAuth.post(
+        `/api/v1/exhibitor/${confirmModal.exhibitorId}/withdraw`,
+      );
+      Toast.success("退出参展商成功", null);
+      setJoinedExhibitors((prev) =>
+        prev.filter((item) => item.exhibitor.id !== confirmModal.exhibitorId),
+      );
+    } catch (error) {
+      console.error("退出参展商失败", error);
+      Toast.danger("退出参展商失败", "请稍后再试");
+    } finally {
+      setConfirmModal({ isOpen: false, type: null, exhibitorId: null });
+    }
+  };
+
+  // 处理确认结束展会
+  const handleConfirmEndActivity = async () => {
+    try {
+      const response = await axiosInstanceWithAuth.post(
+        `/api/v1/activity/del`,
+        {
+          id: aid,
+        },
+      );
+
+      if (response.data.code === 0) {
+        Toast.success("结束展会成功", null);
+        onClose();
+      } else {
+        Toast.danger("结束展会失败", response.data.msg);
+      }
+    } catch (error) {
+      console.error("结束展会失败", error);
+      Toast.danger("结束展会失败", "请稍后再试");
+    } finally {
+      setEndActivityModal(false); // 关闭确认模态框
+    }
+  };
+
+  // 处理确认退出展会
+  const handleConfirmWithdrawActivity = async () => {
+    try {
+      await axiosInstanceWithAuth.post(`/api/v1/activity/${aid}/withdraw`);
+      Toast.success("退出展会成功", null);
+      setJoinedExhibitors((prev) =>
+        prev.filter((item) => item.exhibitor.id !== aid),
+      );
+    } catch (error) {
+      console.error("退出展会失败", error);
+      Toast.danger("退出展会失败", "请稍后再试");
+    } finally {
+      setWithdrawActivityModal(false); // 关闭确认模态框
     }
   };
 
@@ -198,11 +357,47 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Static Actions">
-              <DropdownItem key="new">申请参展商</DropdownItem>
-              <DropdownItem key="copy">展会详情</DropdownItem>
-              <DropdownItem key="delete" className="text-danger" color="danger">
-                结束展会/退出展会
-              </DropdownItem>
+              {isCreator ? (
+                <>
+                  <DropdownItem key="add" onPress={onOpen}>
+                    添加参展商
+                  </DropdownItem>
+                  <DropdownItem
+                    key="info"
+                    onPress={() => setIsInfoModalOpen(true)}
+                  >
+                    展会详情
+                  </DropdownItem>
+                  <DropdownItem
+                    key="end"
+                    className="text-danger"
+                    color="danger"
+                    onPress={() => setEndActivityModal(true)}
+                  >
+                    结束展会
+                  </DropdownItem>
+                </>
+              ) : (
+                <>
+                  <DropdownItem key="join" onPress={() => handleJoinClick(aid)}>
+                    申请参展商
+                  </DropdownItem>
+                  <DropdownItem
+                    key="info"
+                    onPress={() => setIsInfoModalOpen(true)}
+                  >
+                    展会详情
+                  </DropdownItem>
+                  <DropdownItem
+                    key="withdraw"
+                    className="text-danger"
+                    color="danger"
+                    onPress={() => setWithdrawActivityModal(true)}
+                  >
+                    退出展会
+                  </DropdownItem>
+                </>
+              )}
             </DropdownMenu>
           </Dropdown>
         </CardFooter>
@@ -269,9 +464,17 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
                                 key="delete"
                                 className="text-danger"
                                 color="danger"
-                                onPress={() => handleWithDrawExhibitor(item.id)}
+                                onPress={() => {
+                                  if (exhibitorCreators[item.id]) {
+                                    handleDeleteExhibitor(item.id);
+                                  } else {
+                                    handleWithDrawExhibitor(item.id);
+                                  }
+                                }}
                               >
-                                退出
+                                {exhibitorCreators[item.id]
+                                  ? "删除参展商"
+                                  : "退出"}
                               </DropdownItem>
                             </DropdownMenu>
                           </Dropdown>
@@ -356,6 +559,57 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
           )}
         </AccordionItem>
       </Accordion>
+      {/* 添加参展商模态框 */}
+      <AddExhibitorModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSubmit={handleSubmitExhibitor}
+      />
+      {/* 展会详情模态框 */}
+      <ActivityInfoModal
+        activity={activity}
+        isOpen={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
+      />
+
+      {/* 确认删除参展商模态框 */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        message={
+          confirmModal.type === "delete"
+            ? "您确定要删除该参展商吗？"
+            : "您确定要退出该参展商吗？"
+        }
+        title={
+          confirmModal.type === "delete" ? "确认删除参展商" : "确认退出参展商"
+        }
+        onClose={() =>
+          setConfirmModal({ isOpen: false, type: null, exhibitorId: null })
+        }
+        onConfirm={
+          confirmModal.type === "delete"
+            ? handleConfirmDelete
+            : handleConfirmWithdraw
+        }
+      />
+
+      {/* 新增：确认结束展会模态框 */}
+      <ConfirmModal
+        isOpen={endActivityModal}
+        message="您确定要结束该展会吗？"
+        title="确认结束展会"
+        onClose={() => setEndActivityModal(false)}
+        onConfirm={handleConfirmEndActivity}
+      />
+
+      {/* 新增：确认退出展会模态框 */}
+      <ConfirmModal
+        isOpen={withdrawActivityModal}
+        message="您确定要退出该展会吗？"
+        title="确认退出展会"
+        onClose={() => setWithdrawActivityModal(false)}
+        onConfirm={handleConfirmWithdrawActivity}
+      />
     </>
   );
 };
