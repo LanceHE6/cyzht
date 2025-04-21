@@ -31,7 +31,8 @@ export const getCurrentDateTime = () => {
 
 // 格式化日期函数
 // 将 2023-07-01T09:00:00 格式化为 07-01 09:00
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string | undefined) => {
+  if (!dateString) return "";
   const date = new Date(dateString);
   const options: Intl.DateTimeFormatOptions = {
     month: "2-digit",
