@@ -26,7 +26,10 @@ func (e exhibitorUserRepo) SelectByEID(eid int64) (*[]model.ExhibitorUserModel, 
 }
 
 func (e exhibitorUserRepo) modelDB() *gorm.DB {
-	return e.MyDB.Model(&model.ExhibitorUserModel{}).Preload("Exhibitor").Preload("Exhibitor.Activity").Preload("User")
+	return e.MyDB.Model(&model.ExhibitorUserModel{}).Preload("Exhibitor").
+		Preload("Exhibitor.Activity").
+		Preload("User").
+		Preload("Exhibitor.Creator")
 }
 
 func (e exhibitorUserRepo) Insert(uid, eid int64, role uint8) error {

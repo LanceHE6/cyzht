@@ -20,7 +20,7 @@ func (e *exhibitorHandler) AddExhibitor(ctx *gin.Context) {
 		return
 	}
 	claims, _ := jwt.GetClaimsByContext(ctx)
-	err := e.ExhibitorRepo.Insert(&model.ExhibitorModel{
+	newEx, err := e.ExhibitorRepo.Insert(&model.ExhibitorModel{
 		Name:       data.Name,
 		Introduce:  data.Introduce,
 		ActivityID: data.ActivityID,
@@ -31,7 +31,7 @@ func (e *exhibitorHandler) AddExhibitor(ctx *gin.Context) {
 		return
 	}
 	// 创建者自动加入
-	err = e.ExhibitorUserRepo.Insert(claims.ID, data.ActivityID, 3)
+	err = e.ExhibitorUserRepo.Insert(claims.ID, newEx.ID, 3)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.FailedResponse(-2, err.Error()))
 		return

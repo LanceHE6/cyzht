@@ -47,7 +47,7 @@ type PagingParams func(*gorm.DB) *gorm.DB
 // 使用option模式
 // 使用示例: Search(WithName(&name), WithPage(&page,&limit))
 func (a *activityRepo) Search(params ...PagingParams) (*[]model.ActivityModel, int, error) {
-	db := a.modelDB().Preload("Creator") // 预加载创建者信息
+	db := a.modelDB().Preload("Creator").Where("is_deleted = ?", false) // 预加载创建者信息
 	for _, param := range params {
 		db = param(db)
 	}

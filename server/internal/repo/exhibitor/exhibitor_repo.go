@@ -8,7 +8,7 @@ import (
 
 type RepoInterface interface {
 	// Insert 插入
-	Insert(exhibitor *model.ExhibitorModel) error
+	Insert(exhibitor *model.ExhibitorModel) (*model.ExhibitorModel, error)
 	// SelectByID 依id查询
 	SelectByID(id int64) (*model.ExhibitorModel, error)
 	// SelectByAID 根据展会id查询
@@ -46,8 +46,12 @@ func (e *exhibitorRepo) modelDB() *gorm.DB {
 	return e.MyDB.Model(&model.ExhibitorModel{})
 }
 
-func (e *exhibitorRepo) Insert(exhibitor *model.ExhibitorModel) error {
-	return e.modelDB().Create(&exhibitor).Error
+func (e *exhibitorRepo) Insert(exhibitor *model.ExhibitorModel) (*model.ExhibitorModel, error) {
+	err := e.modelDB().Create(&exhibitor).Error
+	if err != nil {
+		return nil, err
+	}
+	return exhibitor, nil
 }
 
 func (e *exhibitorRepo) update(exhibitor *model.ExhibitorModel) error {
