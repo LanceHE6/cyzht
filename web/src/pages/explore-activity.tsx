@@ -8,20 +8,43 @@ import {
   Image,
   CardFooter,
   Button,
+  Avatar,
 } from "@heroui/react";
 import { useEffect, useState } from "react";
 
-import { SearchIcon } from "@/components/icons.tsx";
+import { DefaultActivityIcon, SearchIcon } from "@/components/icons.tsx";
 import { axiosInstance } from "@/utils/axios-instance.ts";
 import { Toast } from "@/utils/utils.ts";
 import { formatDate } from "@/utils/datetime.ts";
+import { Activity } from "@/pages/activity.tsx";
 
 interface ActivityCardProps {
   activity: any;
+  onAddNewTab: (tab: any) => void;
 }
 
 // ActivityCard 展会展示卡片
-const ActivityCard = ({ activity }: ActivityCardProps) => {
+const ActivityCard = ({ activity, onAddNewTab }: ActivityCardProps) => {
+  const handleViewClick = () => {
+    const newTab = {
+      key: activity.id,
+      title: activity.name,
+      icon: activity.icon ? (
+        <Avatar
+          isBordered
+          className="cursor-pointer"
+          size="sm"
+          src={activity.icon}
+        />
+      ) : (
+        <DefaultActivityIcon />
+      ),
+      component: <Activity aid={activity.id} />,
+    };
+
+    onAddNewTab(newTab);
+  };
+
   return (
     <Card key={activity.id} isFooterBlurred className="py-1">
       <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
@@ -58,7 +81,7 @@ const ActivityCard = ({ activity }: ActivityCardProps) => {
             </p>
           </div>
         </div>
-        <Button radius="full" size="sm">
+        <Button radius="full" size="sm" onPress={handleViewClick}>
           查看
         </Button>
       </CardFooter>
@@ -66,7 +89,10 @@ const ActivityCard = ({ activity }: ActivityCardProps) => {
   );
 };
 
-export const ExploreActivity = () => {
+interface ExploreActivityProps {
+  onAddNewTab: (tab: any) => void;
+}
+export const ExploreActivity = ({ onAddNewTab }: ExploreActivityProps) => {
   // 展会数据
   const [notStartedActivities, setNotStartedActivities] = useState<any[]>([]);
   const [inProgressActivities, setInProgressActivities] = useState<any[]>([]);
@@ -116,7 +142,6 @@ export const ExploreActivity = () => {
       },
     });
 
-    console.log(response);
     if (response.data.code === 0) {
       return response.data.data.rows;
     }
@@ -160,7 +185,11 @@ export const ExploreActivity = () => {
             <Spacer y={10} />
             <div className="w-full grid grid-cols-6 gap-4 px-10">
               {notStartedActivities.map((activity, index) => (
-                <ActivityCard key={index} activity={activity} />
+                <ActivityCard
+                  key={index}
+                  activity={activity}
+                  onAddNewTab={onAddNewTab}
+                />
               ))}
             </div>
           </>
@@ -176,7 +205,11 @@ export const ExploreActivity = () => {
             <Spacer y={10} />
             <div className="w-full grid grid-cols-6 gap-4 px-10">
               {inProgressActivities.map((activity, index) => (
-                <ActivityCard key={index} activity={activity} />
+                <ActivityCard
+                  key={index}
+                  activity={activity}
+                  onAddNewTab={onAddNewTab}
+                />
               ))}
             </div>
           </>
@@ -192,7 +225,11 @@ export const ExploreActivity = () => {
             <Spacer y={10} />
             <div className="w-full grid grid-cols-6 gap-4 px-10">
               {completedActivities.map((activity, index) => (
-                <ActivityCard key={index} activity={activity} />
+                <ActivityCard
+                  key={index}
+                  activity={activity}
+                  onAddNewTab={onAddNewTab}
+                />
               ))}
             </div>
           </>

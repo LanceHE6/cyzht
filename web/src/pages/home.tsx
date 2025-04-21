@@ -31,67 +31,26 @@ import {
 import { AddActivity } from "@/components/add-activity.tsx";
 import { ExploreActivity } from "@/pages/explore-activity.tsx";
 import { Activity } from "@/pages/activity.tsx";
+import { getErrorMessage } from "@/utils/error-helper.ts";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState("explore");
+  const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(LocalStorage.getUser());
 
   useEffect(() => {
     setNavigateCallback(navigate);
-  }, [navigate]);
-  const [user, setUser] = useState<any>(LocalStorage.getUser());
-
-  const defaultMenuTabs = [
-    {
-      key: "message",
-      title: "私信",
-      icon: <MessageIcon />,
-      component: <MessageList />,
-    },
-    {
-      key: "explore",
-      title: "发现展会",
-      icon: <ExploreIcon />,
-      component: <ExploreActivity />,
-    },
-  ];
-  // 左侧菜单
-  const [menuTabs, setMenuTabs] = useState(defaultMenuTabs);
-  const [selectedTab, setSelectedTab] = useState("explore");
-  const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
-
-  useEffect(() => {
     if (user === null) {
       navigate("/login");
     }
     setUser(user);
-    getJoinedActivities();
-  }, []);
+    // 获取已加入展会列表
+    const fetchJoinedActivities = async () => {
+      const data = await getJoinedActivities();
 
-  // 登出
-  const logout = () => {
-    LocalStorage.removeToken();
-    LocalStorage.removeUser();
-    WebSocketClient.close(); // 关闭ws连接
-    navigate("/login");
-  };
-
-  const getJoinedActivities = async () => {
-    try {
-      const response = await axiosInstanceWithAuth.get(
-        "/api/v1/activity/joined",
-      );
-
-      if (response.data.code !== 0) {
-        Toast.danger("获取已加入展会列表失败", response.data.msg);
-
-        return;
-      }
-      if (response.data.data.rows === null) {
-        return;
-      }
-      // 将列表加入 menuTabs
-      const newTabs = response.data.data.rows.map((activityUser: any) => ({
-        key: activityUser.id,
+      const joinedTabs = data.map((activityUser: any) => ({
+        key: activityUser.activity.id,
         title: activityUser.activity.name,
         icon: activityUser.activity.icon ? (
           <Avatar
@@ -106,12 +65,87 @@ export default function HomePage() {
         component: <Activity aid={activityUser.activity.id} />,
       }));
 
-      // 更新 menuTabs 状态
-      setMenuTabs([...defaultMenuTabs, ...newTabs]);
+      setBaseMenuTabs((prevBaseTabs) => {
+        // 确保不重复添加,防止useEffect多次触发
+        const existingKeys = new Set(prevBaseTabs.map((tab) => tab.key));
+        const newTabs = joinedTabs.filter((tab) => !existingKeys.has(tab.key));
+
+        return [...prevBaseTabs, ...newTabs];
+      });
+    };
+
+    fetchJoinedActivities();
+  }, []);
+  // 额外tabs用于发现展会页面点击跳转
+  const [extraTabs, setExtraTabs] = useState<any[]>([]);
+  // 处理添加新tab
+  const handleAddNewTab = (newTab: any) => {
+    // 使用函数式更新来确保总是获取最新的 baseMenuTabs
+    setBaseMenuTabs((prevBaseTabs) => {
+      const tabExists = [...prevBaseTabs, ...extraTabs].some(
+        (tab) => tab.key === newTab.key,
+      );
+
+      if (!tabExists) {
+        setExtraTabs((prevExtraTabs) => [...prevExtraTabs, newTab]);
+      }
+
+      return prevBaseTabs; // 保持 baseMenuTabs 不变
+    });
+
+    // 切换到新tab
+    setSelectedTab(newTab.key);
+  };
+
+  // 分离基础tabs和额外tabs
+  const [baseMenuTabs, setBaseMenuTabs] = useState([
+    {
+      key: "message",
+      title: "私信",
+      icon: <MessageIcon />,
+      component: <MessageList />,
+    },
+    {
+      key: "explore",
+      title: "发现展会",
+      icon: <ExploreIcon />,
+      component: <ExploreActivity onAddNewTab={handleAddNewTab} />,
+    },
+  ]);
+
+  // 合并后的tabs
+  const menuTabs = [...baseMenuTabs, ...extraTabs];
+  // 获取已加入展会列表请求函数
+  const getJoinedActivities = async (): Promise<any[]> => {
+    try {
+      const response = await axiosInstanceWithAuth.get(
+        "/api/v1/activity/joined",
+      );
+
+      if (response.data.code !== 0) {
+        Toast.danger("获取已加入展会列表失败", response.data.msg);
+
+        return [];
+      }
+
+      if (response.data.data.rows === null) {
+        return [];
+      }
+
+      return response.data.data.rows;
     } catch (error) {
-      console.error("Error fetching joined activities:", error);
-      Toast.danger("获取已加入展会列表失败", "网络错误或其他问题");
+      Toast.danger("获取已加入展会列表失败", getErrorMessage(error));
+
+      return [];
     }
+  };
+
+  // 登出
+  const logout = () => {
+    LocalStorage.removeToken();
+    LocalStorage.removeUser();
+    WebSocketClient.close(); // 关闭ws连接
+    navigate("/login");
   };
 
   // 渲染当前选中的 Tab 的组件
@@ -214,7 +248,10 @@ export default function HomePage() {
               </Dropdown>
             </div>
           </Card>
-          <Card className="col-span-23 items-center min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]" radius="none">
+          <Card
+            className="col-span-23 items-center min-w-40 border-b-blue-500 border-0 bg-[#FFFFFF]"
+            radius="none"
+          >
             {renderSelectedComponent()}
             <AddActivity
               isOpen={isAddActivityModalOpen}
