@@ -15,7 +15,7 @@ func RegisterActivityRouter(group *gin.RouterGroup,
 ) {
 	routerGroup := group.Group("/activity")
 	routerGroup.POST("/add", middleware.Auth(), activityHandler.AddActivity)
-	routerGroup.DELETE("/del", middleware.Auth(), activityHandler.DeleteActivity)
+	routerGroup.POST("/del", middleware.Auth(), activityHandler.DeleteActivity)
 	routerGroup.GET("/search", activityHandler.SearchActivity)
 	routerGroup.POST("/:aid/join", middleware.Auth(), activityHandler.JoinActivity)
 	routerGroup.POST("/:aid/withdraw", middleware.Auth(), activityHandler.WithdrawActivity)
