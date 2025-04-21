@@ -2,6 +2,18 @@
 
 import { getUserInfo } from "@/utils/user-utils.ts";
 
+interface User {
+  id: string;
+  account: string;
+  nickname: string;
+  avatar: string;
+  token: string;
+  sex: number;
+  online_status: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export class LocalStorageManager {
   constructor() {}
 
@@ -39,7 +51,7 @@ export class LocalStorageManager {
     localStorage.removeItem(this.TOKEN_KEY);
   }
   // 设置 user
-  public setUser(user: object) {
+  public setUser(user: User) {
     const jsonUser = JSON.stringify(user);
 
     if (!this.IsEncrypted) {
@@ -50,7 +62,7 @@ export class LocalStorageManager {
   }
 
   // 获取 user
-  public getUser(): object | null {
+  public getUser(): User | null {
     const jsonUser = localStorage.getItem(this.USER_KEY);
 
     if (jsonUser === null) {
