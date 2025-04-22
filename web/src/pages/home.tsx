@@ -39,41 +39,41 @@ export default function HomePage() {
   const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
   const [user, setUser] = useState<any>(LocalStorage.getUser());
 
+  // 获取已加入展会列表
+  const fetchJoinedActivities = async () => {
+    const data = await getJoinedActivities();
+
+    const joinedTabs = data.map((activityUser: any) => ({
+      key: activityUser.activity.id,
+      title: activityUser.activity.name,
+      icon: activityUser.activity.icon ? (
+        <Avatar
+          isBordered
+          className="cursor-pointer"
+          size="sm"
+          src={activityUser.activity.icon}
+        />
+      ) : (
+        <DefaultActivityIcon />
+      ),
+      component: <Activity aid={activityUser.activity.id} />,
+    }));
+
+    setBaseMenuTabs((prevBaseTabs) => {
+      // 确保不重复添加,防止useEffect多次触发
+      const existingKeys = new Set(prevBaseTabs.map((tab) => tab.key));
+      const newTabs = joinedTabs.filter((tab) => !existingKeys.has(tab.key));
+
+      return [...prevBaseTabs, ...newTabs];
+    });
+  };
+
   useEffect(() => {
     setNavigateCallback(navigate);
     if (user === null) {
       navigate("/login");
     }
     setUser(user);
-    // 获取已加入展会列表
-    const fetchJoinedActivities = async () => {
-      const data = await getJoinedActivities();
-
-      const joinedTabs = data.map((activityUser: any) => ({
-        key: activityUser.activity.id,
-        title: activityUser.activity.name,
-        icon: activityUser.activity.icon ? (
-          <Avatar
-            isBordered
-            className="cursor-pointer"
-            size="sm"
-            src={activityUser.activity.icon}
-          />
-        ) : (
-          <DefaultActivityIcon />
-        ),
-        component: <Activity aid={activityUser.activity.id} />,
-      }));
-
-      setBaseMenuTabs((prevBaseTabs) => {
-        // 确保不重复添加,防止useEffect多次触发
-        const existingKeys = new Set(prevBaseTabs.map((tab) => tab.key));
-        const newTabs = joinedTabs.filter((tab) => !existingKeys.has(tab.key));
-
-        return [...prevBaseTabs, ...newTabs];
-      });
-    };
-
     fetchJoinedActivities();
   }, []);
   // 额外tabs用于发现展会页面点击跳转
@@ -140,6 +140,14 @@ export default function HomePage() {
     }
   };
 
+  // 用于刷新数据的回调函数
+  const handleRefreshData = async () => {
+    console.log("刷新数据");
+    // 添加一段延迟
+    setTimeout(async () => {
+      fetchJoinedActivities();
+    }, 1000);
+  };
   // 登出
   const logout = () => {
     LocalStorage.removeToken();
@@ -256,6 +264,7 @@ export default function HomePage() {
             <AddActivity
               isOpen={isAddActivityModalOpen}
               onClose={() => setIsAddActivityModalOpen(false)}
+              onRefreshData={handleRefreshData}
             />
           </Card>
         </Card>

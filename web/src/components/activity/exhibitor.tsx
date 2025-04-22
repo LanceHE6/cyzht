@@ -300,6 +300,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
 
       if (response.data.code === 0) {
         Toast.success("结束展会成功", null);
+        window.location.reload();
         onClose();
       } else {
         Toast.danger("结束展会失败", response.data.msg);
@@ -317,6 +318,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
     try {
       await axiosInstanceWithAuth.post(`/api/v1/activity/${aid}/withdraw`);
       Toast.success("退出展会成功", null);
+      window.location.reload();
       setJoinedExhibitors((prev) =>
         prev.filter((item) => item.exhibitor.id !== aid),
       );

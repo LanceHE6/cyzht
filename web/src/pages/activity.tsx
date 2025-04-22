@@ -1,16 +1,11 @@
 import { Card } from "@heroui/react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import Chat from "@/components/activity/chat.tsx";
 import Member from "@/components/activity/member.tsx";
 import Exhibitor from "@/components/activity/exhibitor.tsx";
 
-export interface ActivityProps {
-  aid: string;
-}
-
-export const Activity: React.FC<ActivityProps> = (props: ActivityProps) => {
-  let { aid } = props;
+export const Activity = ({ aid }: { aid: string }) => {
   const [selectedExhibitorId, setSelectedExhibitorId] = useState<string | null>(
     null,
   );

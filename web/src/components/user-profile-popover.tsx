@@ -78,6 +78,33 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
     }
   }, [user]);
 
+  const fetchUserInfo = async () => {
+    try {
+      const response = await axiosInstanceWithAuth.get("/api/v1/user/info"); // 假设这是获取用户信息的接口
+
+      if (response.status === 200) {
+        const userData = response.data.data;
+        setUID(userData.id);
+        setNickname(userData.nickname);
+        setSex("" + userData.sex); // 将性别值转换为字符串
+        if (userData.avatar !== "") {
+          setAvatar(
+            <Avatar
+              isBordered
+              as="button"
+              className="cursor-pointer"
+              size="lg"
+              src={userData.avatar}
+            />,
+          );
+        }
+      }
+    } catch (error) {
+      console.error("获取用户信息出错:", error);
+      Toast.danger("获取用户信息失败", null);
+    }
+  };
+
   // 修改资料接口
   const updateProfile = async () => {
     setIsLoading(true);
@@ -109,6 +136,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
 
       if (response.status === 200) {
         Toast.success("资料更新成功", null);
+        fetchUserInfo();
         onOpenChange(); // 关闭模态框
       } else {
         throw new Error("资料更新失败");
@@ -123,7 +151,6 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
         console.log("updated user: ", user);
         // 延迟刷新页面
         onClose();
-        // window.location.reload();
       }, 2000);
     }
   };

@@ -31,9 +31,11 @@ import { getCurrentDateTime } from "@/utils/datetime.ts";
 export const AddActivity = ({
   isOpen,
   onClose,
+  onRefreshData,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  onRefreshData: () => void;
 }) => {
   // 为请求设置导航回调
   const navigate = useNavigate();
@@ -87,6 +89,7 @@ export const AddActivity = ({
 
       if (response.data.code === 0) {
         Toast.success("创建展会成功", null);
+        onRefreshData();
         closeModal();
       } else {
         Toast.danger("创建展会失败", response.data.msg);
@@ -197,6 +200,7 @@ export const AddActivity = ({
 
     if (response.data.code === 0) {
       Toast.success("加入展会成功", null);
+      onRefreshData();
       closeModal();
     } else {
       Toast.warning("加入展会失败", response.data.msg);
