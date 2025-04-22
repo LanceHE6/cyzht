@@ -100,6 +100,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const aidRef = useRef(aid);
   const eidRef = useRef(eid);
   const [exhibitorName, setExhibitorName] = useState<string | null>(null);
+  const [isJoined, setIsJoined] = useState(false);
 
   eid = eid === null ? "0" : eid;
   aidRef.current = aid;
@@ -112,6 +113,25 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
       Toast.danger("请先登录", "请先登录");
       navigate("/login");
     }
+    const fetchJoinedData = async () => {
+      try {
+        const response = await axiosInstanceWithAuth.get(
+          `/api/v1/activity/joined`,
+        );
+
+        if (response.data.code === 0) {
+          response.data.data.rows.map((row: any) => {
+            if (row.activity.id === aid) {
+              setIsJoined(true);
+            }
+          });
+        }
+      } catch (error) {
+        console.error("获取已加入展会信息失败", error);
+      }
+    };
+
+    fetchJoinedData();
     fetchMsg();
   }, [aid, eid, navigate, currentUser]);
 
@@ -487,6 +507,18 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     }
   };
 
+  const handleJoinActivity = async () => {
+    try {
+      await axiosInstanceWithAuth.post(`/api/v1/activity/${aid}/join`);
+      Toast.success("加入展会成功", null);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      Toast.warning("加入展会失败", getErrorMessage(error));
+    }
+  };
+
   return (
     <>
       {/* 聊天室标题 */}
@@ -667,25 +699,41 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
                 />
               </div>
             }
+            isDisabled={!isJoined}
             maxRows={4}
             minRows={1}
-            placeholder="输入消息..."
+            placeholder={
+              isJoined
+                ? "输入消息..."
+                : "你还不能在这里聊天，必须先加入展会才能开始互动"
+            }
             size="lg"
             type="text"
             value={inputValue}
             onKeyDown={handleHotKeysPress}
             onValueChange={setInputValue}
           />
-          <Button
-            className="ml-2"
-            color="primary"
-            isDisabled={inputValue.trim() === "" && localImages.length === 0}
-            isLoading={isUploading}
-            size="lg"
-            onPress={() => sendMessage()}
-          >
-            发送
-          </Button>
+          {isJoined ? (
+            <Button
+              className="ml-2"
+              color="primary"
+              isDisabled={inputValue.trim() === "" && localImages.length === 0}
+              isLoading={isUploading}
+              size="lg"
+              onPress={() => sendMessage()}
+            >
+              发送
+            </Button>
+          ) : (
+            <Button
+              className="ml-2"
+              color="success"
+              size="lg"
+              onPress={() => handleJoinActivity()}
+            >
+              加入
+            </Button>
+          )}
         </div>
       </div>
     </>
