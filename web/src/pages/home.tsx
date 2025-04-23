@@ -18,7 +18,6 @@ import {
   SelectionMenuIcon,
   ExploreIcon,
   AddIcon,
-  MessageIcon,
   DefaultActivityIcon,
 } from "@/components/icons";
 import DefaultLayout from "@/layouts/default.tsx";
@@ -100,12 +99,6 @@ export default function HomePage() {
   // 分离基础tabs和额外tabs
   const [baseMenuTabs, setBaseMenuTabs] = useState([
     {
-      key: "message",
-      title: "私信",
-      icon: <MessageIcon />,
-      component: <MessageList />,
-    },
-    {
       key: "explore",
       title: "发现展会",
       icon: <ExploreIcon />,
@@ -169,13 +162,13 @@ export default function HomePage() {
 
   return (
     <DefaultLayout>
-      <div className="flex items-center justify-center h-full w-full bg-white py-0">
+      <div className="flex items-center justify-center h-full w-full bg-[#e3fdfd] py-0">
         <Card
           isBlurred
           className="card w-full h-5/6 min-w-96 grid grid-cols-24"
         >
           <Card
-            className="menus flex items-center col-span-1 py-2 bg-[#ECECEC]"
+            className="menus flex items-center col-span-1 py-2 bg-[#cbf1f5]"
             radius="none"
           >
             {/*<text className="text-medium justify-self-center">重邮展会通</text>*/}
@@ -272,11 +265,3 @@ export default function HomePage() {
     </DefaultLayout>
   );
 }
-
-// 示例子组件
-const MessageList = () => (
-  <div>
-    <h2>消息列表</h2>
-    {/* 消息列表内容 */}
-  </div>
-);
