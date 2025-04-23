@@ -10,6 +10,11 @@ import {
   Badge,
   Tooltip,
   Chip,
+  Modal,
+  ModalContent,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
 } from "@heroui/react";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Textarea } from "@heroui/input";
@@ -27,6 +32,7 @@ import {
   ImageIcon,
   FileIcon,
   ChevronDownIcon,
+  CopyIcon, WithDrawIcon
 } from "@/components/icons.tsx";
 import { getErrorMessage } from "@/utils/error-helper.ts";
 
@@ -519,6 +525,69 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     }
   };
 
+  // 复制消息内容到剪贴板
+  const copyMessage = (message: Message) => {
+    let textToCopy = message.content;
+
+    // 如果是复合消息，添加附件信息
+    if (message.msg_type === 3 && message.attachments.length > 0) {
+      textToCopy += message.attachments.map((a) => a.file_url).join("\n");
+    }
+
+    // 如果是图片或文件消息
+    if (message.msg_type === 2 || message.msg_type === 4) {
+      textToCopy = message.attachments.map((a) => a.file_url).join("\n");
+    }
+
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => Toast.success("已复制到剪贴板", null))
+      .catch(() => Toast.warning("复制失败", "请检查浏览器权限"));
+  };
+
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [messageToWithdraw, setMessageToWithdraw] = useState<string | null>(
+    null,
+  );
+  // 打开撤回确认对话框
+  const openWithdrawConfirm = (messageId: string) => {
+    setMessageToWithdraw(messageId);
+    setIsWithdrawModalOpen(true);
+  };
+
+  // 确认撤回
+  const confirmWithdraw = async () => {
+    if (!messageToWithdraw) return;
+
+    try {
+      const response = await axiosInstanceWithAuth.delete(
+        `/api/v1/chat/msg/${messageToWithdraw}/withdraw`,
+      );
+
+      if (response.data.code === 0) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === messageToWithdraw ? { ...msg, status: 2 } : msg,
+          ),
+        );
+        Toast.success("消息撤回成功", null);
+      } else if (response.data.code === 11) {
+        Toast.warning("撤回失败", response.data.msg);
+      }
+    } catch (error) {
+      Toast.danger("撤回消息失败", getErrorMessage(error));
+    } finally {
+      setIsWithdrawModalOpen(false);
+      setMessageToWithdraw(null);
+    }
+  };
+
+  // 取消撤回
+  const cancelWithdraw = () => {
+    setIsWithdrawModalOpen(false);
+    setMessageToWithdraw(null);
+  };
+
   return (
     <>
       {/* 聊天室标题 */}
@@ -537,66 +606,117 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
           className="space-y-6 p-4 px-10"
           onScroll={handleScroll}
         >
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.from_user.id === currentUser.id ? "justify-end" : "justify-start"}`}
-            >
-              {message.from_user.id !== currentUser.id && (
-                <Avatar
-                  showFallback
-                  alt={`${message.from_user.nickname}'s avatar`}
-                  className="w-8 h-8 rounded-full mr-2"
-                  name={message.from_user.nickname}
-                  src={message.from_user.avatar}
-                />
-              )}
-
-              <Card
-                className={`border-none w-fit ${message.from_user.id === currentUser.id ? "bg-blue-100" : ""}`}
-                style={{ maxWidth: "50%" }}
-              >
-                <div className="message p-2 w-auto">
-                  <div
-                    className={`flex ${message.from_user.id === currentUser.id ? "justify-end" : "justify-start"} px-1 items-center`}
-                  >
-                    {message.from_user.id !== currentUser.id ? (
-                      <>
-                        <div className="text-sm font-bold mr-2">
-                          {message.from_user.nickname}
-                        </div>
-                        <div className="text-gray-500 text-xs">
-                          {formatDate(message.created_at)}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-gray-500 text-xs mr-2">
-                          {formatDate(message.created_at)}
-                        </div>
-                        <div className="text-sm font-bold">
-                          {message.from_user.nickname}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <div className="w-fit max-w-full px-2 py-2">
-                    {renderMessageContent(message)}
+          {messages.map((message) => {
+            // 已撤回消息的特殊渲染
+            if (message.status === 2) {
+              return (
+                <div key={message.id} className="flex justify-center py-2">
+                  <div className="text-gray-400 text-sm">
+                    {message.from_user.id === currentUser.id
+                      ? "你撤回了一条消息"
+                      : `${message.from_user.nickname}撤回了一条消息`}
                   </div>
                 </div>
-              </Card>
+              );
+            }
 
-              {message.from_user.id === currentUser.id && (
-                <Avatar
-                  showFallback
-                  alt={`${message.from_user.nickname}'s avatar`}
-                  className="w-8 h-8 rounded-full ml-2"
-                  name={message.from_user.nickname}
-                  src={message.from_user.avatar}
-                />
-              )}
-            </div>
-          ))}
+            // 正常消息的渲染
+            return (
+              <div
+                key={message.id}
+                className={`flex ${message.from_user.id === currentUser.id ? "justify-end" : "justify-start"}`}
+              >
+                {message.from_user.id !== currentUser.id && (
+                  <Avatar
+                    showFallback
+                    alt={`${message.from_user.nickname}'s avatar`}
+                    className="w-8 h-8 rounded-full mr-2"
+                    name={message.from_user.nickname}
+                    src={message.from_user.avatar}
+                  />
+                )}
+
+                <Card
+                  className={`border-none w-fit relative group ${message.from_user.id === currentUser.id ? "bg-blue-100" : ""}`}
+                  style={{ maxWidth: "50%" }}
+                >
+                  <div className="message p-2 w-auto">
+                    <div
+                      className={`flex ${message.from_user.id === currentUser.id ? "justify-end" : "justify-start"} px-1 items-center`}
+                    >
+                      {message.from_user.id !== currentUser.id ? (
+                        <>
+                          <div className="text-sm font-bold mr-2">
+                            {message.from_user.nickname}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            {formatDate(message.created_at)}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-gray-500 text-xs mr-2">
+                            {formatDate(message.created_at)}
+                          </div>
+                          <div className="text-sm font-bold">
+                            {message.from_user.nickname}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    <div className="max-w-full px-2 py-2">
+                      <div>{renderMessageContent(message)}</div>
+                      <div className="py-1">
+                        <div
+                          className={`absolute -bottom-1 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 rounded-lg shadow-sm p-1`}
+                        >
+                          <Tooltip content="复制" showArrow={true}>
+                            <Button
+                              isIconOnly
+                              className="w-6 h-6 min-w-6"
+                              size="sm"
+                              variant="light"
+                              onPress={() => copyMessage(message)}
+                            >
+                              <CopyIcon size={14} />
+                            </Button>
+                          </Tooltip>
+                        </div>
+
+                        {message.from_user.id === currentUser.id && (
+                          <div
+                            className={`absolute -bottom-1 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 rounded-lg shadow-sm p-1`}
+                          >
+                            <Tooltip content="撤回" showArrow={true}>
+                              <Button
+                                isIconOnly
+                                className="w-6 h-6 min-w-6"
+                                size="sm"
+                                variant="light"
+                                onPress={() => openWithdrawConfirm(message.id)}
+                              >
+                                <WithDrawIcon size={14} />
+                              </Button>
+                            </Tooltip>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {message.from_user.id === currentUser.id && (
+                  <Avatar
+                    showFallback
+                    alt={`${message.from_user.nickname}'s avatar`}
+                    className="w-8 h-8 rounded-full ml-2"
+                    name={message.from_user.nickname}
+                    src={message.from_user.avatar}
+                  />
+                )}
+              </div>
+            );
+          })}
         </ScrollShadow>
       </Card>
 
@@ -736,6 +856,22 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
           )}
         </div>
       </div>
+      <Modal isOpen={isWithdrawModalOpen} onClose={cancelWithdraw}>
+        <ModalContent>
+          <ModalHeader>确认撤回</ModalHeader>
+          <ModalBody>
+            确定要撤回这条消息吗？撤回后所有用户将看不到这条消息内容。
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={cancelWithdraw}>
+              取消
+            </Button>
+            <Button color="danger" onPress={confirmWithdraw}>
+              撤回
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };
