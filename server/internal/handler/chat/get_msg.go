@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func (c *chatHandler) GetActivityMsg(ctx *gin.Context) {
+func (c *chatHandler) GetMsg(ctx *gin.Context) {
 	aid, err := strconv.ParseInt(ctx.Param("aid"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.FailedResponse(100, err.Error()))

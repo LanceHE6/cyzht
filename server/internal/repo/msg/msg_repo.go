@@ -13,6 +13,8 @@ type RepoInterface interface {
 	SelectByID(id int64) (*model.MsgModel, error)
 	// DeleteByID 删除
 	DeleteByID(id int64) error
+	// UpdateStatus 更新消息状态
+	UpdateStatus(id int64, status uint8) error
 	// update 更新
 	update(msg *model.MsgModel) error
 
@@ -105,6 +107,18 @@ func (e *msgRepo) Insert(msg *model.MsgModel) (*model.MsgModel, error) {
 
 func (e *msgRepo) update(msg *model.MsgModel) error {
 	return e.modelDB().Save(&msg).Error
+}
+
+func (e *msgRepo) UpdateStatus(id int64, status uint8) error {
+	msg, err := e.SelectByID(id)
+	if err != nil {
+		return err
+	}
+	msg.Status = status
+	if err := e.update(msg); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewMsgRepo(dbConn *db.DBConn) RepoInterface {

@@ -7,7 +7,8 @@ import (
 
 type HandlerInterface interface {
 	SendMsg(ctx *gin.Context)
-	GetActivityMsg(ctx *gin.Context)
+	GetMsg(ctx *gin.Context)
+	WithdrawMsg(ctx *gin.Context)
 }
 
 type chatHandler struct {

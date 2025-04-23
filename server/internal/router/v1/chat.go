@@ -15,5 +15,6 @@ func RegisterChatRouter(group *gin.RouterGroup,
 ) {
 	routerGroup := group.Group("/chat")
 	routerGroup.POST("/:aid/:eid/send", middleware.Auth(), chatHandler.SendMsg)
-	routerGroup.GET("/:aid/:eid/msg", middleware.Auth(), chatHandler.GetActivityMsg)
+	routerGroup.GET("/:aid/:eid/msg", middleware.Auth(), chatHandler.GetMsg)
+	routerGroup.DELETE("/msg/:mid/withdraw", middleware.Auth(), chatHandler.WithdrawMsg)
 }
