@@ -32,7 +32,8 @@ import {
   ImageIcon,
   FileIcon,
   ChevronDownIcon,
-  CopyIcon, WithDrawIcon
+  CopyIcon,
+  WithDrawIcon,
 } from "@/components/icons.tsx";
 import { getErrorMessage } from "@/utils/error-helper.ts";
 
@@ -165,37 +166,122 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
     fetchExhibitorInfo();
   }, [eid]);
 
-  // 获取历史消息
-  const fetchMsg = async () => {
+  // 消息加载相关状态
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const pageSize = 10; // 每页消息数量
+
+  // 获取历史消息,支持分页加载
+  const fetchMsg = async (loadMore = false) => {
     try {
-      const response = await axiosInstanceWithAuth.get(
-        `/api/v1/chat/${aid}/${eid}/msg`,
-        {
-          params: { page: -1, page_size: 10 },
-        },
-      );
+      if (loadMore) {
+        setIsLoadingMore(true);
+        // 保存当前滚动位置和第一条消息的DOM元素
+        const container = messageContainerRef.current;
 
-      const parsedMessages: Message[] = response.data.data.rows.map(
-        (msg: any) => ({
-          ...msg,
-          from_user: {
-            id: msg.from_user.id,
-            nickname: msg.from_user.nickname,
-            avatar: msg.from_user.avatar,
+        if (!container) return;
+
+        const prevScrollHeight = container.scrollHeight;
+        const prevScrollTop = container.scrollTop;
+
+        // 添加延迟模拟网络请求
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        const response = await axiosInstanceWithAuth.get(
+          `/api/v1/chat/${aid}/${eid}/msg`,
+          {
+            params: {
+              page: loadMore ? page + 1 : 1,
+              page_size: pageSize,
+            },
           },
-          to_user: msg.to_user
-            ? {
-                id: msg.to_user.id,
-                nickname: msg.to_user.nickname,
-                avatar: msg.to_user.avatar,
-              }
-            : null,
-        }),
-      );
+        );
 
-      setMessages(parsedMessages);
+        const parsedMessages: Message[] = response.data.data.rows.map(
+          (msg: any) => ({
+            ...msg,
+            from_user: {
+              id: msg.from_user.id,
+              nickname: msg.from_user.nickname,
+              avatar: msg.from_user.avatar,
+            },
+            to_user: msg.to_user
+              ? {
+                  id: msg.to_user.id,
+                  nickname: msg.to_user.nickname,
+                  avatar: msg.to_user.avatar,
+                }
+              : null,
+          }),
+        );
+
+        if (loadMore) {
+          // 加载更多时，将新消息添加到前面
+          setMessages((prev) => [...parsedMessages, ...prev]);
+          setPage((prev) => prev + 1);
+          // 检查是否还有更多消息
+          setHasMore(parsedMessages.length >= pageSize);
+
+          // 在下一个渲染周期调整滚动位置
+          setTimeout(() => {
+            if (!container) return;
+            const newScrollHeight = container.scrollHeight;
+            const scrollOffset = newScrollHeight - prevScrollHeight;
+
+            container.scrollTop = prevScrollTop + scrollOffset;
+          }, 0);
+        } else {
+          // 初始加载或刷新时，直接设置消息
+          setMessages(parsedMessages);
+          setPage(1);
+          setHasMore(parsedMessages.length >= pageSize);
+          // 初始加载后滚动到底部
+          setTimeout(() => scrollToBottom("auto"), 100);
+        }
+      } else {
+        // 非加载更多的情况（初始加载）
+        setIsUploading(true);
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        const response = await axiosInstanceWithAuth.get(
+          `/api/v1/chat/${aid}/${eid}/msg`,
+          {
+            params: {
+              page: 1,
+              page_size: pageSize,
+            },
+          },
+        );
+
+        const parsedMessages: Message[] = response.data.data.rows.map(
+          (msg: any) => ({
+            ...msg,
+            from_user: {
+              id: msg.from_user.id,
+              nickname: msg.from_user.nickname,
+              avatar: msg.from_user.avatar,
+            },
+            to_user: msg.to_user
+              ? {
+                  id: msg.to_user.id,
+                  nickname: msg.to_user.nickname,
+                  avatar: msg.to_user.avatar,
+                }
+              : null,
+          }),
+        );
+
+        setMessages(parsedMessages);
+        setPage(1);
+        setHasMore(parsedMessages.length >= pageSize);
+        setTimeout(() => scrollToBottom("auto"), 100);
+      }
     } catch (error) {
       Toast.danger("获取消息失败", getErrorMessage(error));
+    } finally {
+      setIsLoadingMore(false);
+      setIsUploading(false);
     }
   };
 
@@ -228,9 +314,20 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   }, []);
 
   // 处理滚动事件
+  // 修改handleScroll函数，添加加载更多的逻辑
   const handleScroll = useCallback(() => {
     checkIfAtBottom();
-  }, [checkIfAtBottom]);
+
+    // 检查是否滚动到顶部且没有正在加载
+    if (messageContainerRef.current && !isLoadingMore && hasMore) {
+      const { scrollTop } = messageContainerRef.current;
+      const threshold = 50; // 距离顶部多少像素触发加载
+
+      if (scrollTop < threshold) {
+        fetchMsg(true);
+      }
+    }
+  }, [checkIfAtBottom, isLoadingMore, hasMore]);
 
   // 上传文件到服务端
   const uploadFile = async (
@@ -606,6 +703,11 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
           className="space-y-6 p-4 px-10"
           onScroll={handleScroll}
         >
+          {isLoadingMore && (
+            <div className="flex justify-center py-2">
+              <Spinner size="sm" />
+            </div>
+          )}
           {messages.map((message) => {
             // 已撤回消息的特殊渲染
             if (message.status === 2) {
