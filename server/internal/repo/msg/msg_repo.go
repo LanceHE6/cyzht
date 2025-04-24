@@ -32,7 +32,10 @@ type msgRepo struct {
 // 使用option模式
 // 使用示例: GetMsg(WithPage(&page,&limit))
 func (e *msgRepo) GetMsg(activityID, exhibitorID int64, params ...PagingParams) (*[]model.MsgModel, int, error) {
-	db := e.modelDB().Where("activity_id = ? AND exhibitor_id = ?", activityID, exhibitorID)
+	// 先按创建时间降序获取最新的消息
+	db := e.modelDB().Where("activity_id = ? AND exhibitor_id = ?", activityID, exhibitorID).
+		Order("created_at DESC")
+
 	for _, param := range params {
 		db = param(db)
 	}
@@ -47,6 +50,11 @@ func (e *msgRepo) GetMsg(activityID, exhibitorID int64, params ...PagingParams) 
 
 	if err := db.Find(&msgs).Error; err != nil {
 		return nil, 0, err
+	}
+
+	// 反转结果顺序，使其按自然顺序返回
+	for i, j := 0, len(msgs)-1; i < j; i, j = i+1, j-1 {
+		msgs[i], msgs[j] = msgs[j], msgs[i]
 	}
 
 	return &msgs, total, nil
