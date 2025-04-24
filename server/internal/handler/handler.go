@@ -39,7 +39,7 @@ func InitHandler(c *config.Config, repo *repo.Repo) *Handler {
 					repo.VerifyCodeRepo,
 					repo.ActivityUserRepo,
 				),
-				ActivityHandler:  activity.NewActivityHandler(repo.ActivityRepo, repo.ActivityUserRepo),
+				ActivityHandler:  activity.NewActivityHandler(repo.ActivityRepo, repo.ActivityUserRepo, repo.ActivityNoticeRepo),
 				ExhibitorHandler: exhibitor.NewExhibitorHandler(repo.ExhibitorRepo, repo.ExhibitorUserRepo),
 				ChatHandler:      chat.NewChatHandler(repo.MsgRepo),
 				UploadHandler:    upload.NewUploadHandler(c, repo.FileRpcServer),

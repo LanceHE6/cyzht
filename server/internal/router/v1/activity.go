@@ -21,4 +21,8 @@ func RegisterActivityRouter(group *gin.RouterGroup,
 	routerGroup.POST("/:aid/withdraw", middleware.Auth(), activityHandler.WithdrawActivity)
 	routerGroup.GET("/joined", middleware.Auth(), activityHandler.GetJoinedActivity)
 	routerGroup.GET("/:aid/joined", middleware.Auth(), activityHandler.GetJoinedUser)
+	routerGroup.POST("/:aid/notice/publish", middleware.Auth(), activityHandler.PublishNotice)
+	routerGroup.PUT("/notice/:nid/update", middleware.Auth(), activityHandler.UpdateNotice)
+	routerGroup.GET("/:aid/notices", middleware.Auth(), activityHandler.GetNotices)
+	routerGroup.DELETE("/notice/:nid/del", middleware.Auth(), activityHandler.DeleteNotice)
 }

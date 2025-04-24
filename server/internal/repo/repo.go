@@ -4,6 +4,7 @@ import (
 	"server/internal/config"
 	"server/internal/db"
 	"server/internal/repo/activity"
+	"server/internal/repo/activitynotice"
 	"server/internal/repo/activityuser"
 	"server/internal/repo/exhibitor"
 	"server/internal/repo/exhibitoruser"
@@ -17,13 +18,14 @@ import (
 type Repo struct {
 	FileRpcServer file_server.FileServiceClient
 
-	UserRepo          user.RepoInterface
-	VerifyCodeRepo    verifycode.RepoInterface
-	ActivityRepo      activity.RepoInterface
-	ExhibitorRepo     exhibitor.RepoInterface
-	MsgRepo           msg.RepoInterface
-	ActivityUserRepo  activityuser.RepoInterface
-	ExhibitorUserRepo exhibitoruser.RepoInterface
+	UserRepo           user.RepoInterface
+	VerifyCodeRepo     verifycode.RepoInterface
+	ActivityRepo       activity.RepoInterface
+	ExhibitorRepo      exhibitor.RepoInterface
+	MsgRepo            msg.RepoInterface
+	ActivityUserRepo   activityuser.RepoInterface
+	ExhibitorUserRepo  exhibitoruser.RepoInterface
+	ActivityNoticeRepo activitynotice.RepoInterface
 }
 
 // repo 全局repo单例
@@ -36,14 +38,15 @@ func InitRepo(c *config.Config, conn *db.DBConn, fileRpcServer file_server.FileS
 		once.Do(func() {
 
 			repo = &Repo{
-				FileRpcServer:     fileRpcServer,
-				UserRepo:          user.NewUserRepo(c, conn, fileRpcServer),
-				VerifyCodeRepo:    verifycode.NewVerifyCodeRepo(conn),
-				ActivityRepo:      activity.NewActivityRepo(c, conn, fileRpcServer),
-				ExhibitorRepo:     exhibitor.NewExhibitorRepo(conn),
-				MsgRepo:           msg.NewMsgRepo(conn),
-				ActivityUserRepo:  activityuser.NewActivityUserRepo(c, conn, fileRpcServer),
-				ExhibitorUserRepo: exhibitoruser.NewExhibitorUserRepo(conn),
+				FileRpcServer:      fileRpcServer,
+				UserRepo:           user.NewUserRepo(c, conn, fileRpcServer),
+				VerifyCodeRepo:     verifycode.NewVerifyCodeRepo(conn),
+				ActivityRepo:       activity.NewActivityRepo(c, conn, fileRpcServer),
+				ExhibitorRepo:      exhibitor.NewExhibitorRepo(conn),
+				MsgRepo:            msg.NewMsgRepo(conn),
+				ActivityUserRepo:   activityuser.NewActivityUserRepo(c, conn, fileRpcServer),
+				ExhibitorUserRepo:  exhibitoruser.NewExhibitorUserRepo(conn),
+				ActivityNoticeRepo: activitynotice.NewActivityNoticeRepo(conn),
 			}
 		})
 	}
