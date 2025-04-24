@@ -15,6 +15,7 @@ import {
   ListboxItem,
   Divider,
   useDisclosure,
+  Chip,
 } from "@heroui/react";
 import { useEffect, useState } from "react";
 
@@ -22,10 +23,11 @@ import {
   AddExhibitorModal,
   ActivityInfoModal,
   ConfirmModal,
+  NoticeModal,
 } from "./exhibitor-modal.tsx"; // 引入抽离的模态框组件
 
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
-import { SelectionIcon } from "@/components/icons.tsx";
+import { HallIcon, NoticeIcon, SelectionIcon } from "@/components/icons.tsx";
 import { Toast } from "@/utils/utils.ts";
 import { LocalStorage } from "@/utils/utils.ts"; // 假设 LocalStorage 从这里导入
 
@@ -48,6 +50,19 @@ interface JoinedExhibitor {
   id: string;
   exhibitor: Exhibitor;
   role: number;
+}
+
+// 公告接口定义
+export interface Notice {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  creator: {
+    id: string;
+    nickname: string;
+    avatar: string;
+  };
 }
 
 const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
@@ -85,9 +100,37 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
     exhibitorId: null,
   });
 
-  //状态变量用于管理结束展会和退出展会的确认模态框
+  //结束展会和退出展会的确认模态框
   const [endActivityModal, setEndActivityModal] = useState(false);
   const [withdrawActivityModal, setWithdrawActivityModal] = useState(false);
+  // 新增公告相关状态
+  const [notices, setNotices] = useState<Notice[]>([]);
+
+  const {
+    isOpen: isNoticeOpen,
+    onOpen: onNoticeOpen,
+    onClose: onNoticeClose,
+  } = useDisclosure();
+
+  // 获取用户角色
+  const getUserRole = (): number => {
+    if (isCreator) return 3; // 创建者最高权限
+
+    return joinedExhibitors.reduce((max, item) => Math.max(max, item.role), 0);
+  };
+
+  // 获取公告列表
+  const fetchNotices = async () => {
+    try {
+      const res = await axiosInstanceWithAuth.get(
+        `/api/v1/activity/${aid}/notices`,
+      );
+
+      setNotices(res.data.data.rows || []);
+    } catch (error) {
+      Toast.danger("获取公告失败", "请稍后再试");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -153,6 +196,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
     fetchData().then(() => {
       console.log("数据加载完成");
     });
+    fetchNotices();
   }, [aid]);
 
   // 判断是否为已加入的参展商
@@ -407,7 +451,8 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
       <Divider className="my-0" />
       <Listbox>
         <ListboxItem
-          className="flex items-center justify-between"
+          className="flex items-center"
+          startContent={<HallIcon size={32} />}
           textValue="展会大厅"
           onPress={() => handleExhibitorClick(null)}
         >
@@ -415,7 +460,28 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
             <p className="font-medium text-medium truncate">展会大厅</p>
           </div>
         </ListboxItem>
+        <ListboxItem
+          className="flex items-center"
+          endContent={<Chip color="primary">{notices.length}</Chip>}
+          startContent={<NoticeIcon size={32} />}
+          textValue="公告"
+          onPress={onNoticeOpen}
+        >
+          <div className="flex items-center w-full">
+            <p className="font-medium text-medium truncate">公告</p>
+          </div>
+        </ListboxItem>
       </Listbox>
+      {/* 新增公告模态框 */}
+      <NoticeModal
+        aid={aid}
+        isOpen={isNoticeOpen}
+        notices={notices}
+        userRole={getUserRole()}
+        onClose={onNoticeClose}
+        onRefresh={fetchNotices}
+      />
+
       <Divider className="my-0" />
       <Accordion selectionMode="multiple" variant="light">
         <AccordionItem
@@ -595,7 +661,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
         }
       />
 
-      {/* 新增：确认结束展会模态框 */}
+      {/* 确认结束展会模态框 */}
       <ConfirmModal
         isOpen={endActivityModal}
         message="您确定要结束该展会吗？"
@@ -604,7 +670,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
         onConfirm={handleConfirmEndActivity}
       />
 
-      {/* 新增：确认退出展会模态框 */}
+      {/* 确认退出展会模态框 */}
       <ConfirmModal
         isOpen={withdrawActivityModal}
         message="您确定要退出该展会吗？"
