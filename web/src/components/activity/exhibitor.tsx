@@ -425,8 +425,8 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
                 </>
               ) : (
                 <>
-                  <DropdownItem key="join" onPress={() => handleJoinClick(aid)}>
-                    申请参展商
+                  <DropdownItem key="join" onPress={onOpen}>
+                    添加参展商
                   </DropdownItem>
                   <DropdownItem
                     key="info"
@@ -607,7 +607,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
                               color="primary"
                               onPress={() => handleJoinClick(item.id)}
                             >
-                              申请加入
+                              加入
                             </DropdownItem>
                             <DropdownItem key="info">详情</DropdownItem>
                           </DropdownMenu>
