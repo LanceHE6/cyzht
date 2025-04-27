@@ -5,8 +5,7 @@ import (
 )
 
 type Repo struct {
-	UserAvatarRepo UserAvatarRepoInterface
-	FileRepo       FileRepoInterface
+	FileRepo FileRepoInterface
 }
 
 func NewRepository(db *gorm.DB) *Repo {
