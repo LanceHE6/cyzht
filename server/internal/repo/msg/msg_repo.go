@@ -118,15 +118,7 @@ func (e *msgRepo) update(msg *model.MsgModel) error {
 }
 
 func (e *msgRepo) UpdateStatus(id int64, status uint8) error {
-	msg, err := e.SelectByID(id)
-	if err != nil {
-		return err
-	}
-	msg.Status = status
-	if err := e.update(msg); err != nil {
-		return err
-	}
-	return nil
+	return e.modelDB().Where("id = ?", id).Update("status", status).Error
 }
 
 func NewMsgRepo(dbConn *db.DBConn) RepoInterface {
