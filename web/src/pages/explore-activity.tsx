@@ -21,10 +21,15 @@ import { Activity } from "@/pages/activity.tsx";
 interface ActivityCardProps {
   activity: any;
   onAddNewTab: (tab: any) => void;
+  setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // ActivityCard 展会展示卡片
-const ActivityCard = ({ activity, onAddNewTab }: ActivityCardProps) => {
+const ActivityCard = ({
+  activity,
+  onAddNewTab,
+  setIsMenuVisible,
+}: ActivityCardProps) => {
   const handleViewClick = () => {
     const newTab = {
       key: activity.id,
@@ -39,60 +44,70 @@ const ActivityCard = ({ activity, onAddNewTab }: ActivityCardProps) => {
       ) : (
         <DefaultActivityIcon />
       ),
-      component: <Activity aid={activity.id} />,
+      component: (
+        <Activity aid={activity.id} setIsMenuVisible={setIsMenuVisible} />
+      ),
     };
 
     onAddNewTab(newTab);
   };
 
   return (
-    <Card key={activity.id} isFooterBlurred className="py-1">
-      <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
-        <h4 className="font-bold text-large">{activity.name}</h4>
-        <p className="text-tiny uppercase font-bold">
-          时间: {formatDate(activity.start_at)} - {formatDate(activity.end_at)}
-        </p>
-      </CardHeader>
-      <Spacer y={2} />
-      <Image
-        removeWrapper
-        alt="Card background"
-        className="object-cover rounded-xl h-full"
-        src={
-          activity.icon
-            ? activity.icon
-            : "https://heroui.com/images/hero-card.jpeg"
-        }
-      />
-      <CardFooter className="absolute bg-black/40 bottom-0 z-10 border-t-1 border-default-600 dark:border-default-100 h-1/5">
-        <div className="flex flex-grow gap-2 items-center">
+    <div className="h-full">
+      <Card key={activity.id} isFooterBlurred className="py-1 xs:h-5/6 h-5/6">
+        <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+          <h4 className="font-bold text-large">{activity.name}</h4>
+          <p className="text-tiny uppercase font-bold">
+            时间: {formatDate(activity.start_at)} -{" "}
+            {formatDate(activity.end_at)}
+          </p>
           <Image
-            alt="activity icon"
-            className="rounded-full w-10 h-11 bg-black"
+            removeWrapper
+            alt="Card background"
+            className="object-cover rounded-xl h-full"
             src={
-              activity.creator.avatar
-                ? activity.creator.avatar
+              activity.icon
+                ? activity.icon
                 : "https://heroui.com/images/hero-card.jpeg"
             }
           />
-          <div className="flex flex-col">
-            <p className="text-tiny text-white/60">
-              {activity.creator.nickname}
-            </p>
+        </CardHeader>
+        <Spacer y={2} />
+
+        <CardFooter className="absolute bg-black/40 bottom-0 z-10 border-t-1 border-default-600 dark:border-default-100 h-1/5">
+          <div className="flex flex-grow gap-2 items-center">
+            <Avatar
+              alt="activity icon"
+              className="rounded-full w-10 h-11 bg-black"
+              src={
+                activity.creator.avatar
+                  ? activity.creator.avatar
+                  : "https://heroui.com/images/hero-card.jpeg"
+              }
+            />
+            <div className="flex flex-col">
+              <p className="text-tiny text-white/60">
+                {activity.creator.nickname}
+              </p>
+            </div>
           </div>
-        </div>
-        <Button radius="full" size="sm" onPress={handleViewClick}>
-          查看
-        </Button>
-      </CardFooter>
-    </Card>
+          <Button radius="full" size="sm" onPress={handleViewClick}>
+            查看
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
 
 interface ExploreActivityProps {
   onAddNewTab: (tab: any) => void;
+  setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
-export const ExploreActivity = ({ onAddNewTab }: ExploreActivityProps) => {
+export const ExploreActivity = ({
+  onAddNewTab,
+  setIsMenuVisible,
+}: ExploreActivityProps) => {
   // 展会数据
   const [notStartedActivities, setNotStartedActivities] = useState<any[]>([]);
   const [inProgressActivities, setInProgressActivities] = useState<any[]>([]);
@@ -153,7 +168,7 @@ export const ExploreActivity = ({ onAddNewTab }: ExploreActivityProps) => {
   return (
     <ScrollShadow hideScrollBar className="">
       <div className="w-full h-full flex flex-col items-center justify-start pt-20">
-        <div className="w-full max-w-md mb-10">
+        <div className="xs:w-full w-9/12 max-w-md mb-10">
           <Input
             isClearable
             aria-label="Search"
@@ -183,11 +198,12 @@ export const ExploreActivity = ({ onAddNewTab }: ExploreActivityProps) => {
               <h2 className="font-bold text-[32px] text-left">未开始</h2>
             </div>
             <Spacer y={10} />
-            <div className="w-full grid grid-cols-6 gap-4 px-10">
+            <div className="w-full grid xs:grid-cols-6 gap-4 xs:px-10 px-6">
               {notStartedActivities.map((activity, index) => (
                 <ActivityCard
                   key={index}
                   activity={activity}
+                  setIsMenuVisible={setIsMenuVisible}
                   onAddNewTab={onAddNewTab}
                 />
               ))}
@@ -203,11 +219,12 @@ export const ExploreActivity = ({ onAddNewTab }: ExploreActivityProps) => {
               <h2 className="font-bold text-[32px] text-left">进行中</h2>
             </div>
             <Spacer y={10} />
-            <div className="w-full grid grid-cols-6 gap-4 px-10">
+            <div className="w-full grid xs:grid-cols-6 gap-4 xs:px-10 px-2">
               {inProgressActivities.map((activity, index) => (
                 <ActivityCard
                   key={index}
                   activity={activity}
+                  setIsMenuVisible={setIsMenuVisible}
                   onAddNewTab={onAddNewTab}
                 />
               ))}
@@ -223,11 +240,12 @@ export const ExploreActivity = ({ onAddNewTab }: ExploreActivityProps) => {
               <h2 className="font-bold text-[32px] text-left">已结束</h2>
             </div>
             <Spacer y={10} />
-            <div className="w-full grid grid-cols-6 gap-4 px-10">
+            <div className="w-full grid xs:grid-cols-6 xs:px-10 px-2">
               {completedActivities.map((activity, index) => (
                 <ActivityCard
                   key={index}
                   activity={activity}
+                  setIsMenuVisible={setIsMenuVisible}
                   onAddNewTab={onAddNewTab}
                 />
               ))}

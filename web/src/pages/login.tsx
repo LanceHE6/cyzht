@@ -10,13 +10,13 @@ export default function Login() {
   return (
     <DefaultLayout>
       <div className="flex items-center justify-center h-screen bg-[#e3fdfd] ">
-        <Card isBlurred className="card w-3/4 h-5/6 min-w-96">
-          <CardBody className="grid grid-cols-2 gap-4 overflow-hidden py-0 px-0">
+        <Card isBlurred className="card w-3/4 h-3/4 xs:h-5/6 min-w-96">
+          <CardBody className="xs:grid grid-cols-2 gap-4 overflow-hidden py-0 px-0">
             <Image
               isBlurred
               isZoomed
               alt="Card background"
-              className="w-full h-auto min-h-full"
+              className="hidden xs:block w-full h-auto min-h-full"
               radius={"none"}
               src={cover1}
             />

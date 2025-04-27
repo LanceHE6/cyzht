@@ -71,7 +71,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
           isBordered
           as="button"
           className="cursor-pointer"
-          size="lg"
+          size="md"
           src={user.avatar}
         />,
       );

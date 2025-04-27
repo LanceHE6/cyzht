@@ -11,6 +11,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: '480px',
+      },
       gridTemplateColumns: {
         "16": 'repeat(16, minmax(0, 1fr))',
         "24": 'repeat(24, minmax(0, 1fr))',

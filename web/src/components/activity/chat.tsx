@@ -34,6 +34,8 @@ import {
   ChevronDownIcon,
   CopyIcon,
   WithDrawIcon,
+  BackIcon,
+  FriendsIcon,
 } from "@/components/icons.tsx";
 import { getErrorMessage } from "@/utils/error-helper.ts";
 
@@ -87,6 +89,10 @@ interface Message {
 export interface ChatProps {
   aid: string;
   eid: string | null;
+  setMobileView: React.Dispatch<
+    React.SetStateAction<"exhibitors" | "chat" | "member">
+  >;
+  onBack: () => void;
 }
 
 const Chat: React.FC<ChatProps> = (props: ChatProps) => {
@@ -103,7 +109,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
-  let { aid, eid } = props;
+  let { aid, eid, onBack, setMobileView } = props;
   const aidRef = useRef(aid);
   const eidRef = useRef(eid);
   const [exhibitorName, setExhibitorName] = useState<string | null>(null);
@@ -686,21 +692,41 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   };
 
   return (
-    <>
+    <div className="h-full flex flex-col">
       {/* 聊天室标题 */}
-      <div className="sticky top-0 z-10 flex justify-between items-center p-4 px-10 bg-white border-b border-gray-200">
+      <div className="sticky top-0 z-10 flex items-center justify-between p-4 px-4 bg-white border-b border-gray-200">
+        <Button
+          isIconOnly
+          className="xs:hidden justify-start"
+          size="sm"
+          variant={"light"}
+          onPress={() => {
+            onBack();
+          }}
+        >
+          <BackIcon size={24} />
+        </Button>
         <div className="text-xl font-bold">
-          {exhibitorName ? exhibitorName : "展会大厅"}
+          {exhibitorName ? exhibitorName : `展会大厅`}
         </div>
+        <Button
+          isIconOnly
+          className="xs:hidden justify-end"
+          size="sm"
+          variant={"light"}
+          onPress={() => setMobileView("member")}
+        >
+          <FriendsIcon size={24} />
+        </Button>
       </div>
-      <Divider className="" />
+      <Divider />
 
       {/* 聊天消息区域 */}
-      <Card className="flex flex-col flex-grow overflow-y-auto" radius="none">
+      <Card className="flex flex-col h-full" radius="none">
         <ScrollShadow
           ref={messageContainerRef}
           hideScrollBar
-          className="space-y-6 p-4 px-10"
+          className="space-y-6 p-4 px-2 xs:px-10 h-full"
           onScroll={handleScroll}
         >
           {isLoadingMore && (
@@ -974,7 +1000,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </>
+    </div>
   );
 };
 

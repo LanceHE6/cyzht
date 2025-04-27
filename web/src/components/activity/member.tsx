@@ -1,6 +1,7 @@
 import {
   Avatar,
   Badge,
+  Button,
   Card,
   CardBody,
   CardHeader,
@@ -19,6 +20,7 @@ import React, { useEffect, useState } from "react";
 
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
 import { Toast } from "@/utils/utils.ts";
+import { BackIcon } from "@/components/icons.tsx";
 
 interface MemberData {
   id: string;
@@ -31,9 +33,10 @@ interface MemberData {
 export interface MemberProps {
   aid: string;
   eid: string | null;
+  onBack: () => void;
 }
 const Member: React.FC<MemberProps> = (props: MemberProps) => {
-  let { aid, eid } = props;
+  let { aid, eid, onBack } = props;
   const [members, setMembers] = useState<MemberData[]>([]);
   // 获取成员列表数据
   const fetchMembers = async (aid: string, eid: string | null) => {
@@ -78,6 +81,15 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
 
   return (
     <>
+      <Button
+        isIconOnly
+        className="xs:hidden justify-start"
+        size="sm"
+        variant={"light"}
+        onPress={() => onBack()}
+      >
+        <BackIcon size={24} />
+      </Button>
       <Table
         isHeaderSticky
         removeWrapper

@@ -9,7 +9,9 @@ export default function DefaultLayout({
 }) {
   return (
     <div className="relative flex flex-col h-screen w-screen bg-[#e3fdfd]">
-      <main className="w-5/6 h-full flex-grow mx-auto">{children}</main>
+      <main className="w-full sm:w-5/6 h-full flex-grow mx-auto">
+        {children}
+      </main>
       {/*<footer className="w-full flex items-center justify-center py-3">*/}
       {/*  <Link*/}
       {/*    isExternal*/}
