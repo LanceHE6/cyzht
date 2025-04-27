@@ -20,6 +20,9 @@ export class WebSocketManager {
 
   // 连接 WebSocket
   private connect() {
+    if (typeof WebSocket === "undefined") {
+      alert("当前浏览器不支持WebSocket");
+    }
     // 延迟初始化
     const token = this.localStorage?.getToken();
 
@@ -66,6 +69,7 @@ export class WebSocketManager {
       // 其他业务消息
       try {
         const parsedMessage = JSON.parse(message);
+
         this.messageHandlers.forEach((handler) => handler(parsedMessage));
       } catch (error) {
         console.error("Failed to parse WebSocket message:", error);
