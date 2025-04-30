@@ -7,7 +7,7 @@ export class WebSocketManager {
   private ws: WebSocket | null = null;
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private reconnectTimeout: NodeJS.Timeout | null = null;
-  private readonly reconnectDelay: number = 5000; // 重连延迟时间，单位：毫秒
+  private readonly reconnectDelay: number = 2000; // 重连延迟时间，单位：毫秒
   private readonly heartbeatIntervalTime: number = 5000; // 心跳间隔时间，单位：毫秒
   private localStorage: LocalStorageManager | null = null;
   private messageHandlers: ((message: any) => void)[] = []; // 消息处理回调数组
