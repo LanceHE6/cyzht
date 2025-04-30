@@ -1,60 +1,102 @@
+import React, {
+  useState,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { Card } from "@heroui/react";
-import { useState } from "react";
 
 import Chat from "@/components/activity/chat.tsx";
 import Member from "@/components/activity/member.tsx";
 import Exhibitor from "@/components/activity/exhibitor.tsx";
+import { LocalStorage } from "@/utils/utils.ts";
+import { useActivityStore } from "@/store/use-activity-store.ts";
 
-export const Activity = ({
-  aid,
-  setIsMenuVisible,
-}: {
-  aid: string;
-  setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
+export interface ActivityRef {
+  getUnreadCount: (key: string) => number;
+  setUnreadCount: (key: string, count: number) => void;
+}
+
+const Activity = forwardRef<
+  ActivityRef,
+  {
+    aid: string;
+    setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  }
+>(({ aid, setIsMenuVisible }, ref) => {
   const [selectedExhibitorId, setSelectedExhibitorId] = useState<string | null>(
     null,
   );
-  // 新增移动端视图状态，默认显示展商列表
   const [mobileView, setMobileView] = useState<
     "exhibitors" | "chat" | "member"
   >("exhibitors");
 
+  // 未读计数状态
+  const unreadCounts = useActivityStore((state) => state.unreadCounts);
+  const setUnreadCount = useActivityStore((state) => state.setUnreadCount);
+
+  // 提供给外部的方法
+  const getUnreadCount = useCallback(
+    (key: string): number => unreadCounts[key] || 0,
+    [unreadCounts],
+  );
+
+  // 暴露方法给父组件（保留 ref 接口兼容性）
+  useImperativeHandle(ref, () => ({
+    getUnreadCount,
+    setUnreadCount: (key: string, count: number) => setUnreadCount(key, count),
+  }));
+
   // 处理展商选择
   const handleExhibitorSelect = (id: string | null) => {
-    console.log("Selected Exhibitor ID:", id);
+    const exhibitorKey = id || aid;
+
     setSelectedExhibitorId(id);
-    // 移动端选择展商后切换到聊天界面
-    // xs断点为480
+    setUnreadCount(exhibitorKey, 0);
     if (window.innerWidth < 480) {
       setMobileView("chat");
-      // 并隐藏侧边栏
       setIsMenuVisible(false);
     }
   };
 
-  // 返回展商列表
+  // 处理新消息回调
+  const handleNewMessage = useCallback(
+    (message: any) => {
+      const currentUser = LocalStorage.getUser();
+
+      if (message.from_user.id === currentUser?.id) return;
+
+      const messageExhibitorKey = message.exhibitor?.id || aid;
+      const currentCount =
+        useActivityStore.getState().unreadCounts[messageExhibitorKey] || 0;
+
+      // console.log("key", messageExhibitorKey);
+      setUnreadCount(messageExhibitorKey, currentCount + 1);
+    },
+    [aid, selectedExhibitorId],
+  );
+
   const handleBackToExhibitors = () => {
     setMobileView("exhibitors");
-    // 设置状态栏可见
     setIsMenuVisible(true);
   };
-  // 返回聊天界面
   const handleBackToChat = () => {
     setMobileView("chat");
-    // 设置状态栏不可见
     setIsMenuVisible(false);
   };
 
   return (
     <div className="grid xs:grid-cols-15 grid-cols-7 w-full h-full">
-      {/* 桌面端视图 - 始终显示所有组件 */}
       {/* 展商列表 */}
       <Card
         className="xs:col-span-4 col-span-7 items-center border-b-blue-500 border-0 bg-[#F6FFFF] xs:block hidden"
         radius="none"
       >
-        <Exhibitor aid={aid} onExhibitorSelect={handleExhibitorSelect} />
+        <Exhibitor
+          aid={aid}
+          unreadCounts={unreadCounts}
+          onExhibitorSelect={handleExhibitorSelect}
+        />
       </Card>
 
       {/* 聊天界面 */}
@@ -67,6 +109,7 @@ export const Activity = ({
           eid={selectedExhibitorId}
           setMobileView={setMobileView}
           onBack={handleBackToExhibitors}
+          onNewMessage={handleNewMessage}
         />
       </Card>
 
@@ -78,34 +121,35 @@ export const Activity = ({
         <Member aid={aid} eid={selectedExhibitorId} onBack={handleBackToChat} />
       </Card>
 
-      {/* 移动端视图 - 根据状态条件渲染 */}
-      {/* 展商列表视图 */}
+      {/* 移动端视图 */}
       {mobileView === "exhibitors" && (
         <Card
           className="col-span-7 items-center border-b-blue-500 border-0 bg-[#F6FFFF] xs:hidden block"
           radius="none"
         >
-          <Exhibitor aid={aid} onExhibitorSelect={handleExhibitorSelect} />
+          <Exhibitor
+            aid={aid}
+            unreadCounts={unreadCounts}
+            onExhibitorSelect={handleExhibitorSelect}
+          />
         </Card>
       )}
 
-      {/* 聊天界面视图 */}
       {mobileView === "chat" && (
         <Card
           className="col-span-7 h-full bg-[#FFF6FF] flex-col xs:hidden block"
           radius="none"
         >
-          {/* 传递 isMenuVisible 状态到 Chat 组件 */}
           <Chat
             aid={aid}
             eid={selectedExhibitorId}
             setMobileView={setMobileView}
             onBack={handleBackToExhibitors}
+            onNewMessage={handleNewMessage}
           />
         </Card>
       )}
 
-      {/* 成员界面视图 */}
       {mobileView === "member" && (
         <Card
           className="col-span-7 h-full bg-[#FFF6FF] flex-col xs:hidden block"
@@ -120,4 +164,7 @@ export const Activity = ({
       )}
     </div>
   );
-};
+});
+
+Activity.displayName = "Activity";
+export default Activity;

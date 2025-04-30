@@ -10,13 +10,13 @@ import {
   Button,
   Avatar,
 } from "@heroui/react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { DefaultActivityIcon, SearchIcon } from "@/components/icons.tsx";
 import { axiosInstance } from "@/utils/axios-instance.ts";
 import { Toast } from "@/utils/utils.ts";
 import { formatDate } from "@/utils/datetime.ts";
-import { Activity } from "@/pages/activity.tsx";
+import Activity from "@/pages/activity.tsx";
 
 interface ActivityCardProps {
   activity: any;
@@ -53,7 +53,7 @@ const ActivityCard = ({
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full px-4">
       <Card key={activity.id} isFooterBlurred className="py-1 xs:h-5/6 h-5/6">
         <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
           <h4 className="font-bold text-large">{activity.name}</h4>
@@ -219,7 +219,7 @@ export const ExploreActivity = ({
               <h2 className="font-bold text-[32px] text-left">进行中</h2>
             </div>
             <Spacer y={10} />
-            <div className="w-full grid xs:grid-cols-6 gap-4 xs:px-10 px-2">
+            <div className="w-full grid xs:grid-cols-6 gap-4 xs:px-10 px-6">
               {inProgressActivities.map((activity, index) => (
                 <ActivityCard
                   key={index}
@@ -240,7 +240,7 @@ export const ExploreActivity = ({
               <h2 className="font-bold text-[32px] text-left">已结束</h2>
             </div>
             <Spacer y={10} />
-            <div className="w-full grid xs:grid-cols-6 xs:px-10 px-2">
+            <div className="w-full grid xs:grid-cols-6 xs:px-10 px-6">
               {completedActivities.map((activity, index) => (
                 <ActivityCard
                   key={index}

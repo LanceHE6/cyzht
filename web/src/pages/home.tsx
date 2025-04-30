@@ -10,6 +10,15 @@ import {
   Tab,
   Tabs,
   Tooltip,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Input,
+  Checkbox,
+  useDisclosure,
+  Badge,
 } from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -29,17 +38,37 @@ import {
 } from "@/utils/axios-instance.ts";
 import { AddActivity } from "@/components/add-activity.tsx";
 import { ExploreActivity } from "@/pages/explore-activity.tsx";
-import { Activity } from "@/pages/activity.tsx";
+import Activity from "@/pages/activity.tsx";
 import { getErrorMessage } from "@/utils/error-helper.ts";
+import { useActivityStore } from "@/store/use-activity-store.ts";
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("explore");
   const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
   const [user, setUser] = useState<any>(LocalStorage.getUser());
-  // 控制移动端菜单栏的显示与隐藏
   const [isMenuVisible, setIsMenuVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+
+  const { unreadCounts } = useActivityStore();
+
+  // 设置模态框
+  const {
+    isOpen: isSettingsOpen,
+    onOpen: onSettingsOpen,
+    onClose: onSettingsClose,
+  } = useDisclosure();
+  const [settingsTab, setSettingsTab] = useState("general");
+  const {
+    isOpen: isChangePasswordOpen,
+    onOpen: onChangePasswordOpen,
+    onClose: onChangePasswordClose,
+  } = useDisclosure();
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   // 获取已加入展会列表
   const fetchJoinedActivities = async () => {
@@ -51,12 +80,7 @@ export default function HomePage() {
       key: activityUser.activity.id,
       title: activityUser.activity.name,
       icon: activityUser.activity.icon ? (
-        <Avatar
-          isBordered
-          className="cursor-pointer"
-          size="sm"
-          src={activityUser.activity.icon}
-        />
+        <Avatar isBordered size="sm" src={activityUser.activity.icon} />
       ) : (
         <DefaultActivityIcon />
       ),
@@ -69,7 +93,6 @@ export default function HomePage() {
     }));
 
     setBaseMenuTabs((prevBaseTabs) => {
-      // 确保不重复添加,防止useEffect多次触发
       const existingKeys = new Set(prevBaseTabs.map((tab) => tab.key));
       const newTabs = joinedTabs.filter((tab) => !existingKeys.has(tab.key));
 
@@ -88,11 +111,10 @@ export default function HomePage() {
     setUser(user);
     fetchJoinedActivities();
   }, []);
-  // 额外tabs用于发现展会页面点击跳转
+
   const [extraTabs, setExtraTabs] = useState<any[]>([]);
-  // 处理添加新tab
+
   const handleAddNewTab = (newTab: any) => {
-    // 使用函数式更新来确保总是获取最新的 baseMenuTabs
     setBaseMenuTabs((prevBaseTabs) => {
       const tabExists = [...prevBaseTabs, ...extraTabs].some(
         (tab) => tab.key === newTab.key,
@@ -102,14 +124,12 @@ export default function HomePage() {
         setExtraTabs((prevExtraTabs) => [...prevExtraTabs, newTab]);
       }
 
-      return prevBaseTabs; // 保持 baseMenuTabs 不变
+      return prevBaseTabs;
     });
 
-    // 切换到新tab
     setSelectedTab(newTab.key);
   };
 
-  // 分离基础tabs和额外tabs
   const [baseMenuTabs, setBaseMenuTabs] = useState([
     {
       key: "explore",
@@ -124,9 +144,8 @@ export default function HomePage() {
     },
   ]);
 
-  // 合并后的tabs
   const menuTabs = [...baseMenuTabs, ...extraTabs];
-  // 获取已加入展会列表请求函数
+
   const getJoinedActivities = async (): Promise<any[]> => {
     try {
       const response = await axiosInstanceWithAuth.get(
@@ -151,31 +170,69 @@ export default function HomePage() {
     }
   };
 
-  // 用于刷新数据的回调函数
   const handleRefreshData = async () => {
     console.log("刷新数据");
-    // 添加一段延迟
     setTimeout(async () => {
       fetchJoinedActivities();
     }, 1000);
   };
-  // 登出
+
   const logout = () => {
     LocalStorage.removeToken();
     LocalStorage.removeUser();
-    WebSocketClient.close(); // 关闭ws连接
+    WebSocketClient.close();
     navigate("/login");
   };
 
-  // 渲染当前选中的 Tab 的组件
+  // 修改密码请求
+  const handlePasswordChange = async () => {
+    if (!passwordData.oldPassword) {
+      Toast.danger("修改密码失败", "请输入旧密码");
+
+      return;
+    }
+    if (!passwordData.newPassword) {
+      Toast.danger("修改密码失败", "请输入新密码");
+
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      Toast.danger("修改密码失败", "新密码与确认密码不一致");
+
+      return;
+    }
+
+    try {
+      const response = await axiosInstanceWithAuth.put(
+        "/api/v1/user/update/psw",
+        {
+          old_password: passwordData.oldPassword,
+          new_password: passwordData.newPassword,
+        },
+      );
+
+      if (response.data.code !== 0) {
+        Toast.danger("修改密码失败", response.data.msg);
+
+        return;
+      }
+
+      Toast.success("修改密码成功", "请重新登录");
+      onChangePasswordClose();
+      onSettingsClose();
+      // 添加延时
+      setTimeout(() => {
+        logout();
+      }, 2000);
+    } catch (error) {
+      Toast.danger("修改密码失败", getErrorMessage(error));
+    }
+  };
+
   const renderSelectedComponent = () => {
     const selectedTabItem = menuTabs.find((tab) => tab.key === selectedTab);
 
-    if (selectedTabItem) {
-      return selectedTabItem.component;
-    }
-
-    return null;
+    return selectedTabItem ? selectedTabItem.component : null;
   };
 
   return (
@@ -191,9 +248,7 @@ export default function HomePage() {
                 className="menus flex items-center col-span-1 py-2 bg-[#cbf1f5]"
                 radius="none"
               >
-                {/*<text className="text-medium justify-self-center">重邮展会通</text>*/}
                 <Spacer y={4} />
-
                 {user && <UserProfilePopover user={user} />}
                 <Spacer y={4} />
                 <div className="w-full max-w-[260px] py-2 flex-grow">
@@ -205,24 +260,31 @@ export default function HomePage() {
                     variant="light"
                     onSelectionChange={(key) => setSelectedTab(key as string)}
                   >
-                    {menuTabs.map((item) => (
-                      <Tab
-                        key={item.key}
-                        className={"h-full w-5/6"}
-                        title={
-                          <Tooltip
-                            key={item.key}
-                            showArrow
-                            color="default"
-                            content={item.title}
-                            offset={15}
-                            placement={"right"}
-                          >
-                            <div>{item.icon}</div>
-                          </Tooltip>
-                        }
-                      />
-                    ))}
+                    {menuTabs.map((item) => {
+                      return (
+                        <Tab
+                          key={item.key}
+                          className={"h-full w-full"}
+                          title={
+                            <Tooltip
+                              showArrow
+                              color="default"
+                              content={item.title}
+                              offset={15}
+                              placement={"right"}
+                            >
+                              <Badge
+                                color={"danger"}
+                                content={unreadCounts[item.key]}
+                                isInvisible={!(unreadCounts[item.key] > 0)}
+                              >
+                                <div className={"py-1"}>{item.icon}</div>
+                              </Badge>
+                            </Tooltip>
+                          }
+                        />
+                      );
+                    })}
                   </Tabs>
                   <Spacer y={4} />
                   <Button
@@ -260,7 +322,9 @@ export default function HomePage() {
                       </Button>
                     </DropdownTrigger>
                     <DropdownMenu aria-label="Static Actions">
-                      <DropdownItem key="setting">设置</DropdownItem>
+                      <DropdownItem key="setting" onPress={onSettingsOpen}>
+                        设置
+                      </DropdownItem>
                       <DropdownItem key="about">关于</DropdownItem>
                       <DropdownItem
                         key="logout"
@@ -295,9 +359,7 @@ export default function HomePage() {
               className="menus flex items-center col-span-1 py-2 bg-[#cbf1f5]"
               radius="none"
             >
-              {/*<text className="text-medium justify-self-center">重邮展会通</text>*/}
               <Spacer y={4} />
-
               {user && <UserProfilePopover user={user} />}
               <Spacer y={4} />
               <div className="w-full max-w-[260px] py-2 flex-grow">
@@ -315,14 +377,19 @@ export default function HomePage() {
                       className={"h-full w-5/6"}
                       title={
                         <Tooltip
-                          key={item.key}
                           showArrow
                           color="default"
                           content={item.title}
                           offset={15}
                           placement={"right"}
                         >
-                          <div>{item.icon}</div>
+                          <Badge
+                            color={"danger"}
+                            content={unreadCounts[item.key]}
+                            isInvisible={!(unreadCounts[item.key] > 0)}
+                          >
+                            <div className={"py-1"}>{item.icon}</div>
+                          </Badge>
                         </Tooltip>
                       }
                     />
@@ -364,8 +431,15 @@ export default function HomePage() {
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu aria-label="Static Actions">
-                    <DropdownItem key="setting">设置</DropdownItem>
-                    <DropdownItem key="about">关于</DropdownItem>
+                    <DropdownItem key="setting" onPress={onSettingsOpen}>
+                      设置
+                    </DropdownItem>
+                    <DropdownItem
+                      key="about"
+                      href={"https://github.com/LanceHE6/cyzht"}
+                    >
+                      关于
+                    </DropdownItem>
                     <DropdownItem key="logout" color="danger" onPress={logout}>
                       退出登录
                     </DropdownItem>
@@ -387,6 +461,128 @@ export default function HomePage() {
             </Card>
           </Card>
         )}
+
+        {/* 设置模态框 */}
+        <Modal isOpen={isSettingsOpen} size="2xl" onClose={onSettingsClose}>
+          <ModalContent>
+            <ModalHeader className="flex flex-col gap-1">设置</ModalHeader>
+            <ModalBody>
+              <Tabs
+                selectedKey={settingsTab}
+                onSelectionChange={(key) => setSettingsTab(key as string)}
+              >
+                <Tab
+                  key="general"
+                  title={
+                    <div className="flex items-center gap-2">
+                      <span>通用</span>
+                    </div>
+                  }
+                >
+                  <div className="p-4">
+                    <h3 className="text-lg font-medium mb-4">通用设置</h3>
+                    <div className="space-y-4">
+                      <Checkbox defaultSelected>启用黑暗模式</Checkbox>
+                      <Checkbox defaultSelected>显示通知</Checkbox>
+                    </div>
+                  </div>
+                </Tab>
+                <Tab
+                  key="security"
+                  title={
+                    <div className="flex items-center gap-2">
+                      <span>账号安全</span>
+                    </div>
+                  }
+                >
+                  <div className="p-4">
+                    <h3 className="text-lg font-medium mb-4">账号安全</h3>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span>修改密码</span>
+                        <Button size="sm" onPress={onChangePasswordOpen}>
+                          修改
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Tab>
+              </Tabs>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="primary" onPress={onSettingsClose}>
+                关闭
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* 修改密码模态框 */}
+        <Modal isOpen={isChangePasswordOpen} onClose={onChangePasswordClose}>
+          <ModalContent>
+            <ModalHeader className="flex flex-col gap-1">修改密码</ModalHeader>
+            <ModalBody>
+              <div className="space-y-4">
+                <Input
+                  isRequired
+                  label="旧密码"
+                  type="password"
+                  value={passwordData.oldPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      oldPassword: e.target.value,
+                    })
+                  }
+                />
+                <Input
+                  isRequired
+                  errorMessage="密码长度不能小于6"
+                  isInvalid={passwordData.newPassword.length < 6}
+                  label="新密码"
+                  minLength={6}
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      newPassword: e.target.value,
+                    })
+                  }
+                />
+                <Input
+                  isRequired
+                  errorMessage="密码不一致"
+                  isInvalid={
+                    passwordData.newPassword !== passwordData.confirmPassword
+                  }
+                  label="确认密码"
+                  minLength={6}
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="light" onPress={onChangePasswordClose}>
+                取消
+              </Button>
+              <Button
+                color="primary"
+                type="submit"
+                onPress={handlePasswordChange}
+              >
+                确认修改
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </div>
     </DefaultLayout>
   );

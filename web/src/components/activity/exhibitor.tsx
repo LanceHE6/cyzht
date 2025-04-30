@@ -24,16 +24,17 @@ import {
   ActivityInfoModal,
   ConfirmModal,
   NoticeModal,
-} from "./exhibitor-modal.tsx"; // 引入抽离的模态框组件
+} from "./exhibitor-modal.tsx";
 
 import { axiosInstanceWithAuth } from "@/utils/axios-instance.ts";
 import { HallIcon, NoticeIcon, SelectionIcon } from "@/components/icons.tsx";
 import { Toast } from "@/utils/utils.ts";
-import { LocalStorage } from "@/utils/utils.ts"; // 假设 LocalStorage 从这里导入
+import { LocalStorage } from "@/utils/utils.ts";
 
 interface ExhibitorProps {
   aid: string;
-  onExhibitorSelect?: (exhibitorId: string | null) => void; // 添加回调函数类型
+  onExhibitorSelect?: (exhibitorId: string | null) => void; // 参展商切换回调函数
+  unreadCounts?: { [key: string]: number }; // 未读消息数量
 }
 
 interface Exhibitor {
@@ -65,7 +66,7 @@ export interface Notice {
   };
 }
 
-const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
+const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCounts }) => {
   const [activity, setActivity] = useState<{
     name?: string;
     icon?: string;
@@ -80,16 +81,16 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
     exhibitors: true,
     joined: true,
   });
-  const [isCreator, setIsCreator] = useState(false); // 新增状态来判断是否为创建者
+  const [isCreator, setIsCreator] = useState(false); // 判断是否为创建者
   const [exhibitorCreators, setExhibitorCreators] = useState<{
     [key: string]: boolean;
   }>({}); // 判断是否为参展商创建者
 
   // 模态框状态
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // 新增状态用于控制展会详情模态框
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // 控制展会详情模态框
 
-  // 新增状态变量用于管理确认模态框
+  // 管理确认模态框
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     type: "delete" | "withdraw" | null;
@@ -103,7 +104,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
   //结束展会和退出展会的确认模态框
   const [endActivityModal, setEndActivityModal] = useState(false);
   const [withdrawActivityModal, setWithdrawActivityModal] = useState(false);
-  // 新增公告相关状态
+  // 公告相关状态
   const [notices, setNotices] = useState<Notice[]>([]);
 
   const {
@@ -458,6 +459,11 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
         >
           <div className="flex items-center w-full">
             <p className="font-medium text-medium truncate">展会大厅</p>
+            {unreadCounts && unreadCounts[aid] > 0 && (
+              <Chip className="ml-auto" color="danger" size="sm">
+                {unreadCounts[aid]}
+              </Chip>
+            )}
           </div>
         </ListboxItem>
         <ListboxItem
@@ -472,7 +478,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
           </div>
         </ListboxItem>
       </Listbox>
-      {/* 新增公告模态框 */}
+      {/* 公告模态框 */}
       <NoticeModal
         aid={aid}
         isOpen={isNoticeOpen}
@@ -509,6 +515,11 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect }) => {
                           {/* 限制文本宽度 */}
                           <p className="font-medium text-medium truncate">
                             {/* 添加truncate */}# {item.name}
+                            {unreadCounts && unreadCounts[item.id] > 0 && (
+                              <Chip className="ml-2" color="danger" size="sm">
+                                {unreadCounts[item.id]}
+                              </Chip>
+                            )}
                           </p>
                           <p className="text-sm text-gray-500 truncate">
                             {/* 添加truncate */}

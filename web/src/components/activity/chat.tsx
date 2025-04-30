@@ -93,6 +93,7 @@ export interface ChatProps {
     React.SetStateAction<"exhibitors" | "chat" | "member">
   >;
   onBack: () => void;
+  onNewMessage?: (message: Message) => void; // 新消息处理回调
 }
 
 const Chat: React.FC<ChatProps> = (props: ChatProps) => {
@@ -109,7 +110,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
-  let { aid, eid, onBack, setMobileView } = props;
+  let { aid, eid, onBack, setMobileView, onNewMessage } = props;
   const aidRef = useRef(aid);
   const eidRef = useRef(eid);
   const [exhibitorName, setExhibitorName] = useState<string | null>(null);
@@ -507,18 +508,37 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
   // WebSocket消息处理
   const handleWebSocketMessage = useCallback(
     (message: Message) => {
+      // 确保消息属于当前活动
+      if (message.activity.id !== aidRef.current) {
+        // 不属于当前聊天室的消息，通知父组件有新消息
+        if (onNewMessage) {
+          onNewMessage(message);
+        }
+
+        return;
+      }
+
+      const isHallMessage = message.exhibitor === null;
+      const isCurrentExhibitorMessage =
+        message.exhibitor?.id === eidRef.current;
+
+      // 判断是否应该接收此消息
       if (
-        message.activity.id === aidRef.current &&
-        (message.exhibitor?.id === eidRef.current || message.exhibitor === null)
+        (isHallMessage && eidRef.current === "0") ||
+        isCurrentExhibitorMessage
       ) {
         setMessages((prev) => [...prev, message]);
 
-        // 如果用户在底部，自动滚动到底部
+        // 自动滚动到底部或更新新消息计数
         if (isAtBottom) {
           setTimeout(() => scrollToBottom(), 100);
         } else {
-          // 否则增加新消息计数
           setNewMessagesCount((prev) => prev + 1);
+        }
+      } else {
+        // 不属于当前聊天室的消息，通知父组件有新消息
+        if (onNewMessage) {
+          onNewMessage(message);
         }
       }
     },
