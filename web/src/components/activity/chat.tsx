@@ -193,7 +193,7 @@ const Chat: React.FC<ChatProps> = (props: ChatProps) => {
         const prevScrollTop = container.scrollTop;
 
         // 添加延迟模拟网络请求
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 400));
 
         const response = await axiosInstanceWithAuth.get(
           `/api/v1/chat/${aid}/${eid}/msg`,
