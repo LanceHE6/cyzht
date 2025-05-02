@@ -2,6 +2,7 @@ package ws
 
 import (
 	"github.com/gorilla/websocket"
+	"server/pkg/logger"
 	"sync"
 )
 
@@ -26,6 +27,15 @@ func (uc *ClientManager) Add(userID int64, conn *websocket.Conn) {
 func (uc *ClientManager) Remove(userID int64) {
 	uc.mu.Lock()
 	defer uc.mu.Unlock()
+	// 关闭连接
+	conn := uc.connections[userID]
+	if conn != nil {
+		err := conn.Close()
+		if err != nil {
+			logger.Logger.Errorf("关闭连接失败: %s", err.Error())
+			return
+		}
+	}
 	delete(uc.connections, userID)
 }
 
