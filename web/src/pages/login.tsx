@@ -21,7 +21,15 @@ export default function Login() {
               src={cover1}
             />
             <div className="form flex flex-col items-center justify-center w-full">
-              <text className="text-6xl py-4">重邮展会通</text>
+              <div className={"flex items-center space-x-4"}>
+                <Image
+                  alt="Logo"
+                  className="xs:w-full w-16" // 响应式宽
+                  src="/favicon.svg"
+                  width={100}
+                />
+                <text className="xs:text-6xl text-4xl py-4">重邮展会通</text>
+              </div>
               <br />
               <Tabs aria-label="Options">
                 <Tab key="vc" className={"w-10/12"} title="验证码登录">
