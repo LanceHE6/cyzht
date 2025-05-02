@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   Avatar,
   AvatarIcon,
-  Badge,
   Button,
   Card,
   CardBody,
@@ -84,6 +83,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
 
       if (response.status === 200) {
         const userData = response.data.data;
+
         setUID(userData.id);
         setNickname(userData.nickname);
         setSex("" + userData.sex); // 将性别值转换为字符串
@@ -195,13 +195,7 @@ const UserProfilePopover: React.FC<UserInfoProps> = (props: any) => {
           >
             <CardHeader className="justify-between">
               <div className="flex gap-3">
-                <Badge
-                  color={user.online_status === 1 ? "success" : "default"}
-                  content=""
-                  placement="bottom-right"
-                >
-                  {avatar}
-                </Badge>
+                {avatar}
                 <div className="flex flex-col items-start justify-center">
                   <h4 className="text-small font-semibold leading-none text-default-600">
                     {nickname}
