@@ -53,8 +53,6 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
     }
 
     if (response.data.code === 0) {
-      console.log("fetchMembers", response.data.data.rows);
-
       return response.data.data.rows.map((row: any) => ({
         id: row.user.id,
         user: row.user,
@@ -77,6 +75,12 @@ const Member: React.FC<MemberProps> = (props: MemberProps) => {
     };
 
     fetchData();
+
+    // 设置定时器，每2秒刷新一次
+    const intervalId = setInterval(fetchData, 2000); // 每5秒请求一次
+
+    // 组件卸载时清除定时器
+    return () => clearInterval(intervalId);
   }, [aid, eid]);
 
   return (
