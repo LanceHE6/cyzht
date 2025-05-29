@@ -7,7 +7,7 @@ import (
 	"server/pkg/response"
 )
 
-// DeleteActivity 删除活动
+// DeleteActivity 删除展会
 func (a *activityHandler) DeleteActivity(ctx *gin.Context) {
 	type delActivityRequest struct {
 		ID int64 `json:"id,string" binding:"required"`
