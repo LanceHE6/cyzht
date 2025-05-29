@@ -18,7 +18,7 @@ import {
   Tooltip,
   useDisclosure,
 } from "@heroui/react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { formatDate } from "@/utils/datetime.ts";
 import { Notice } from "@/components/activity/exhibitor.tsx";
@@ -48,18 +48,22 @@ export const AddExhibitorModal: React.FC<{
         <ModalHeader className="flex flex-col gap-1">添加参展商</ModalHeader>
         <ModalBody>
           <Input
+            isRequired
             aria-label={"exhibitorName"}
             label="参展商名称"
+            labelPlacement={"outside"}
             placeholder="请输入参展商名称"
             value={exhibitorName}
-            onChange={(e) => setExhibitorName(e.target.value)}
+            onValueChange={setExhibitorName}
           />
           <Textarea
+            isRequired
             aria-label={"exhibitorIntroduce"}
             label="参展商介绍"
+            labelPlacement={"outside"}
             placeholder="请输入参展商介绍"
             value={exhibitorIntroduce}
-            onChange={(e) => setExhibitorIntroduce(e.target.value)}
+            onValueChange={setExhibitorIntroduce}
           />
         </ModalBody>
         <ModalFooter>
@@ -75,7 +79,7 @@ export const AddExhibitorModal: React.FC<{
   );
 };
 
-// 新增确认模态框组件
+// 确认模态框组件
 export const ConfirmModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
@@ -276,8 +280,12 @@ export const NoticeModal: React.FC<NoticeModalProps> = ({
       }
       onRefresh(); // 刷新列表
       onFormClose();
+
+      return 0;
     } catch (error) {
       Toast.danger("操作失败", "请稍后再试");
+
+      return -1;
     }
   };
 
@@ -451,7 +459,7 @@ export const NoticeModal: React.FC<NoticeModalProps> = ({
 interface NoticeFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (title: string, content: string) => void;
+  onSubmit: (title: string, content: string) => Promise<0 | -1>;
   notice?: Notice | null;
 }
 
@@ -464,13 +472,19 @@ export const NoticeFormModal: React.FC<NoticeFormModalProps> = ({
   const [title, setTitle] = useState(notice?.title || "");
   const [content, setContent] = useState(notice?.content || "");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title || !content) {
       Toast.danger("请输入标题和内容", null);
 
       return;
     }
-    onSubmit(title, content);
+    const result = await onSubmit(title, content);
+
+    // 发布成功清空表单
+    if (result === 0) {
+      setContent("");
+      setTitle("");
+    }
     onClose();
   };
 
