@@ -9,7 +9,7 @@ func GetResetPasswordEmailHTML(account string, verifyCode string) string {
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <div class="content-div">
     <div style="border-style: solid; border-width: thin; border-color:#dadce0; border-radius: 8px; padding: 40px 20px;" align="center" class="mdv2rw">
-        <img src="https://jsd.onmicrosoft.cn/gh/LanceHE6/PicGo@main/imgs/WMS-Logo.png" width="74" height="74" aria-hidden="true" style="margin-bottom: 16px;">
+        <img src=${icon} width="74" height="74" aria-hidden="true" style="margin-bottom: 16px;">
         <div style="">
             <div style="font-size: 24px; color: red">重置密码通知</div>
     </div>
@@ -35,6 +35,7 @@ func GetResetPasswordEmailHTML(account string, verifyCode string) string {
     }
 </style>
 `
+	template = strings.Replace(template, "${icon}", ICON, -1)
 	template = strings.Replace(template, "${account}", account, -1)
 	template = strings.Replace(template, "${code}", verifyCode, -1)
 	return template
