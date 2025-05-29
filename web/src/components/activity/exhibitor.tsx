@@ -66,7 +66,12 @@ export interface Notice {
   };
 }
 
-const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCounts }) => {
+const Exhibitor: React.FC<ExhibitorProps> = ({
+  aid,
+  onExhibitorSelect,
+  unreadCounts,
+}) => {
+  const [isActivityJoined, setIsActivityJoined] = useState(false);
   const [activity, setActivity] = useState<{
     name?: string;
     icon?: string;
@@ -87,7 +92,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
   }>({}); // 判断是否为参展商创建者
 
   // 模态框状态
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isAddExhibitorModalOpen, setIsAddExhibitorModalOpen] = useState(false); // 控制添加参展商模态框
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // 控制展会详情模态框
 
   // 管理确认模态框
@@ -133,70 +138,89 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // 获取当前用户信息
-        const currentUser = LocalStorage.getUser();
-        const currentUserId = currentUser?.id;
+  const fetchData = async () => {
+    try {
+      // 获取当前用户信息
+      const currentUser = LocalStorage.getUser();
+      const currentUserId = currentUser?.id;
 
-        // 获取展会信息
-        const activityRes = await axiosInstanceWithAuth(
-          `/api/v1/activity/search`,
-          {
-            params: { id: aid },
-          },
-        );
+      // 获取展会信息
+      const activityRes = await axiosInstanceWithAuth(
+        `/api/v1/activity/search`,
+        {
+          params: { id: aid },
+        },
+      );
 
-        const activityData = activityRes.data.data.rows[0];
+      const activityData = activityRes.data.data.rows[0];
 
-        setActivity(activityData);
-        setLoading((prev) => ({ ...prev, activity: false }));
+      setActivity(activityData);
+      setLoading((prev) => ({ ...prev, activity: false }));
 
-        // 判断当前用户是否是活动创建者
-        setIsCreator(currentUserId === activityData.creator.id);
+      // 判断当前用户是否是活动创建者
+      setIsCreator(currentUserId === activityData.creator.id);
 
-        // 获取所有参展商
-        const exhibitorsRes = await axiosInstanceWithAuth(
-          `/api/v1/exhibitor/${aid}/list`,
-        );
+      // 获取所有参展商
+      const exhibitorsRes = await axiosInstanceWithAuth(
+        `/api/v1/exhibitor/${aid}/list`,
+      );
 
-        const exhibitorsData = exhibitorsRes.data.data.rows;
+      const exhibitorsData = exhibitorsRes.data.data.rows;
 
-        setAllExhibitors(exhibitorsData);
-        setLoading((prev) => ({ ...prev, exhibitors: false }));
+      setAllExhibitors(exhibitorsData);
+      setLoading((prev) => ({ ...prev, exhibitors: false }));
 
-        // 获取已加入的参展商
-        const joinedRes = await axiosInstanceWithAuth(
-          `/api/v1/exhibitor/${aid}/joined`,
-        );
+      // 获取已加入的参展商
+      const joinedRes = await axiosInstanceWithAuth(
+        `/api/v1/exhibitor/${aid}/joined`,
+      );
 
-        const joinedData = joinedRes.data.data.rows;
+      const joinedData = joinedRes.data.data.rows;
 
-        setJoinedExhibitors(joinedData);
-        setLoading((prev) => ({ ...prev, joined: false }));
+      setJoinedExhibitors(joinedData);
+      setLoading((prev) => ({ ...prev, joined: false }));
 
-        // 判断当前用户是否是每个参展商的创建者
-        const creatorMap: { [key: string]: boolean } = {};
+      // 判断当前用户是否是每个参展商的创建者
+      const creatorMap: { [key: string]: boolean } = {};
 
-        exhibitorsData.forEach((row: any) => {
-          creatorMap[row.id] = currentUserId === row.creator?.id;
-        });
+      exhibitorsData.forEach((row: any) => {
+        creatorMap[row.id] = currentUserId === row.creator?.id;
+      });
 
-        setExhibitorCreators(creatorMap);
-      } catch (err) {
-        console.error("加载失败", err);
-        setLoading({
-          activity: false,
-          exhibitors: false,
-          joined: false,
+      setExhibitorCreators(creatorMap);
+    } catch (err) {
+      console.error("加载失败", err);
+      setLoading({
+        activity: false,
+        exhibitors: false,
+        joined: false,
+      });
+    }
+  };
+
+  const fetchJoinedData = async () => {
+    try {
+      const response = await axiosInstanceWithAuth.get(
+        `/api/v1/activity/joined`,
+      );
+
+      if (response.data.code === 0) {
+        response.data.data.rows.map((row: any) => {
+          if (row.activity.id === aid) {
+            setIsActivityJoined(true);
+          }
         });
       }
-    };
+    } catch (error) {
+      console.error("获取已加入展会信息失败", error);
+    }
+  };
 
+  useEffect(() => {
     fetchData().then(() => {
       console.log("数据加载完成");
     });
+    fetchJoinedData();
     fetchNotices();
   }, [aid]);
 
@@ -280,7 +304,11 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
 
       if (response.data.code === 0) {
         Toast.success("添加参展商成功", null);
-        onClose();
+        // 刷新数据
+        fetchData().then(() => {
+          console.log("数据刷新完成");
+        });
+        setIsAddExhibitorModalOpen(false);
       } else {
         Toast.danger("添加参展商失败", response.data.msg);
       }
@@ -346,7 +374,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
       if (response.data.code === 0) {
         Toast.success("结束展会成功", null);
         window.location.reload();
-        onClose();
+        setEndActivityModal(false);
       } else {
         Toast.danger("结束展会失败", response.data.msg);
       }
@@ -395,6 +423,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
                     <SelectionIcon size={20} />
                   </div>
                 }
+                isDisabled={!isActivityJoined}
                 radius="sm"
                 variant="shadow"
               >
@@ -406,7 +435,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
             <DropdownMenu aria-label="Static Actions">
               {isCreator ? (
                 <>
-                  <DropdownItem key="add" onPress={onOpen}>
+                  <DropdownItem key="add" onPress={() => setIsAddExhibitorModalOpen(true)}>
                     添加参展商
                   </DropdownItem>
                   <DropdownItem
@@ -426,7 +455,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
                 </>
               ) : (
                 <>
-                  <DropdownItem key="join" onPress={onOpen}>
+                  <DropdownItem key="join" onPress={() => setIsAddExhibitorModalOpen(true)}>
                     添加参展商
                   </DropdownItem>
                   <DropdownItem
@@ -453,6 +482,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
       <Listbox>
         <ListboxItem
           className="flex items-center"
+          isDisabled={!isActivityJoined}
           startContent={<HallIcon size={32} />}
           textValue="展会大厅"
           onPress={() => handleExhibitorClick(null)}
@@ -469,6 +499,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
         <ListboxItem
           className="flex items-center"
           endContent={<Chip color="primary">{notices.length}</Chip>}
+          isDisabled={!isActivityJoined}
           startContent={<NoticeIcon size={32} />}
           textValue="公告"
           onPress={onNoticeOpen}
@@ -533,12 +564,13 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
                               <Button
                                 isIconOnly
                                 endContent={<SelectionIcon size={20} />}
+                                isDisabled={!isActivityJoined}
                                 radius="sm"
                                 variant="light"
                               />
                             </DropdownTrigger>
                             <DropdownMenu aria-label="Static Actions">
-                              <DropdownItem key="copy">详情</DropdownItem>
+                              {/*<DropdownItem key="copy">详情</DropdownItem>*/}
                               <DropdownItem
                                 key="delete"
                                 className="text-danger"
@@ -607,6 +639,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
                             <Button
                               isIconOnly
                               endContent={<SelectionIcon size={20} />}
+                              isDisabled={!isActivityJoined}
                               radius="sm"
                               variant="light"
                             />
@@ -620,7 +653,7 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
                             >
                               加入
                             </DropdownItem>
-                            <DropdownItem key="info">详情</DropdownItem>
+                            {/*<DropdownItem key="info">详情</DropdownItem>*/}
                           </DropdownMenu>
                         </Dropdown>
                       </div>
@@ -640,8 +673,8 @@ const Exhibitor: React.FC<ExhibitorProps> = ({ aid, onExhibitorSelect, unreadCou
       </Accordion>
       {/* 添加参展商模态框 */}
       <AddExhibitorModal
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={isAddExhibitorModalOpen}
+        onClose={() => setIsAddExhibitorModalOpen(false)}
         onSubmit={handleSubmitExhibitor}
       />
       {/* 展会详情模态框 */}
